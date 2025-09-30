@@ -1,0 +1,22 @@
+# Environments
+.venv/
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Build / Distribution
+dist/
+build/
+
+# Editor / IDE
+.vscode/
+.idea/
+
+# Streamlit
+.streamlit/
+
+# OS
+.DS_Store
