@@ -1,21 +1,33 @@
-# telemetry-anomdet
+<h2 align="center">Telemetry Anomaly Detection Toolkit</h2>
 
-Telemetry Anomaly Detection Toolkit  
 A lightweight Python package for preprocessing, feature extraction, and unsupervised anomaly detection on spacecraft telemetry. Includes a Streamlit dashboard for quick visualization, with future CLI and Docker support planned.
 
----
+## Overview
+TADT aims to simplify the pipeline of:
 
-## Quick Start
+- Ingesting heterogeneous telemetry
+- Running unsupervised anomaly detection
+- Visualizing results via Streamlight dashboard
+- Extracting features (statistical, spectral, rolling window)
+- Applying preprocessing (resampling, noise filtering, interpolation)
 
-```bash
-# clone the repository
-git clone https://github.com/JulioAnzaldo/telemetry-anomdet
-cd telemetry-anomdet
+## System requirements
 
-# create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate   # (Windows: .\.venv\Scripts\Activate.ps1)
+1. MacOS, Linux, or Windows with WSL
+2. [git](https://git-scm.com/)
+3. [Python 3.9+](https://www.python.org/downloads/), [virtual environments](https://docs.python.org/3/library/venv.html), and [PIP](https://pypi.org/project/pip/)
 
-# install dependencies
-pip install -e .
+## Getting Help
+
+### Discussions
+To suggest improvements, or ask for help, please see [GitHub Discussions](https://github.com/JulioAnzaldo/telemetry-anomdet/discussions)
+
+### Bug reports
+To submit a report on any bugs or issues, [open an issue here](https://github.com/JulioAnzaldo/telemetry-anomdet/issues)
+
+## Getting Started
+
+To get started with telemetry-anomdet, install the toolking with:
+```
+pip install telemetry-anomdet
 ```
