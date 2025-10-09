@@ -15,6 +15,14 @@ dependencies = [
   "click>=8.1",
   "streamlit>=1.36",
 ]
+keywords = ["telemetry", "anomaly-detection", "machine-learning", "python"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Topic :: Software Development :: Libraries",
+  "Development Status :: 1 - Planning",
+  "License :: OSI Approved :: Apache Software License"
+]
 
 [project.optional-dependencies]
 dev = [
