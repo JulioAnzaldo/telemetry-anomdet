@@ -8,6 +8,8 @@ on:
 jobs:
   build-and-test:
     name: Run Tests and Build Docs
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
 
     steps:
@@ -42,7 +44,7 @@ jobs:
 
       # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v6.4.1
+        uses: peaceiris/actions-gh-pages@v4.0.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs/build/html
