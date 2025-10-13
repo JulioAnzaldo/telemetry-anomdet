@@ -11,6 +11,7 @@
     <script src="../_static/documentation_options.js?v=d45e8c67"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/api/telemetry_anomdet.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="prev" title="Real-Time Anomaly Detection Example" href="../tutorials/real_time_example.html" />
@@ -34,14 +35,54 @@
   <section id="telemetry-anomdet-api-reference">
 <h1>Telemetry Anomdet API Reference<a class="headerlink" href="#telemetry-anomdet-api-reference" title="Link to this heading">¶</a></h1>
 <p>This page documents the modules and classes available in the telemetry-anomdet package.</p>
-<section id="preprocessing-module">
-<h2>Preprocessing Module<a class="headerlink" href="#preprocessing-module" title="Link to this heading">¶</a></h2>
+<section id="module-telemetry_anomdet.preprocessing">
+<span id="preprocessing-module"></span><h2>Preprocessing Module<a class="headerlink" href="#module-telemetry_anomdet.preprocessing" title="Link to this heading">¶</a></h2>
+<p>Preprocessing utilities for telemetry data.</p>
+<p>This module handles data cleaning, normalization,
+and other transformations before feature extraction.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.preprocessing.clean">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.preprocessing.</span></span><span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#telemetry_anomdet.preprocessing.clean" title="Link to this definition">¶</a></dt>
+<dd><p>Return cleaned version of the input data (placeholder).</p>
+</dd></dl>
+
 </section>
-<section id="features-module">
-<h2>Features Module<a class="headerlink" href="#features-module" title="Link to this heading">¶</a></h2>
+<section id="module-telemetry_anomdet.features">
+<span id="features-module"></span><h2>Features Module<a class="headerlink" href="#module-telemetry_anomdet.features" title="Link to this heading">¶</a></h2>
+<p>Feature extraction methods for telemetry analysis.</p>
+<p>This module defines functions to compute relevant
+features from preprocessed telemetry data.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.features.extract_features">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.features.</span></span><span class="sig-name descname"><span class="pre">extract_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#telemetry_anomdet.features.extract_features" title="Link to this definition">¶</a></dt>
+<dd><p>Return extracted features (placeholder).</p>
+</dd></dl>
+
 </section>
-<section id="models-module">
-<h2>Models Module<a class="headerlink" href="#models-module" title="Link to this heading">¶</a></h2>
+<section id="module-telemetry_anomdet.models">
+<span id="models-module"></span><h2>Models Module<a class="headerlink" href="#module-telemetry_anomdet.models" title="Link to this heading">¶</a></h2>
+<p>Model definitions and training logic.</p>
+<p>This module provides classes for fitting and predicting
+anomalies in telemetry data.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.DummyModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.</span></span><span class="sig-name descname"><span class="pre">DummyModel</span></span><a class="headerlink" href="#telemetry_anomdet.models.DummyModel" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Minimal model stub for import and test purposes.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.DummyModel.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#telemetry_anomdet.models.DummyModel.fit" title="Link to this definition">¶</a></dt>
+<dd><p>Pretend to fit model; return self.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.DummyModel.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#telemetry_anomdet.models.DummyModel.predict" title="Link to this definition">¶</a></dt>
+<dd><p>Return zero predictions (placeholder).</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 
@@ -67,9 +108,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/real_time_example.html">Real-Time Anomaly Detection Example</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Telemetry Anomdet API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#preprocessing-module">Preprocessing Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#features-module">Features Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#models-module">Models Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-telemetry_anomdet.preprocessing">Preprocessing Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-telemetry_anomdet.features">Features Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-telemetry_anomdet.models">Models Module</a></li>
 </ul>
 </li>
 </ul>
