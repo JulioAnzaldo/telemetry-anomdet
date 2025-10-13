@@ -1,0 +1,20 @@
+# Testing and linting
+pytest
+pytest-cov
+flake8
+black
+isort
+mypy
+
+# Docs
+sphinx
+sphinx-rtd-theme
+sphinx-autodoc-typehints
+
+# Packaging / publishing
+build
+twine
+
+# notebooks and visualization
+jupyter
+matplotlib
