@@ -8,6 +8,8 @@ on:
 jobs:
   build-and-test:
     name: Run Tests and Build Docs
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
 
     steps:
