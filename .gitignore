@@ -16,6 +16,9 @@ dist/
 *.egg
 MANIFEST
 
+# Docs
+docs/build/
+
 # Test / coverage
 .pytest_cache/
 .coverage
