@@ -2,7 +2,7 @@
 
 A lightweight Python package for preprocessing, feature extraction, and unsupervised anomaly detection on spacecraft telemetry. Includes a Streamlit dashboard for quick visualization, with future CLI and Docker support planned.
 
-[![Documentation](https://img.shields.io/badge/docs-Online-blue)](https://your-username.github.io/telemetry-anomdet/)
+[![Documentation](https://img.shields.io/badge/docs-Online-blue)](https://julioanzaldo.github.io/telemetry-anomdet/)
 
 ## Overview
 TADT aims to simplify the pipeline of:
