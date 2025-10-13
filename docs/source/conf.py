@@ -6,6 +6,10 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../../src'))
+
 project = 'telemetry_anomdet'
 copyright = '2025, Julio Anzaldo'
 author = 'Julio Anzaldo'
@@ -14,7 +18,10 @@ release = '0.0.1'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
+extensions = [
+    'sphinx.ext.autodoc',  # automatically document code
+    'sphinx.ext.napoleon', # supports Google-style and NumPy-style docstrings
+]
 
 templates_path = ['_templates']
 exclude_patterns = []
@@ -27,3 +34,4 @@ root_doc = 'index'
 
 html_theme = 'alabaster'
 html_static_path = ['_static']
+html_baseurl = "https://julioanzaldo.github.io/telemetry-anomdet/"
