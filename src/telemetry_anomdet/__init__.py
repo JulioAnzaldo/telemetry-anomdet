@@ -12,3 +12,5 @@ Usage:
     import telemetry_anomdet
     # Access modules like telemetry_anomdet.preprocessing
 """
+
+from .version import __version__
