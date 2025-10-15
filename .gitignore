@@ -34,9 +34,8 @@ htmlcov/
 .vscode/
 .idea/
 
-# Jupyter / Streamlit
+# Jupyter
 .ipynb_checkpoints/
-.streamlit/
 
 # Logs and misc
 *.log
