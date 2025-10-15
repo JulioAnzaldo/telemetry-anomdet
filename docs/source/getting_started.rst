@@ -84,13 +84,26 @@ Create a new branch for your specific feature or bug fix. This keeps your change
 
     git switch -c feature/my-new-feature
 
-**3. Make and commit your changes:**
-After making your changes, commit them with a descriptive message.
+**3. Install the package locally in editable mode:**
+
+The package can be installed with different sets of dependencies. The core library supports CSV files by default. Optional dependencies are available for development, documentation, and CCSDS support.
 
 .. code-block:: bash
 
-    git add .
-    git commit -m "feat: Add new feature"
+    # Install the core library with CSV support
+    pip install -e .
+
+    # Install with optional CCSDS support
+    pip install -e .[ccsds]
+
+    # Install development dependencies (tests, formatting, linting)
+    pip install -e .[dev]
+
+    # Install documentation dependencies (Sphinx, themes, etc.)
+    pip install -e .[docs]
+
+    # Install everything (recommended for contributors)
+    pip install -e .[dev-all]
 
 **4. Push your branch and open a pull request:**
 Push your branch to the remote repository and open a pull request against the ``dev`` branch.
