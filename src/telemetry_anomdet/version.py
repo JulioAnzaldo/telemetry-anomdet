@@ -1,7 +1,7 @@
 # telemetry_anomdet/version.py
 
 """
-Version information for telemetry-anomdet.
+Package version.
 """
 
 __version__ = "0.0.1"

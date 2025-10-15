@@ -25,6 +25,9 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
+ccsds = [
+  "ccsdspy"
+]
 dev = [
   "pytest>=7.0",
 ]

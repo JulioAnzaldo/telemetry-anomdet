@@ -19,9 +19,14 @@ release = '0.0.1'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.autodoc',  # automatically document code
-    'sphinx.ext.napoleon', # supports Google-style and NumPy-style docstrings
+    'sphinx.ext.autodoc',     # automatically document code
+    'sphinx.ext.napoleon',    # supports Google-style and NumPy-style docstrings
+    'sphinx.ext.viewcode',    # links to source
+    'sphinx.ext.autosummary',
 ]
+
+autodoc_member_order = 'bysource'
+autosummary_generate = True
 
 templates_path = ['_templates']
 exclude_patterns = []
