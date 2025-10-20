@@ -1,13 +1,21 @@
-name: Build and Deploy Docs
+name: Docs
 
 on:
   push:
     branches:
       - main
+    paths:
+      # Run when documentation changes
+      - 'docs/**'
+      # Run when Python source changes
+      - 'src/**'
+      # Run when pyproject or workflow changes
+      - 'pyproject.toml'
+      - '.github/workflows/docs.yml'
 
 jobs:
   build-and-test:
-    name: Run Tests and Build Docs
+    name: Build and Deploy Docs
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -32,15 +40,15 @@ jobs:
         run: |
           python -m pip install -e .[dev,docs,ccsds]
 
-      # Run tests
-      - name: Run pytest
-        run: pytest -v
-
       # Build Sphinx docs
       - name: Build Sphinx docs
         run: |
           cd docs
-          make html
+          if [ -f Makefile ]; then
+            make html
+          else
+            sphinx-build -b html . _build/html
+          fi
 
       # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages

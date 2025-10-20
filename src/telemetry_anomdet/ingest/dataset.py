@@ -8,8 +8,12 @@ This module a lightweight class called TelemetryDataset that wraps telemetry dat
 
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Self
 import pandas as pd
+
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self
 
 @dataclass
 class TelemetryDataset:

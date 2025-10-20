@@ -24,11 +24,14 @@ def test_version_present():
 
 def test_core_modules_import():
     """Core submodules import without error."""
-    modules = {
-        "telemetry_anomdet.preprocessing",
-        "telemetry_anomdet.features",
+    modules = [
+        "telemetry_anomdet.ingest",
+        "telemetry_anomdet.preprocessing.preprocessing",
+        "telemetry_anomdet.feature_extraction.features",
         "telemetry_anomdet.models",
-    }
+        "telemetry_anomdet.models.supervised",
+        "telemetry_anomdet.models.unsupervised",
+    ]
 
     for m in modules:
         mod = importlib.import_module(m)
