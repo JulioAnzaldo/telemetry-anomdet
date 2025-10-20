@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Supervised Models &#8212; telemetry_anomdet 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/api/models/supervised.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Unsupervised Models" href="unsupervised.html" />
+    <link rel="prev" title="Base Models" href="base.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-telemetry_anomdet.models.supervised">
+<span id="supervised-models"></span><h1>Supervised Models<a class="headerlink" href="#module-telemetry_anomdet.models.supervised" title="Permalink to this heading">¶</a></h1>
+<p>Supervised models (labelled data).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.supervised.NaiveBayesClassifier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.supervised.</span></span><span class="sig-name descname"><span class="pre">NaiveBayesClassifier</span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/supervised/bayes.html#NaiveBayesClassifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.supervised.NaiveBayesClassifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="base.html#telemetry_anomdet.models.base.BaseModel" title="telemetry_anomdet.models.base.BaseModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></a></p>
+<p>Gaussian Naive Bayes classifier wrapper.</p>
+<p>Parameters:
+config:</p>
+<blockquote>
+<div><p>Optional dictionary passed to the underlying sklearn classifier.</p>
+</div></blockquote>
+</dd></dl>
+
+<span class="target" id="module-telemetry_anomdet.models.supervised.bayes"></span><p>Simple supervised models (examples).</p>
+<p>This file contains a small Naive Bayes classifier wrapper that follows the package
+BaseModel style (fit/predict).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.supervised.bayes.NaiveBayesClassifier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.supervised.bayes.</span></span><span class="sig-name descname"><span class="pre">NaiveBayesClassifier</span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/supervised/bayes.html#NaiveBayesClassifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.supervised.bayes.NaiveBayesClassifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="base.html#telemetry_anomdet.models.base.BaseModel" title="telemetry_anomdet.models.base.BaseModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></a></p>
+<p>Gaussian Naive Bayes classifier wrapper.</p>
+<p>Parameters:
+config:</p>
+<blockquote>
+<div><p>Optional dictionary passed to the underlying sklearn classifier.</p>
+</div></blockquote>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">telemetry_anomdet</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/real_time_example.html">Real-Time Anomaly Detection Example</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../ingest.html">Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessing.html">Preprocessing Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature_extraction.html">Feature Extraction Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="base.html">Base Models</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Supervised Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.models.supervised.NaiveBayesClassifier"><code class="docutils literal notranslate"><span class="pre">NaiveBayesClassifier</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.models.supervised.bayes.NaiveBayesClassifier"><code class="docutils literal notranslate"><span class="pre">NaiveBayesClassifier</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="unsupervised.html">Unsupervised Models</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="base.html" title="previous chapter">Base Models</a></li>
+      <li>Next: <a href="unsupervised.html" title="next chapter">Unsupervised Models</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Julio Anzaldo.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../../_sources/api/models/supervised.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

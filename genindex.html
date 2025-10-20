@@ -1,15 +1,19 @@
+
 <!DOCTYPE html>
 
-<html lang="en" data-content_root="./">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Index &#8212; telemetry_anomdet 0.0.1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
-    <script src="_static/documentation_options.js?v=d45e8c67"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/genindex.html" />
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
@@ -34,27 +38,29 @@
 <h1 id="index">Index</h1>
 
 <div class="genindex-jumpbox">
- <a href="#C"><strong>C</strong></a>
- | <a href="#D"><strong>D</strong></a>
+ <a href="#B"><strong>B</strong></a>
+ | <a href="#C"><strong>C</strong></a>
  | <a href="#E"><strong>E</strong></a>
- | <a href="#F"><strong>F</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
- | <a href="#P"><strong>P</strong></a>
+ | <a href="#N"><strong>N</strong></a>
+ | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  
 </div>
-<h2 id="C">C</h2>
+<h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/telemetry_anomdet.html#telemetry_anomdet.preprocessing.clean">clean() (in module telemetry_anomdet.preprocessing)</a>
+      <li><a href="api/models/base.html#telemetry_anomdet.models.base.BaseModel">BaseModel (class in telemetry_anomdet.models.base)</a>
 </li>
   </ul></td>
 </tr></table>
 
-<h2 id="D">D</h2>
+<h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/telemetry_anomdet.html#telemetry_anomdet.models.DummyModel">DummyModel (class in telemetry_anomdet.models)</a>
+      <li><a href="api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.clean">clean() (in module telemetry_anomdet.preprocessing.preprocessing)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -62,15 +68,31 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/telemetry_anomdet.html#telemetry_anomdet.features.extract_features">extract_features() (in module telemetry_anomdet.features)</a>
+      <li><a href="api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.extract_features">extract_features() (in module telemetry_anomdet.feature_extraction.features)</a>
 </li>
   </ul></td>
 </tr></table>
 
-<h2 id="F">F</h2>
+<h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/telemetry_anomdet.html#telemetry_anomdet.models.DummyModel.fit">fit() (telemetry_anomdet.models.DummyModel method)</a>
+      <li><a href="api/models/unsupervised.html#telemetry_anomdet.models.unsupervised.IsolationForestModel">IsolationForestModel (class in telemetry_anomdet.models.unsupervised)</a>
+
+      <ul>
+        <li><a href="api/models/unsupervised.html#telemetry_anomdet.models.unsupervised.isolation_forest.IsolationForestModel">(class in telemetry_anomdet.models.unsupervised.isolation_forest)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.ccsds_loader.load_from_ccsds">load_from_ccsds() (in module telemetry_anomdet.ingest.ccsds_loader)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.csv_loader.load_from_csv">load_from_csv() (in module telemetry_anomdet.ingest.csv_loader)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -82,20 +104,44 @@
     module
 
       <ul>
-        <li><a href="api/telemetry_anomdet.html#module-telemetry_anomdet.features">telemetry_anomdet.features</a>
+        <li><a href="api/feature_extraction.html#module-telemetry_anomdet.feature_extraction.features">telemetry_anomdet.feature_extraction.features</a>
 </li>
-        <li><a href="api/telemetry_anomdet.html#module-telemetry_anomdet.models">telemetry_anomdet.models</a>
+        <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.ccsds_loader">telemetry_anomdet.ingest.ccsds_loader</a>
 </li>
-        <li><a href="api/telemetry_anomdet.html#module-telemetry_anomdet.preprocessing">telemetry_anomdet.preprocessing</a>
+        <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.csv_loader">telemetry_anomdet.ingest.csv_loader</a>
+</li>
+        <li><a href="api/models/base.html#module-telemetry_anomdet.models.base">telemetry_anomdet.models.base</a>
+</li>
+        <li><a href="api/models/supervised.html#module-telemetry_anomdet.models.supervised">telemetry_anomdet.models.supervised</a>
+</li>
+        <li><a href="api/models/supervised.html#module-telemetry_anomdet.models.supervised.bayes">telemetry_anomdet.models.supervised.bayes</a>
+</li>
+        <li><a href="api/models/unsupervised.html#module-telemetry_anomdet.models.unsupervised">telemetry_anomdet.models.unsupervised</a>
+</li>
+        <li><a href="api/models/unsupervised.html#module-telemetry_anomdet.models.unsupervised.isolation_forest">telemetry_anomdet.models.unsupervised.isolation_forest</a>
+</li>
+        <li><a href="api/preprocessing.html#module-telemetry_anomdet.preprocessing.preprocessing">telemetry_anomdet.preprocessing.preprocessing</a>
 </li>
       </ul></li>
   </ul></td>
 </tr></table>
 
-<h2 id="P">P</h2>
+<h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/telemetry_anomdet.html#telemetry_anomdet.models.DummyModel.predict">predict() (telemetry_anomdet.models.DummyModel method)</a>
+      <li><a href="api/models/supervised.html#telemetry_anomdet.models.supervised.NaiveBayesClassifier">NaiveBayesClassifier (class in telemetry_anomdet.models.supervised)</a>
+
+      <ul>
+        <li><a href="api/models/supervised.html#telemetry_anomdet.models.supervised.bayes.NaiveBayesClassifier">(class in telemetry_anomdet.models.supervised.bayes)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.dataset.TelemetryDataset.synthetic">synthetic() (telemetry_anomdet.ingest.dataset.TelemetryDataset class method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -104,28 +150,74 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li>
-    telemetry_anomdet.features
+    telemetry_anomdet.feature_extraction.features
 
       <ul>
-        <li><a href="api/telemetry_anomdet.html#module-telemetry_anomdet.features">module</a>
+        <li><a href="api/feature_extraction.html#module-telemetry_anomdet.feature_extraction.features">module</a>
 </li>
       </ul></li>
       <li>
-    telemetry_anomdet.models
+    telemetry_anomdet.ingest.ccsds_loader
 
       <ul>
-        <li><a href="api/telemetry_anomdet.html#module-telemetry_anomdet.models">module</a>
+        <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.ccsds_loader">module</a>
+</li>
+      </ul></li>
+      <li>
+    telemetry_anomdet.ingest.csv_loader
+
+      <ul>
+        <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.csv_loader">module</a>
+</li>
+      </ul></li>
+      <li>
+    telemetry_anomdet.models.base
+
+      <ul>
+        <li><a href="api/models/base.html#module-telemetry_anomdet.models.base">module</a>
+</li>
+      </ul></li>
+      <li>
+    telemetry_anomdet.models.supervised
+
+      <ul>
+        <li><a href="api/models/supervised.html#module-telemetry_anomdet.models.supervised">module</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li>
-    telemetry_anomdet.preprocessing
+    telemetry_anomdet.models.supervised.bayes
 
       <ul>
-        <li><a href="api/telemetry_anomdet.html#module-telemetry_anomdet.preprocessing">module</a>
+        <li><a href="api/models/supervised.html#module-telemetry_anomdet.models.supervised.bayes">module</a>
 </li>
       </ul></li>
+      <li>
+    telemetry_anomdet.models.unsupervised
+
+      <ul>
+        <li><a href="api/models/unsupervised.html#module-telemetry_anomdet.models.unsupervised">module</a>
+</li>
+      </ul></li>
+      <li>
+    telemetry_anomdet.models.unsupervised.isolation_forest
+
+      <ul>
+        <li><a href="api/models/unsupervised.html#module-telemetry_anomdet.models.unsupervised.isolation_forest">module</a>
+</li>
+      </ul></li>
+      <li>
+    telemetry_anomdet.preprocessing.preprocessing
+
+      <ul>
+        <li><a href="api/preprocessing.html#module-telemetry_anomdet.preprocessing.preprocessing">module</a>
+</li>
+      </ul></li>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.dataset.TelemetryDataset">TelemetryDataset (class in telemetry_anomdet.ingest.dataset)</a>
+</li>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.dataset.TelemetryDataset.to_dataframe">to_dataframe() (telemetry_anomdet.ingest.dataset.TelemetryDataset class method)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -135,7 +227,7 @@
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="index.html">telemetry_anomdet</a></h1>
 
@@ -147,11 +239,19 @@
 
 
 <h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/real_time_example.html">Real-Time Anomaly Detection Example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/telemetry_anomdet.html">Telemetry Anomdet API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/ingest.html">Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/preprocessing.html">Preprocessing Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/feature_extraction.html">Feature Extraction Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/models/base.html">Base Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/models/supervised.html">Supervised Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/models/unsupervised.html">Unsupervised Models</a></li>
 </ul>
 
 <div class="relations">
@@ -161,7 +261,7 @@
   </ul></li>
 </ul>
 </div>
-<search id="searchbox" style="display: none" role="search">
+<div id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -169,7 +269,7 @@
       <input type="submit" value="Go" />
     </form>
     </div>
-</search>
+</div>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -187,7 +287,7 @@
       &#169;2025, Julio Anzaldo.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
     </div>

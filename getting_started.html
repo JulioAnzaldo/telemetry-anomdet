@@ -1,21 +1,25 @@
+
 <!DOCTYPE html>
 
-<html lang="en" data-content_root="./">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Getting Started &#8212; telemetry_anomdet 0.0.1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
-    <script src="_static/documentation_options.js?v=d45e8c67"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/getting_started.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Real-Time Anomaly Detection Example" href="tutorials/real_time_example.html" />
-    <link rel="prev" title="Telemetry Anomaly Detection Package" href="index.html" />
+    <link rel="prev" title="Telemetry Anomaly Detection Toolkit" href="index.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -34,29 +38,94 @@
           <div class="body" role="main">
             
   <section id="getting-started">
-<h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h1>
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this heading">¶</a></h1>
+<p>This guide will walk you through setting up the <code class="docutils literal notranslate"><span class="pre">telemetry-anomdet</span></code> package for development and use.</p>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
-<p>Clone the repository and install the package locally:</p>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h2>
+<p>It is highly recommended to use a Python virtual environment to manage project dependencies. This ensures that the packages you install for this project do not interfere with other projects on your system.</p>
+<p><strong>1. Clone the repository and navigate to the project directory:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/JulioAnzaldo/telemetry-anomdet.git
-<span class="nb">cd</span><span class="w"> </span>docs/source
-python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>./src
+<span class="nb">cd</span><span class="w"> </span>telemetry-anomdet
+</pre></div>
+</div>
+<p><strong>2. Create and activate a virtual environment:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># On macOS or Linux</span>
+python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate
+
+<span class="c1"># On Windows</span>
+py<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+venv<span class="se">\S</span>cripts<span class="se">\a</span>ctivate
+</pre></div>
+</div>
+<p>Your command line prompt should now show <code class="docutils literal notranslate"><span class="pre">(venv)</span></code> to indicate the virtual environment is active.</p>
+<p><strong>3. Install the package locally in editable mode:</strong></p>
+<p>The package can be installed with different sets of dependencies. The core library supports CSV files by default. For CCSDS support, install the optional <code class="docutils literal notranslate"><span class="pre">ccsds</span></code> dependency.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install the core library with CSV support</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+
+<span class="c1"># Install with optional CCSDS support (recommended for full functionality)</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>ccsds<span class="o">]</span>
 </pre></div>
 </div>
 </section>
 <section id="running-tests">
-<h2>Running Tests<a class="headerlink" href="#running-tests" title="Link to this heading">¶</a></h2>
-<p>To verify the package is installed correctly:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>-v
+<h2>Running Tests<a class="headerlink" href="#running-tests" title="Permalink to this heading">¶</a></h2>
+<p>To verify that the package and its dependencies are installed correctly, you can run the test suite. This requires the <code class="docutils literal notranslate"><span class="pre">dev</span></code> dependencies to be installed, which include <code class="docutils literal notranslate"><span class="pre">pytest</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># First, install development dependencies (if not already done)</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
+
+<span class="c1"># Run the tests</span>
+pytest<span class="w"> </span>-v
 </pre></div>
 </div>
 </section>
 <section id="basic-usage">
-<h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h2>
+<h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this heading">¶</a></h2>
+<p>You can now import and use the library. For example, to check the installed version:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">telemetry_anomdet</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">telemetry_anomdet</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
 </pre></div>
 </div>
+</section>
+<section id="contributing">
+<h2>Contributing<a class="headerlink" href="#contributing" title="Permalink to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">telemetry-anomdet</span></code> project uses a feature-branch workflow. All new work should be done on a dedicated branch created from the main development branch.</p>
+<p><strong>1. Switch to the development branch:</strong>
+Ensure your local repository is up-to-date with the remote <code class="docutils literal notranslate"><span class="pre">dev</span></code> branch.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>switch<span class="w"> </span>dev
+git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </span>dev
+</pre></div>
+</div>
+<p><strong>2. Create a new feature branch:</strong>
+Create a new branch for your specific feature or bug fix. This keeps your changes isolated.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>switch<span class="w"> </span>-c<span class="w"> </span>feature/my-new-feature
+</pre></div>
+</div>
+<p><strong>3. Install the package locally in editable mode:</strong></p>
+<p>The package can be installed with different sets of dependencies. The core library supports CSV files by default. Optional dependencies are available for development, documentation, and CCSDS support.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install the core library with CSV support</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+
+<span class="c1"># Install with optional CCSDS support</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>ccsds<span class="o">]</span>
+
+<span class="c1"># Install development dependencies (tests, formatting, linting)</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
+
+<span class="c1"># Install documentation dependencies (Sphinx, themes, etc.)</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>docs<span class="o">]</span>
+
+<span class="c1"># Install everything (recommended for contributors)</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev-all<span class="o">]</span>
+</pre></div>
+</div>
+<p><strong>4. Push your branch and open a pull request:</strong>
+Push your branch to the remote repository and open a pull request against the <code class="docutils literal notranslate"><span class="pre">dev</span></code> branch.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>push<span class="w"> </span>-u<span class="w"> </span>origin<span class="w"> </span>feature/my-new-feature
+</pre></div>
+</div>
+<p>This ensures your code is reviewed and tested before being merged into the main development branch.</p>
 </section>
 </section>
 
@@ -65,7 +134,7 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="index.html">telemetry_anomdet</a></h1>
 
@@ -77,28 +146,37 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
 
 
 <h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#running-tests">Running Tests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#contributing">Contributing</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/real_time_example.html">Real-Time Anomaly Detection Example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/telemetry_anomdet.html">Telemetry Anomdet API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/ingest.html">Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/preprocessing.html">Preprocessing Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/feature_extraction.html">Feature Extraction Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/models/base.html">Base Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/models/supervised.html">Supervised Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/models/unsupervised.html">Unsupervised Models</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="index.html" title="previous chapter">Telemetry Anomaly Detection Package</a></li>
+      <li>Previous: <a href="index.html" title="previous chapter">Telemetry Anomaly Detection Toolkit</a></li>
       <li>Next: <a href="tutorials/real_time_example.html" title="next chapter">Real-Time Anomaly Detection Example</a></li>
   </ul></li>
 </ul>
 </div>
-<search id="searchbox" style="display: none" role="search">
+<div id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -106,7 +184,7 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
       <input type="submit" value="Go" />
     </form>
     </div>
-</search>
+</div>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -124,7 +202,7 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
       &#169;2025, Julio Anzaldo.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
       |
