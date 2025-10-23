@@ -73,7 +73,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <h2>Running Tests<a class="headerlink" href="#running-tests" title="Permalink to this heading">¶</a></h2>
 <p>To verify that the package and its dependencies are installed correctly, you can run the test suite. This requires the <code class="docutils literal notranslate"><span class="pre">dev</span></code> dependencies to be installed, which include <code class="docutils literal notranslate"><span class="pre">pytest</span></code>.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># First, install development dependencies (if not already done)</span>
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
 
 <span class="c1"># Run the tests</span>
 pytest<span class="w"> </span>-v
@@ -111,13 +111,13 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>ccsds<span class="o">]</span>
 
 <span class="c1"># Install development dependencies (tests, formatting, linting)</span>
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
 
 <span class="c1"># Install documentation dependencies (Sphinx, themes, etc.)</span>
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>docs<span class="o">]</span>
 
 <span class="c1"># Install everything (recommended for contributors)</span>
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev-all<span class="o">]</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev-all]&quot;</span>
 </pre></div>
 </div>
 <p><strong>4. Push your branch and open a pull request:</strong>
