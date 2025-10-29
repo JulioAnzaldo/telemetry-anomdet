@@ -49,7 +49,7 @@ To verify that the package and its dependencies are installed correctly, you can
 .. code-block:: bash
 
     # First, install development dependencies (if not already done)
-    pip install -e .[dev]
+    pip install -e ".[dev]"
 
     # Run the tests
     pytest -v
@@ -97,13 +97,13 @@ The package can be installed with different sets of dependencies. The core libra
     pip install -e .[ccsds]
 
     # Install development dependencies (tests, formatting, linting)
-    pip install -e .[dev]
+    pip install -e ".[dev]"
 
     # Install documentation dependencies (Sphinx, themes, etc.)
     pip install -e .[docs]
 
     # Install everything (recommended for contributors)
-    pip install -e .[dev-all]
+    pip install -e ".[dev-all]"
 
 **4. Push your branch and open a pull request:**
 Push your branch to the remote repository and open a pull request against the ``dev`` branch.
