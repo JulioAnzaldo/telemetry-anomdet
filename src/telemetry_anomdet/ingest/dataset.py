@@ -36,18 +36,35 @@ class TelemetryDataset:
         TelemetryDataset
         """
 
-        # TODO: Implement function (will do once everything else is implemented)
-        data = {'timestamp': pd.to_datetime(['2025-01-01', '2025-01-01']),
-                'variable': ['temp', 'pressure'],
-                'value': [25.5, 1013.25]}
-        df = pd.DataFrame(data)
+        df = pd.DataFrame(
+            {
+                "timestamp": pd.to_datetime(
+                    ["2025-01-01T00:00:00Z", "2025-01-01T00:01:00Z"], utc = True
+                ),
+                "variable": ["temp", "pressure"],
+                "value": [25.5, 1013.25],
+            }
+        ).sort_values(["timestamp", "variable"], ignore_index = True)
 
         return cls(df)
     
-    @classmethod
-    def to_dataframe(self) -> pd.DataFrame:
+    def to_pandas(self) -> pd.DataFrame:
         """
         Return a copy of the Dataframe to prevent accidental mutation.
         """
 
         return self._df.copy()
+    
+    def head(self, n: int = 5) -> pd.DataFrame:
+        """
+        Head of the underlying DataFrame (copy).
+        """
+        
+        return self._df.head(n).copy()
+    
+    def __len__(self) -> int:
+        return len(self._df)
+
+    def __repr__(self) -> str:
+        cols = list(self._df.columns)
+        return f"TelemetryDataset(n={len(self)}, cols={cols})"

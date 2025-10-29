@@ -19,6 +19,10 @@ dependencies = [
 keywords = ["telemetry", "anomaly-detection", "machine-learning", "python"]
 classifiers = [
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Operating System :: OS Independent",
   "Topic :: Software Development :: Libraries",
   "Development Status :: 1 - Planning",
@@ -61,3 +65,13 @@ Repository = "https://github.com/JulioAnzaldo/telemetry-anomdet"
 [build-system]
 requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["telemetry_anomdet*"]
+
+[tool.setuptools.package-data]
+telemetry_anomdet = ["py.typed"]
