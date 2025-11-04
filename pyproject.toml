@@ -1,6 +1,6 @@
 [project]
 name = "telemetry-anomdet"
-version = "0.0.1"
+version = "0.0.2"
 description = "Telemetry anomaly detection toolkit with preprocessing, feature extraction, and unsupervised models."
 readme = "README.md"
 license = { file = "LICENSE" }

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from telemetry_anomdet.ingest.dataset import TelemetryDataset
-from typing import Optional, Sequence, Mapping, Iterable, Tuple, Union
+from typing import Optional, Sequence, Mapping, Iterable
 import pandas as pd
 
 # Canonical columns
@@ -22,14 +22,14 @@ def load_from_csv(path: str, *, time_col: Optional[str] = None, value_cols: Opti
         Notes:
         CSV must contain at least colums: timestamp, variable, value. timestamp will be converted to pandas datetime.
 
-        Parameters:
+        Arguments:
         path - Path to CSV file.
         time_col - Explicit time column, if ommitted, guessed from aliases
         value_cols - Explicit value columns
 
         Returns:
         TelemetryDataset
-        """
+    """
     
     df = pd.read_csv(path)
     aliases_local = DEFAULT_ALIASES
@@ -75,6 +75,7 @@ def is_long_form(cols: Sequence[str], aliases: Mapping[str, Iterable[str]]) -> b
     """
     Determine whether a CSV is already in "long" form by checking that all three semantic roles appear under some alias.
     """
+    
     lc = set(c.lower() for c in cols)
     has_ts = any(a in lc for a in aliases[_TS])
     has_var = any(a in lc for a in aliases[_VAR])
@@ -89,6 +90,7 @@ def coerce_long(df: pd.DataFrame) -> pd.DataFrame:
     - ensure variable is string
     - parse timestamp to utc
     """
+
     df[_TS] = pd.to_datetime(df[_TS], errors="coerce", utc=True)
     df[_VAL] = pd.to_numeric(df[_VAL], errors="coerce")
     df[_VAR] = df[_VAR].astype(str)
@@ -103,6 +105,7 @@ def pick_time_column(cols: Sequence[str], *, time_col: Optional[str], aliases: M
     - else, try and match from alias candidates (like: "timestamp", "time")
     - if nothing can be found, raise error listing options and actual columns
     """
+
     if time_col:
         if time_col in cols:
             return time_col

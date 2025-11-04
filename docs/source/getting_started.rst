@@ -36,10 +36,10 @@ The package can be installed with different sets of dependencies. The core libra
 .. code-block:: bash
 
     # Install the core library with CSV support
-    pip install -e .
+    pip install -e "."
 
     # Install with optional CCSDS support (recommended for full functionality)
-    pip install -e .[ccsds]
+    pip install -e ".[ccsds]"
 
 Running Tests
 -------------
@@ -82,7 +82,7 @@ Create a new branch for your specific feature or bug fix. This keeps your change
 
 .. code-block:: bash
 
-    git switch -c feature/my-new-feature
+    git switch -c feature/new-feature
 
 **3. Install the package locally in editable mode:**
 
@@ -91,16 +91,16 @@ The package can be installed with different sets of dependencies. The core libra
 .. code-block:: bash
 
     # Install the core library with CSV support
-    pip install -e .
+    pip install -e "."
 
     # Install with optional CCSDS support
-    pip install -e .[ccsds]
+    pip install -e ".[ccsds]"
 
     # Install development dependencies (tests, formatting, linting)
     pip install -e ".[dev]"
 
     # Install documentation dependencies (Sphinx, themes, etc.)
-    pip install -e .[docs]
+    pip install -e ".[docs]"
 
     # Install everything (recommended for contributors)
     pip install -e ".[dev-all]"
@@ -110,6 +110,6 @@ Push your branch to the remote repository and open a pull request against the ``
 
 .. code-block:: bash
 
-    git push -u origin feature/my-new-feature
+    git push -u origin feature/new-feature
 
 This ensures your code is reviewed and tested before being merged into the main development branch.

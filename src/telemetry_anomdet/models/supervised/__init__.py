@@ -4,6 +4,4 @@
 Supervised models (labelled data).
 """
 
-from .bayes import NaiveBayesClassifier
-
-__all__ = ["NaiveBayesClassifier"]
+__all__ = []
