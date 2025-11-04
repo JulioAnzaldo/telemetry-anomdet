@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>telemetry_anomdet.ingest.csv_loader &#8212; telemetry_anomdet 0.0.1 documentation</title>
+    <title>telemetry_anomdet.ingest.csv_loader &#8212; telemetry_anomdet 0.0.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
@@ -39,7 +39,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">telemetry_anomdet.ingest.dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">TelemetryDataset</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Iterable</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
 <span class="c1"># Canonical columns</span>
@@ -59,14 +59,14 @@
 <span class="sd">        Notes:</span>
 <span class="sd">        CSV must contain at least colums: timestamp, variable, value. timestamp will be converted to pandas datetime.</span>
 
-<span class="sd">        Parameters:</span>
+<span class="sd">        Arguments:</span>
 <span class="sd">        path - Path to CSV file.</span>
 <span class="sd">        time_col - Explicit time column, if ommitted, guessed from aliases</span>
 <span class="sd">        value_cols - Explicit value columns</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">        TelemetryDataset</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
     <span class="n">aliases_local</span> <span class="o">=</span> <span class="n">DEFAULT_ALIASES</span>
@@ -112,6 +112,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Determine whether a CSV is already in &quot;long&quot; form by checking that all three semantic roles appear under some alias.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    
     <span class="n">lc</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">)</span>
     <span class="n">has_ts</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">a</span> <span class="ow">in</span> <span class="n">lc</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">aliases</span><span class="p">[</span><span class="n">_TS</span><span class="p">])</span>
     <span class="n">has_var</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">a</span> <span class="ow">in</span> <span class="n">lc</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">aliases</span><span class="p">[</span><span class="n">_VAR</span><span class="p">])</span>
@@ -126,6 +127,7 @@
 <span class="sd">    - ensure variable is string</span>
 <span class="sd">    - parse timestamp to utc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">df</span><span class="p">[</span><span class="n">_TS</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">_TS</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">utc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">df</span><span class="p">[</span><span class="n">_VAL</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">_VAL</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span>
     <span class="n">df</span><span class="p">[</span><span class="n">_VAR</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">_VAR</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
@@ -140,6 +142,7 @@
 <span class="sd">    - else, try and match from alias candidates (like: &quot;timestamp&quot;, &quot;time&quot;)</span>
 <span class="sd">    - if nothing can be found, raise error listing options and actual columns</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">if</span> <span class="n">time_col</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">time_col</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">time_col</span>
@@ -175,7 +178,11 @@
 <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/pipeline_overview.html">Pipeline Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/real_time_integration.html">Real-Time Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/glossary.html">Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorials/real_time_example.html">Real-Time Anomaly Detection Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../applications/cubesat_ops.html">Applications in CubeSat Operations</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
@@ -183,8 +190,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../api/preprocessing.html">Preprocessing Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/feature_extraction.html">Feature Extraction Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/models/base.html">Base Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/models/ensemble.html">Ensemble Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/models/supervised.html">Supervised Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/models/unsupervised.html">Unsupervised Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/models/visualization.html">Visualization Utilities</a></li>
 </ul>
 
 <div class="relations">

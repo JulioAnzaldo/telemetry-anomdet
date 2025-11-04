@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Glossary &#8212; telemetry_anomdet 0.0.2 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/user_guide/glossary.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Real-Time Anomaly Detection Example" href="../tutorials/real_time_example.html" />
+    <link rel="prev" title="Real-Time Integration" href="real_time_integration.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="glossary">
+<h1>Glossary<a class="headerlink" href="#glossary" title="Permalink to this heading">¶</a></h1>
+<dl class="simple glossary">
+<dt id="term-Long-form">Long form<a class="headerlink" href="#term-Long-form" title="Permalink to this term">¶</a></dt><dd><p>Each row represents a single data point: (timestamp, variable, value).
+Used for ingest and preprocessing because it generalizes well across sensors.</p>
+</dd>
+<dt id="term-Wide-form">Wide form<a class="headerlink" href="#term-Wide-form" title="Permalink to this term">¶</a></dt><dd><p>Each row represents one timestamp, and each column is a variable.
+Used for feature extraction and model input.</p>
+</dd>
+<dt id="term-Window">Window<a class="headerlink" href="#term-Window" title="Permalink to this term">¶</a></dt><dd><p>A fixed-size block of sequential telemetry samples (50–100).
+Each window becomes one feature vector for the model.</p>
+</dd>
+<dt id="term-Anomaly-score">Anomaly score<a class="headerlink" href="#term-Anomaly-score" title="Permalink to this term">¶</a></dt><dd><p>A numeric measure of how unlikely a telemetry window is under the learned model.
+Low probability means high anomaly score.</p>
+</dd>
+<dt id="term-Feature">Feature<a class="headerlink" href="#term-Feature" title="Permalink to this term">¶</a></dt><dd><p>A numerical summary (mean, standard deviation, min, max, etc.) computed from each window.</p>
+</dd>
+<dt id="term-Gaussian-Naive-Bayes">Gaussian Naive Bayes<a class="headerlink" href="#term-Gaussian-Naive-Bayes" title="Permalink to this term">¶</a></dt><dd><p>A probabilistic model assuming each feature follows a normal distribution and
+that all features are conditionally independent given the system’s state.</p>
+</dd>
+<dt id="term-Conditional-independence">Conditional independence<a class="headerlink" href="#term-Conditional-independence" title="Permalink to this term">¶</a></dt><dd><p>The assumption that once the system’s overall state is known,
+the behavior of one sensor does not affect another.</p>
+</dd>
+<dt id="term-CCSDS">CCSDS<a class="headerlink" href="#term-CCSDS" title="Permalink to this term">¶</a></dt><dd><p>Consultative Committee for Space Data Systems; a standardized packet protocol
+used by many satellite missions for telemetry and telecommand.</p>
+</dd>
+<dt id="term-Kafka">Kafka<a class="headerlink" href="#term-Kafka" title="Permalink to this term">¶</a></dt><dd><p>A distributed event-streaming platform used for real-time data pipelines.
+In this project, it enables streaming telemetry and anomaly scores.</p>
+</dd>
+</dl>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">telemetry_anomdet</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline_overview.html">Pipeline Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="real_time_integration.html">Real-Time Integration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/real_time_example.html">Real-Time Anomaly Detection Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../applications/cubesat_ops.html">Applications in CubeSat Operations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/ingest.html">Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/preprocessing.html">Preprocessing Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/feature_extraction.html">Feature Extraction Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/models/base.html">Base Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/models/ensemble.html">Ensemble Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/models/supervised.html">Supervised Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/models/unsupervised.html">Unsupervised Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/models/visualization.html">Visualization Utilities</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="real_time_integration.html" title="previous chapter">Real-Time Integration</a></li>
+      <li>Next: <a href="../tutorials/real_time_example.html" title="next chapter">Real-Time Anomaly Detection Example</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Julio Anzaldo.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/user_guide/glossary.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

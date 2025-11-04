@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>telemetry_anomdet.preprocessing.preprocessing &#8212; telemetry_anomdet 0.0.1 documentation</title>
+    <title>telemetry_anomdet.preprocessing.preprocessing &#8212; telemetry_anomdet 0.0.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
@@ -44,9 +44,102 @@
 <span class="sd">and other transformations before feature extraction.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="clean"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.clean">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">clean</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return cleaned version of the input data (placeholder).&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">data</span></div>
+<span class="c1"># Long form telemetry means one observation per row, wide means all variables get their own column, with timestamps as the index</span>
+
+<div class="viewcode-block" id="clean"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.clean">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">clean</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">physical_bounds</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove non existant values, non numeric readings, and physically impossible sensor values.</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        df (pd.DataFrame): Long form telemetry data with columns [&#39;timestamp&#39;, &#39;variable&#39;, &#39;value&#39;].</span>
+<span class="sd">        physical_bounds (dict, optional): Mapping of variable names or patterns to (min, max) valid ranges.</span>
+<span class="sd">            Example: {&#39;Battery_Voltage&#39;: (0, 20), &#39;Battery_Temp&#39;: (-40, 85)}.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        pd.DataFrame: Cleaned dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="dedupe"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.dedupe">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">dedupe</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove duplicate or retransmitted rows.</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        df (pd.DataFrame): Long form telemetry data with potential duplicates.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        pd.DataFrame: DataFrame with duplicates (timestamp, variable) removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="integrity_check"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.integrity_check">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">integrity_check</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">require_utc</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">require_sorted</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Verify timestamp format, timezone, and column consistency.</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        df (pd.DataFrame): Long form telemetry data.</span>
+<span class="sd">        require_utc (bool): If True, ensure timestamps are UTC.</span>
+<span class="sd">        require_sorted (bool): If True, ensure timestamps are sorted ascending.</span>
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If schema or ordering fails validation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="resample"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.resample">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">resample</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rule</span> <span class="o">=</span> <span class="s2">&quot;5S&quot;</span><span class="p">,</span> <span class="n">agg</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Resample irregularly spaced data to a uniform cadence.</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        df (pd.DataFrame): Long form telemetry data.</span>
+<span class="sd">        rule (str): Resample frequency (&#39;1S&#39;, &#39;5S&#39;, &#39;1min&#39;).</span>
+<span class="sd">        agg (str): Aggregation method (&#39;mean&#39;, &#39;median&#39;, etc.) when multiple values exist per interval.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        pd.DataFrame: Resampled dataset with regular time intervals.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="interpolate_gaps"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.interpolate_gaps">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">interpolate_gaps</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;ffill&quot;</span><span class="p">,</span> <span class="n">limit</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fill small missing gaps to ensure continuous time steps.</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        df (pd.DataFrame): Resampled telemetry data.</span>
+<span class="sd">        method (str): Interpolation strategy (&#39;ffill&#39;, &#39;linear&#39;, etc.).</span>
+<span class="sd">        limit (int): Maximum consecutive NaN steps to fill.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        pd.DataFrame: Gap filled dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="normalize_fit"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.normalize_fit">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">normalize_fit</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;zscore&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute normalization parameters for each variable. </span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        df (pd.DataFrame): Cleaned telemetry data (usually training subset).</span>
+<span class="sd">        method (str): Normalization method (&#39;zscore&#39; or &#39;minmax&#39;).</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: Mapping {variable: (mean, std)} or {variable: (min, range)}.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="pipeline"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.pipeline">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">pipeline</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rule</span> <span class="o">=</span> <span class="s2">&quot;5S&quot;</span><span class="p">,</span> <span class="n">agg</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="n">gap_limit</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">norm_method</span> <span class="o">=</span> <span class="s2">&quot;zscore&quot;</span><span class="p">,</span> <span class="n">physical_bounds</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Execute minimal preprocessing pipeline for this dataset.</span>
+<span class="sd">    </span>
+<span class="sd">    Steps: clean -&gt; dedupe -&gt; integrity_check -&gt; resample -&gt; interpolate_gaps.</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        df (pd.DataFrame): Raw telemetry dataset.</span>
+<span class="sd">        rule (str): Resampling frequency (default &#39;5S&#39;).</span>
+<span class="sd">        agg (str): Aggregation method (default &#39;mean&#39;).</span>
+<span class="sd">        gap_limit (int): Max forward-fill gap length.</span>
+<span class="sd">        norm_method (str): Optional normalization mode.</span>
+<span class="sd">        physical_bounds (dict, optional): Min/max physical limits per variable.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        pd.DataFrame: Fully preprocessed dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
 </pre></div>
 
           </div>
@@ -68,7 +161,11 @@
 <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/pipeline_overview.html">Pipeline Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/real_time_integration.html">Real-Time Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/glossary.html">Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorials/real_time_example.html">Real-Time Anomaly Detection Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../applications/cubesat_ops.html">Applications in CubeSat Operations</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
@@ -76,8 +173,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../api/preprocessing.html">Preprocessing Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/feature_extraction.html">Feature Extraction Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/models/base.html">Base Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/models/ensemble.html">Ensemble Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/models/supervised.html">Supervised Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/models/unsupervised.html">Unsupervised Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/models/visualization.html">Visualization Utilities</a></li>
 </ul>
 
 <div class="relations">

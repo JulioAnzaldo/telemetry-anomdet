@@ -4,8 +4,9 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Overview: module code &#8212; telemetry_anomdet 0.0.2 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Real-Time Integration &#8212; telemetry_anomdet 0.0.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -14,9 +15,11 @@
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
-    <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/_modules/index.html" />
+    <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/user_guide/real_time_integration.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Glossary" href="glossary.html" />
+    <link rel="prev" title="Pipeline Overview" href="pipeline_overview.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -34,18 +37,18 @@
 
           <div class="body" role="main">
             
-  <h1>All modules for which code is available</h1>
-<ul><li><a href="telemetry_anomdet/feature_extraction/features.html">telemetry_anomdet.feature_extraction.features</a></li>
-<li><a href="telemetry_anomdet/ingest/ccsds_loader.html">telemetry_anomdet.ingest.ccsds_loader</a></li>
-<li><a href="telemetry_anomdet/ingest/csv_loader.html">telemetry_anomdet.ingest.csv_loader</a></li>
-<li><a href="telemetry_anomdet/ingest/dataset.html">telemetry_anomdet.ingest.dataset</a></li>
-<li><a href="telemetry_anomdet/models/base.html">telemetry_anomdet.models.base</a></li>
-<li><a href="telemetry_anomdet/models/ensemble.html">telemetry_anomdet.models.ensemble</a></li>
-<li><a href="telemetry_anomdet/models/unsupervised/gaussian_nb.html">telemetry_anomdet.models.unsupervised.gaussian_nb</a></li>
-<li><a href="telemetry_anomdet/models/unsupervised/isolation_forest.html">telemetry_anomdet.models.unsupervised.isolation_forest</a></li>
-<li><a href="telemetry_anomdet/preprocessing/preprocessing.html">telemetry_anomdet.preprocessing.preprocessing</a></li>
-<li><a href="telemetry_anomdet/visualization.html">telemetry_anomdet.visualization</a></li>
-</ul>
+  <section id="real-time-integration">
+<h1>Real-Time Integration<a class="headerlink" href="#real-time-integration" title="Permalink to this heading">¶</a></h1>
+<p>The toolkit can run as a Kafka microservice for live telemetry streams.</p>
+<dl class="simple">
+<dt>Workflow:</dt><dd><p>CCSDS frames decoded by COSMOS/Yamcs/CCSDSPy
+Decoded telemetry published to Kafka topics
+Anomaly detector subscribes, preprocesses, and publishes scores
+Results viewed in Open MCT, COSMOS, or Grafana dashboards</p>
+</dd>
+</dl>
+</section>
+
 
           </div>
           
@@ -64,11 +67,11 @@
 
 <h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../user_guide/pipeline_overview.html">Pipeline Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../user_guide/real_time_integration.html">Real-Time Integration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../user_guide/glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline_overview.html">Pipeline Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Real-Time Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/real_time_example.html">Real-Time Anomaly Detection Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../applications/cubesat_ops.html">Applications in CubeSat Operations</a></li>
 </ul>
@@ -88,6 +91,8 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="pipeline_overview.html" title="previous chapter">Pipeline Overview</a></li>
+      <li>Next: <a href="glossary.html" title="next chapter">Glossary</a></li>
   </ul></li>
 </ul>
 </div>
@@ -120,6 +125,9 @@
       Powered by <a href="https://www.sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
+      |
+      <a href="../_sources/user_guide/real_time_integration.rst.txt"
+          rel="nofollow">Page source</a>
     </div>
 
     

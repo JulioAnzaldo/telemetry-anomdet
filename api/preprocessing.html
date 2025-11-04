@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Preprocessing Module &#8212; telemetry_anomdet 0.0.1 documentation</title>
+    <title>Preprocessing Module &#8212; telemetry_anomdet 0.0.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -45,8 +45,145 @@
 and other transformations before feature extraction.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="telemetry_anomdet.preprocessing.preprocessing.clean">
-<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.preprocessing.preprocessing.</span></span><span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/telemetry_anomdet/preprocessing/preprocessing.html#clean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.preprocessing.preprocessing.clean" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return cleaned version of the input data (placeholder).</p>
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.preprocessing.preprocessing.</span></span><span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/telemetry_anomdet/preprocessing/preprocessing.html#clean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.preprocessing.preprocessing.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove non existant values, non numeric readings, and physically impossible sensor values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Long form telemetry data with columns [‘timestamp’, ‘variable’, ‘value’].</p></li>
+<li><p><strong>physical_bounds</strong> (<em>dict</em><em>, </em><em>optional</em>) – Mapping of variable names or patterns to (min, max) valid ranges.
+Example: {‘Battery_Voltage’: (0, 20), ‘Battery_Temp’: (-40, 85)}.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Cleaned dataset.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.preprocessing.preprocessing.dedupe">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.preprocessing.preprocessing.</span></span><span class="sig-name descname"><span class="pre">dedupe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/telemetry_anomdet/preprocessing/preprocessing.html#dedupe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.preprocessing.preprocessing.dedupe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove duplicate or retransmitted rows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>pd.DataFrame</em>) – Long form telemetry data with potential duplicates.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>DataFrame with duplicates (timestamp, variable) removed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.preprocessing.preprocessing.integrity_check">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.preprocessing.preprocessing.</span></span><span class="sig-name descname"><span class="pre">integrity_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_utc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_sorted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/telemetry_anomdet/preprocessing/preprocessing.html#integrity_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.preprocessing.preprocessing.integrity_check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verify timestamp format, timezone, and column consistency.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Long form telemetry data.</p></li>
+<li><p><strong>require_utc</strong> (<em>bool</em>) – If True, ensure timestamps are UTC.</p></li>
+<li><p><strong>require_sorted</strong> (<em>bool</em>) – If True, ensure timestamps are sorted ascending.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If schema or ordering fails validation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.preprocessing.preprocessing.resample">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.preprocessing.preprocessing.</span></span><span class="sig-name descname"><span class="pre">resample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'5S'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/telemetry_anomdet/preprocessing/preprocessing.html#resample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.preprocessing.preprocessing.resample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resample irregularly spaced data to a uniform cadence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Long form telemetry data.</p></li>
+<li><p><strong>rule</strong> (<em>str</em>) – Resample frequency (‘1S’, ‘5S’, ‘1min’).</p></li>
+<li><p><strong>agg</strong> (<em>str</em>) – Aggregation method (‘mean’, ‘median’, etc.) when multiple values exist per interval.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Resampled dataset with regular time intervals.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.preprocessing.preprocessing.interpolate_gaps">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.preprocessing.preprocessing.</span></span><span class="sig-name descname"><span class="pre">interpolate_gaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ffill'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/telemetry_anomdet/preprocessing/preprocessing.html#interpolate_gaps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.preprocessing.preprocessing.interpolate_gaps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill small missing gaps to ensure continuous time steps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Resampled telemetry data.</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – Interpolation strategy (‘ffill’, ‘linear’, etc.).</p></li>
+<li><p><strong>limit</strong> (<em>int</em>) – Maximum consecutive NaN steps to fill.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gap filled dataset.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.preprocessing.preprocessing.normalize_fit">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.preprocessing.preprocessing.</span></span><span class="sig-name descname"><span class="pre">normalize_fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'zscore'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/telemetry_anomdet/preprocessing/preprocessing.html#normalize_fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.preprocessing.preprocessing.normalize_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute normalization parameters for each variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Cleaned telemetry data (usually training subset).</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – Normalization method (‘zscore’ or ‘minmax’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mapping {variable: (mean, std)} or {variable: (min, range)}.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.preprocessing.preprocessing.pipeline">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.preprocessing.preprocessing.</span></span><span class="sig-name descname"><span class="pre">pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'5S'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'zscore'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/telemetry_anomdet/preprocessing/preprocessing.html#pipeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.preprocessing.preprocessing.pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute minimal preprocessing pipeline for this dataset.</p>
+<p>Steps: clean -&gt; dedupe -&gt; integrity_check -&gt; resample -&gt; interpolate_gaps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Raw telemetry dataset.</p></li>
+<li><p><strong>rule</strong> (<em>str</em>) – Resampling frequency (default ‘5S’).</p></li>
+<li><p><strong>agg</strong> (<em>str</em>) – Aggregation method (default ‘mean’).</p></li>
+<li><p><strong>gap_limit</strong> (<em>int</em>) – Max forward-fill gap length.</p></li>
+<li><p><strong>norm_method</strong> (<em>str</em>) – Optional normalization mode.</p></li>
+<li><p><strong>physical_bounds</strong> (<em>dict</em><em>, </em><em>optional</em>) – Min/max physical limits per variable.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Fully preprocessed dataset.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -71,19 +208,31 @@ and other transformations before feature extraction.</p>
 <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/pipeline_overview.html">Pipeline Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/real_time_integration.html">Real-Time Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/glossary.html">Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/real_time_example.html">Real-Time Anomaly Detection Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../applications/cubesat_ops.html">Applications in CubeSat Operations</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="ingest.html">Ingestion</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Preprocessing Module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.preprocessing.preprocessing.clean"><code class="docutils literal notranslate"><span class="pre">clean()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.preprocessing.preprocessing.dedupe"><code class="docutils literal notranslate"><span class="pre">dedupe()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.preprocessing.preprocessing.integrity_check"><code class="docutils literal notranslate"><span class="pre">integrity_check()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.preprocessing.preprocessing.resample"><code class="docutils literal notranslate"><span class="pre">resample()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.preprocessing.preprocessing.interpolate_gaps"><code class="docutils literal notranslate"><span class="pre">interpolate_gaps()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.preprocessing.preprocessing.normalize_fit"><code class="docutils literal notranslate"><span class="pre">normalize_fit()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.preprocessing.preprocessing.pipeline"><code class="docutils literal notranslate"><span class="pre">pipeline()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="feature_extraction.html">Feature Extraction Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models/base.html">Base Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models/ensemble.html">Ensemble Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models/supervised.html">Supervised Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models/unsupervised.html">Unsupervised Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models/visualization.html">Visualization Utilities</a></li>
 </ul>
 
 <div class="relations">

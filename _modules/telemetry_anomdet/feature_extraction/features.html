@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>telemetry_anomdet.feature_extraction.features &#8212; telemetry_anomdet 0.0.1 documentation</title>
+    <title>telemetry_anomdet.feature_extraction.features &#8212; telemetry_anomdet 0.0.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
@@ -44,9 +44,57 @@
 <span class="sd">features from preprocessed telemetry data.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="extract_features"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.extract_features">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">extract_features</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return extracted features (placeholder).&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">data</span></div>
+<span class="c1"># Long form telemetry means one observation per row, wide means all variables get their own column, with timestamps as the index</span>
+
+<div class="viewcode-block" id="pivot_wide"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.pivot_wide">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">pivot_wide</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">variables</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert long form telemetry data to wide format.</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        df (pd.DataFrame): Long-form data with [&#39;timestamp&#39;,&#39;variable&#39;,&#39;value&#39;].</span>
+<span class="sd">        variables (list[str], optional): Specific variables to include; all by default.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        pd.DataFrame: Wide table (timestamp index, variables as columns).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="windowify"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.windowify">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">windowify</span><span class="p">(</span><span class="n">wide_df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">window_size</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mi">10</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Slice wide form telemetry data into overlapping windows.</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        wide_df (pd.DataFrame): Wide telemetry table.</span>
+<span class="sd">        window_size (int): Number of samples per window.</span>
+<span class="sd">        step (int): Step size between consecutive windows.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        np.ndarray: Array with shape (n_windows, window_size, n_features).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="features_stat"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.features_stat">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">features_stat</span><span class="p">(</span><span class="n">X3d</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract simple statistical features from each window.</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        X3d (np.ndarray): 3D telemetry data (n_windows × window_size × n_features).</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        np.ndarray: 2D array of flattened feature vectors (e.g., mean, std, min, max per channel).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="make_feature_table"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.make_feature_table">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">make_feature_table</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">variables</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">window_size</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mi">10</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a complete feature table from preprocessed telemetry.</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        df (pd.DataFrame): Preprocessed long-form telemetry data.</span>
+<span class="sd">        variables (list[str], optional): Subset of sensors to include.</span>
+<span class="sd">        window_size (int): Window length (default 50 samples).</span>
+<span class="sd">        step (int): Step size between windows.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        pd.DataFrame: Feature table ready for model training (n_windows × n_features).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
 </pre></div>
 
           </div>
@@ -68,7 +116,11 @@
 <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/pipeline_overview.html">Pipeline Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/real_time_integration.html">Real-Time Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/glossary.html">Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorials/real_time_example.html">Real-Time Anomaly Detection Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../applications/cubesat_ops.html">Applications in CubeSat Operations</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
@@ -76,8 +128,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../api/preprocessing.html">Preprocessing Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/feature_extraction.html">Feature Extraction Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/models/base.html">Base Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/models/ensemble.html">Ensemble Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/models/supervised.html">Supervised Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/models/unsupervised.html">Unsupervised Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/models/visualization.html">Visualization Utilities</a></li>
 </ul>
 
 <div class="relations">

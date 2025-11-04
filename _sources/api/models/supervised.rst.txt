@@ -5,8 +5,3 @@ Supervised Models
    :members:
    :undoc-members:
    :show-inheritance:
-
-.. automodule:: telemetry_anomdet.models.supervised.bayes
-   :members:
-   :undoc-members:
-   :show-inheritance:

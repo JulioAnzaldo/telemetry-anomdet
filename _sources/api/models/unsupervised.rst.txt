@@ -1,7 +1,7 @@
 Unsupervised Models
 ===================
 
-.. automodule:: telemetry_anomdet.models.unsupervised
+.. automodule:: telemetry_anomdet.models.unsupervised.gaussian_nb
    :members:
    :undoc-members:
    :show-inheritance:
