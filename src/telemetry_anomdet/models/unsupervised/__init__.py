@@ -4,6 +4,6 @@
 Unsupervised anomaly detection models.
 """
 
-from .isolation_forest import IsolationForestModel
+from . import gaussian_nb, isolation_forest
 
-__all__ = ["IsolationForestModel"]
+__all__ = ["gaussian_nb", "isolation_forest"]
