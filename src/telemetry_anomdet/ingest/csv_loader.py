@@ -64,8 +64,8 @@ def load_from_csv(path: str, *, time_col: Optional[str] = None, value_cols: Opti
         if not meas:
             raise ValueError("No measurement columns found. Provide value_cols=[].")
 
-    long = wide.melt(id_vars=tcol, value_vars=meas, var_name=_VAR, value_name=_VAL)
-    long = long.rename(columns={tcol: _TS})
+    long = wide.melt(id_vars = tcol, value_vars = meas, var_name = _VAR, value_name = _VAL)
+    long = long.rename(columns = {tcol: _TS})
     long = coerce_long(long)
 
     return TelemetryDataset(long)

@@ -9,7 +9,16 @@ and other transformations before feature extraction.
 
 # Long form telemetry means one observation per row, wide means all variables get their own column, with timestamps as the index
 
-def clean(df, *, physical_bounds = None):
+import pandas as pd
+import fnmatch
+
+# Canonical column names used throughout the preprocessing pipeline
+_TS, _VAR, _VAL = "timestamp", "variable", "value"
+
+# These are the columns every telemetry DataFrame is expected to contain
+_REQUIRED_COLS = {_TS, _VAR, _VAL}
+
+def clean(df: pd.DataFrame, *, physical_bounds = None) -> pd.DataFrame:
     """
     Remove non existant values, non numeric readings, and physically impossible sensor values.
     
@@ -21,9 +30,47 @@ def clean(df, *, physical_bounds = None):
         pd.DataFrame: Cleaned dataset.
     """
 
-    pass
+    # Work on a copy
+    df = df.copy()
 
-def dedupe(df):
+    # Drop rows with missing core fields
+    df = df.dropna(subset = [_TS, _VAR, _VAL])
+
+    # Apply physical bounds
+    if physical_bounds:
+        # Mask that marks all rows as valid
+        mask = pd.Series(True, index = df.index)
+
+        # Loop over each variable pattern and its allowed (min, max) range
+        for pattern, bounds in physical_bounds.items():
+            if bounds is None:
+                # Skip None bounds
+                continue
+
+            # Bounds must be a 2 element tuple/list (min/max)
+            if not (isinstance(bounds, (tuple, list)) and len(bounds) == 2):
+                raise ValueError("Must be (min, max)")
+            
+            lower, upper = bounds
+
+            # Select rows whose variable name matches the given pattern
+            sel = df[_VAR].map(lambda v: fnmatch.fnmatch(v, pattern))
+
+            # Mask out rows that fall below or above the valid range
+            if lower is not None:
+                mask &= ~(sel & (df[_VAL] < float(lower)))
+            if upper is not None:
+                mask &= ~(sel & (df[_VAL] > float(upper)))
+
+            # Apply the mask incrementally
+            df = df[mask]
+
+    # Deterministic ordering (by timestamp and variable)
+    df = df.sort_values([_TS, _VAR]).reset_index(drop = True)
+
+    return df
+
+def dedupe(df: pd.DataFrame) -> pd.DataFrame:
     """
     Remove duplicate or retransmitted rows.
     
@@ -32,9 +79,25 @@ def dedupe(df):
     Returns:
         pd.DataFrame: DataFrame with duplicates (timestamp, variable) removed.
     """
-    pass
+    
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError("dedupe() expects a pandas DataFrame")
+    
+    df = df.copy()
 
-def integrity_check(df, *, require_utc = True, require_sorted = True):
+    # Sort so duplicates are grouped together
+    df = df.sort_values([_TS, _VAR, _VAL])
+
+    # Drop exact duplicates
+    df = df.drop_duplicates()
+
+    # Drop retransmits (same timestamps, keep last occurence)
+    df = df.drop_duplicates(subset = [_TS, _VAR], keep = "last")
+
+    # Reset index for cleanliness before returning
+    return df.reset_index(drop = True)
+
+def integrity_check(df: pd.DataFrame, *, require_utc: bool = True, require_sorted: bool = True) -> None:
     """
     Verify timestamp format, timezone, and column consistency.
     
@@ -45,9 +108,38 @@ def integrity_check(df, *, require_utc = True, require_sorted = True):
     Raises:
         ValueError: If schema or ordering fails validation.
     """
-    pass
+    
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError("integrity_check() expects a pandas DataFrame")
+    
+    # Extract timestamp column
+    ts = df[_TS]
 
-def resample(df, *, rule = "5S", agg = "mean"):
+    # Ensure datetime (datetime64), if not try to coerce
+    if not pd.api.types.is_datetime64_any_dtype(ts):
+        try:
+            ts = pd.to_datetime(ts, errors = "raise", utc = require_utc)
+        except Exception as e:
+            raise ValueError("'timestamp' must be datetime format") from e
+        
+    # UTC requirement
+    if require_utc:
+        if ts.dt.tz is None:
+            raise ValueError("Timestamps must be timezone aware UTC")
+        if str(ts.dt.tz) not in ("UTC", "UTC+00:00", "tzutc()"):
+            raise ValueError("Timestamps must be in UTC.")
+        
+    # Sorted requirement (chronological order if required)
+    if require_sorted and not ts.is_monotonic_increasing:
+        raise ValueError("Timestamps must be ascending.")
+    
+    # 'value' must be numeric
+    if not pd.api.types.is_numeric_dtype(df[_VAL]):
+        raise ValueError("'value' column must be numeric.")
+    
+    return
+
+def resample(df: pd.DataFrame, *, rule: str = "5S", agg: str = "mean") -> pd.DataFrame:
     """
     Resample irregularly spaced data to a uniform cadence.
     
@@ -58,21 +150,23 @@ def resample(df, *, rule = "5S", agg = "mean"):
     Returns:
         pd.DataFrame: Resampled dataset with regular time intervals.
     """
-    pass
+    
+    return df
 
 
-def interpolate_gaps(df, *, method = "ffill", limit = 1):
+def interpolate_gaps(df: pd.DataFrame, *, method = "ffill", limit = 1) -> pd.DataFrame:
     """
     Fill small missing gaps to ensure continuous time steps.
     
     Arguments:
         df (pd.DataFrame): Resampled telemetry data.
-        method (str): Interpolation strategy ('ffill', 'linear', etc.).
-        limit (int): Maximum consecutive NaN steps to fill.
+        method (str): Interpolation strategy ('ffill', 'linear', 'bfill', etc.).
+        limit (int): Maximum consecutive non existant values steps to fill.
     Returns:
         pd.DataFrame: Gap filled dataset.
     """
-    pass
+    
+    return df
 
 def normalize_fit(df, *, method = "zscore"):
     """
@@ -84,9 +178,10 @@ def normalize_fit(df, *, method = "zscore"):
     Returns:
         dict: Mapping {variable: (mean, std)} or {variable: (min, range)}.
     """
+
     pass
 
-def pipeline(df, *, rule = "5S", agg = "mean", gap_limit = 1, norm_method = "zscore", physical_bounds = None):
+def pipeline(df: pd.DataFrame, *, rule: str = "5S", agg: str = "mean", gap_limit: int = 1, norm_method: str = "zscore", physical_bounds = None):
     """
     Execute minimal preprocessing pipeline for this dataset.
     
@@ -102,4 +197,14 @@ def pipeline(df, *, rule = "5S", agg = "mean", gap_limit = 1, norm_method = "zsc
     Returns:
         pd.DataFrame: Fully preprocessed dataset.
     """
-    pass
+    
+    # Remove nulls, non physical readings, and sort data
+    df = clean(df, physical_bounds = physical_bounds)
+
+    # Remove dupes or retransmits
+    df = dedupe(df)
+
+    # Ensure timestamps and values are valid
+    integrity_check(df, require_utc = True, require_sorted = True)
+
+    return df
