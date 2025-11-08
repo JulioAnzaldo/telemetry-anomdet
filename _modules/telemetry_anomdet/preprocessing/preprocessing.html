@@ -46,7 +46,16 @@
 
 <span class="c1"># Long form telemetry means one observation per row, wide means all variables get their own column, with timestamps as the index</span>
 
-<div class="viewcode-block" id="clean"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.clean">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">clean</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">physical_bounds</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">fnmatch</span>
+
+<span class="c1"># Canonical column names used throughout the preprocessing pipeline</span>
+<span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">,</span> <span class="n">_VAL</span> <span class="o">=</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">,</span> <span class="s2">&quot;variable&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span>
+
+<span class="c1"># These are the columns every telemetry DataFrame is expected to contain</span>
+<span class="n">_REQUIRED_COLS</span> <span class="o">=</span> <span class="p">{</span><span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">,</span> <span class="n">_VAL</span><span class="p">}</span>
+
+<div class="viewcode-block" id="clean"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.clean">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">clean</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">physical_bounds</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Remove non existant values, non numeric readings, and physically impossible sensor values.</span>
 <span class="sd">    </span>
@@ -58,9 +67,47 @@
 <span class="sd">        pd.DataFrame: Cleaned dataset.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">pass</span></div>
+    <span class="c1"># Work on a copy</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-<div class="viewcode-block" id="dedupe"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.dedupe">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">dedupe</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="c1"># Drop rows with missing core fields</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span> <span class="o">=</span> <span class="p">[</span><span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">,</span> <span class="n">_VAL</span><span class="p">])</span>
+
+    <span class="c1"># Apply physical bounds</span>
+    <span class="k">if</span> <span class="n">physical_bounds</span><span class="p">:</span>
+        <span class="c1"># Mask that marks all rows as valid</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="c1"># Loop over each variable pattern and its allowed (min, max) range</span>
+        <span class="k">for</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">bounds</span> <span class="ow">in</span> <span class="n">physical_bounds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Skip None bounds</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Bounds must be a 2 element tuple/list (min/max)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must be (min, max)&quot;</span><span class="p">)</span>
+            
+            <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span> <span class="o">=</span> <span class="n">bounds</span>
+
+            <span class="c1"># Select rows whose variable name matches the given pattern</span>
+            <span class="n">sel</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">_VAR</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">pattern</span><span class="p">))</span>
+
+            <span class="c1"># Mask out rows that fall below or above the valid range</span>
+            <span class="k">if</span> <span class="n">lower</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">mask</span> <span class="o">&amp;=</span> <span class="o">~</span><span class="p">(</span><span class="n">sel</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">_VAL</span><span class="p">]</span> <span class="o">&lt;</span> <span class="nb">float</span><span class="p">(</span><span class="n">lower</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="n">upper</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">mask</span> <span class="o">&amp;=</span> <span class="o">~</span><span class="p">(</span><span class="n">sel</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">_VAL</span><span class="p">]</span> <span class="o">&gt;</span> <span class="nb">float</span><span class="p">(</span><span class="n">upper</span><span class="p">)))</span>
+
+            <span class="c1"># Apply the mask incrementally</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+    <span class="c1"># Deterministic ordering (by timestamp and variable)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">])</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">df</span></div>
+
+<div class="viewcode-block" id="dedupe"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.dedupe">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">dedupe</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Remove duplicate or retransmitted rows.</span>
 <span class="sd">    </span>
@@ -69,9 +116,25 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        pd.DataFrame: DataFrame with duplicates (timestamp, variable) removed.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;dedupe() expects a pandas DataFrame&quot;</span><span class="p">)</span>
+    
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-<div class="viewcode-block" id="integrity_check"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.integrity_check">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">integrity_check</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">require_utc</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">require_sorted</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+    <span class="c1"># Sort so duplicates are grouped together</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">,</span> <span class="n">_VAL</span><span class="p">])</span>
+
+    <span class="c1"># Drop exact duplicates</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+
+    <span class="c1"># Drop retransmits (same timestamps, keep last occurence)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span> <span class="o">=</span> <span class="p">[</span><span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">],</span> <span class="n">keep</span> <span class="o">=</span> <span class="s2">&quot;last&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Reset index for cleanliness before returning</span>
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="integrity_check"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.integrity_check">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">integrity_check</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">require_utc</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">require_sorted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Verify timestamp format, timezone, and column consistency.</span>
 <span class="sd">    </span>
@@ -82,9 +145,38 @@
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If schema or ordering fails validation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;integrity_check() expects a pandas DataFrame&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Extract timestamp column</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">_TS</span><span class="p">]</span>
 
-<div class="viewcode-block" id="resample"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.resample">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">resample</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rule</span> <span class="o">=</span> <span class="s2">&quot;5S&quot;</span><span class="p">,</span> <span class="n">agg</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">):</span>
+    <span class="c1"># Ensure datetime (datetime64), if not try to coerce</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_datetime64_any_dtype</span><span class="p">(</span><span class="n">ts</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ts</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="s2">&quot;raise&quot;</span><span class="p">,</span> <span class="n">utc</span> <span class="o">=</span> <span class="n">require_utc</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;timestamp&#39; must be datetime format&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        
+    <span class="c1"># UTC requirement</span>
+    <span class="k">if</span> <span class="n">require_utc</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ts</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">tz</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Timestamps must be timezone aware UTC&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">tz</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;UTC&quot;</span><span class="p">,</span> <span class="s2">&quot;UTC+00:00&quot;</span><span class="p">,</span> <span class="s2">&quot;tzutc()&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Timestamps must be in UTC.&quot;</span><span class="p">)</span>
+        
+    <span class="c1"># Sorted requirement (chronological order if required)</span>
+    <span class="k">if</span> <span class="n">require_sorted</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ts</span><span class="o">.</span><span class="n">is_monotonic_increasing</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Timestamps must be ascending.&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># &#39;value&#39; must be numeric</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_numeric_dtype</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">_VAL</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;value&#39; column must be numeric.&quot;</span><span class="p">)</span>
+    
+    <span class="k">return</span></div>
+
+<div class="viewcode-block" id="resample"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.resample">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">resample</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rule</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;5S&quot;</span><span class="p">,</span> <span class="n">agg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Resample irregularly spaced data to a uniform cadence.</span>
 <span class="sd">    </span>
@@ -95,21 +187,23 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        pd.DataFrame: Resampled dataset with regular time intervals.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
+    
+    <span class="k">return</span> <span class="n">df</span></div>
 
 
-<div class="viewcode-block" id="interpolate_gaps"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.interpolate_gaps">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">interpolate_gaps</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;ffill&quot;</span><span class="p">,</span> <span class="n">limit</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="interpolate_gaps"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.interpolate_gaps">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">interpolate_gaps</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;ffill&quot;</span><span class="p">,</span> <span class="n">limit</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fill small missing gaps to ensure continuous time steps.</span>
 <span class="sd">    </span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        df (pd.DataFrame): Resampled telemetry data.</span>
-<span class="sd">        method (str): Interpolation strategy (&#39;ffill&#39;, &#39;linear&#39;, etc.).</span>
-<span class="sd">        limit (int): Maximum consecutive NaN steps to fill.</span>
+<span class="sd">        method (str): Interpolation strategy (&#39;ffill&#39;, &#39;linear&#39;, &#39;bfill&#39;, etc.).</span>
+<span class="sd">        limit (int): Maximum consecutive non existant values steps to fill.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        pd.DataFrame: Gap filled dataset.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
+    
+    <span class="k">return</span> <span class="n">df</span></div>
 
 <div class="viewcode-block" id="normalize_fit"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.normalize_fit">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">normalize_fit</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;zscore&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -121,9 +215,10 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        dict: Mapping {variable: (mean, std)} or {variable: (min, range)}.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="pipeline"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.pipeline">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">pipeline</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rule</span> <span class="o">=</span> <span class="s2">&quot;5S&quot;</span><span class="p">,</span> <span class="n">agg</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="n">gap_limit</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">norm_method</span> <span class="o">=</span> <span class="s2">&quot;zscore&quot;</span><span class="p">,</span> <span class="n">physical_bounds</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="pipeline"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.pipeline">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">pipeline</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rule</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;5S&quot;</span><span class="p">,</span> <span class="n">agg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="n">gap_limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">norm_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;zscore&quot;</span><span class="p">,</span> <span class="n">physical_bounds</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Execute minimal preprocessing pipeline for this dataset.</span>
 <span class="sd">    </span>
@@ -139,7 +234,17 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        pd.DataFrame: Fully preprocessed dataset.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
+    
+    <span class="c1"># Remove nulls, non physical readings, and sort data</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">clean</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">physical_bounds</span> <span class="o">=</span> <span class="n">physical_bounds</span><span class="p">)</span>
+
+    <span class="c1"># Remove dupes or retransmits</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">dedupe</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+    <span class="c1"># Ensure timestamps and values are valid</span>
+    <span class="n">integrity_check</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">require_utc</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">require_sorted</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">df</span></div>
 </pre></div>
 
           </div>

@@ -46,7 +46,13 @@
 
 <span class="c1"># Long form telemetry means one observation per row, wide means all variables get their own column, with timestamps as the index</span>
 
-<div class="viewcode-block" id="pivot_wide"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.pivot_wide">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">pivot_wide</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">variables</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Canonical column names</span>
+<span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">,</span> <span class="n">_VAL</span> <span class="o">=</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">,</span> <span class="s2">&quot;variable&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span>
+
+<div class="viewcode-block" id="pivot_wide"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.pivot_wide">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">pivot_wide</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">variables</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert long form telemetry data to wide format.</span>
 <span class="sd">    </span>
@@ -56,9 +62,31 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        pd.DataFrame: Wide table (timestamp index, variables as columns).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
+    
+    <span class="n">data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-<div class="viewcode-block" id="windowify"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.windowify">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">windowify</span><span class="p">(</span><span class="n">wide_df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">window_size</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mi">10</span><span class="p">):</span>
+    <span class="c1"># (Optional): filter to a subset of variables/sensors</span>
+    <span class="k">if</span> <span class="n">variables</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">_VAR</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">variables</span><span class="p">)]</span>
+
+    <span class="c1"># Pivot from long to wide</span>
+    <span class="n">wide</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">data</span>
+        <span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">_TS</span><span class="p">,</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="n">_VAR</span><span class="p">,</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">_VAL</span><span class="p">,</span>
+            <span class="n">aggfunc</span> <span class="o">=</span> <span class="s2">&quot;last&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="o">.</span><span class="n">sort_index</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Ensure consistent columnd order</span>
+    <span class="n">wide</span> <span class="o">=</span> <span class="n">wide</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">wide</span><span class="o">.</span><span class="n">columns</span><span class="p">)]</span>
+
+    <span class="k">return</span> <span class="n">wide</span></div>
+
+<div class="viewcode-block" id="windowify"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.windowify">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">windowify</span><span class="p">(</span><span class="n">wide_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">window_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Slice wide form telemetry data into overlapping windows.</span>
 <span class="sd">    </span>
@@ -69,7 +97,24 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        np.ndarray: Array with shape (n_windows, window_size, n_features).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
+    
+    <span class="c1"># Convert to numeric matrix: shape (n_samples, n_features)</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">wide_df</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span> <span class="o">=</span> <span class="nb">float</span><span class="p">)</span>
+    <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="n">windows</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Slide a fixed size window across time axis</span>
+    <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_samples</span> <span class="o">-</span> <span class="n">window_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">window_size</span>
+        <span class="n">windows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">,</span> <span class="p">:])</span>
+
+    <span class="c1"># If not enough data for a single window, return an empty array</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">windows</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">window_size</span><span class="p">,</span> <span class="n">n_features</span><span class="p">),</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">float</span><span class="p">)</span>
+
+    <span class="c1"># Stack list of (window_size, n_features) into (n_windows, window_size, n_features)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">windows</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="features_stat"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.features_stat">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">features_stat</span><span class="p">(</span><span class="n">X3d</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -82,7 +127,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="make_feature_table"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.make_feature_table">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">make_feature_table</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">variables</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">window_size</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mi">10</span><span class="p">):</span>
+<div class="viewcode-block" id="make_feature_table"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.make_feature_table">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">make_feature_table</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">variables</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">window_size</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mi">10</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate a complete feature table from preprocessed telemetry.</span>
 <span class="sd">    </span>
@@ -94,7 +139,19 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        pd.DataFrame: Feature table ready for model training (n_windows × n_features).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
+    
+    <span class="c1"># Convert long form to wide form</span>
+    <span class="n">wide</span> <span class="o">=</span> <span class="n">pivot_wide</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">variables</span> <span class="o">=</span> <span class="n">variables</span><span class="p">)</span>
+    
+    <span class="c1"># If no usable data remains, stop early</span>
+    <span class="k">if</span> <span class="n">wide</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">window_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+    
+    <span class="c1"># Slice the wide data into fixed length windows</span>
+    <span class="n">X3d</span> <span class="o">=</span> <span class="n">windowify</span><span class="p">(</span><span class="n">wide</span><span class="p">,</span> <span class="n">window_size</span> <span class="o">=</span> <span class="n">window_size</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="n">step</span><span class="p">)</span>
+
+    <span class="c1"># Return the 3D telemetry tensor ready for feature extraction</span>
+    <span class="k">return</span> <span class="n">X3d</span></div>
 </pre></div>
 
           </div>
