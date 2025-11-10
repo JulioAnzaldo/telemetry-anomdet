@@ -52,6 +52,8 @@
 <span class="c1"># Canonical column names</span>
 <span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">,</span> <span class="n">_VAL</span> <span class="o">=</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">,</span> <span class="s2">&quot;variable&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span>
 
+<span class="n">_REQURED_COLS</span> <span class="o">=</span> <span class="p">{</span><span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">,</span> <span class="n">_VAL</span><span class="p">}</span>
+
 <div class="viewcode-block" id="pivot_wide"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.pivot_wide">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">pivot_wide</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">variables</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert long form telemetry data to wide format.</span>
@@ -62,27 +64,45 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        pd.DataFrame: Wide table (timestamp index, variables as columns).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;pivot_table() expects a pandas DataFrame&quot;</span><span class="p">)</span>
     
-    <span class="n">data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">missing</span> <span class="o">=</span> <span class="n">_REQURED_COLS</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pivot_wide() missing required columns: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="n">data</span> <span class="o">=</span> <span class="n">df</span>
 
     <span class="c1"># (Optional): filter to a subset of variables/sensors</span>
     <span class="k">if</span> <span class="n">variables</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">_VAR</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">variables</span><span class="p">)]</span>
 
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">([],</span> <span class="n">name</span> <span class="o">=</span> <span class="n">_TS</span><span class="p">))</span>
+
     <span class="c1"># Pivot from long to wide</span>
     <span class="n">wide</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">data</span>
-        <span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span>
             <span class="n">index</span> <span class="o">=</span> <span class="n">_TS</span><span class="p">,</span>
             <span class="n">columns</span> <span class="o">=</span> <span class="n">_VAR</span><span class="p">,</span>
             <span class="n">values</span> <span class="o">=</span> <span class="n">_VAL</span><span class="p">,</span>
             <span class="n">aggfunc</span> <span class="o">=</span> <span class="s2">&quot;last&quot;</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="o">.</span><span class="n">sort_index</span>
+        <span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
     <span class="p">)</span>
 
-    <span class="c1"># Ensure consistent columnd order</span>
-    <span class="n">wide</span> <span class="o">=</span> <span class="n">wide</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">wide</span><span class="o">.</span><span class="n">columns</span><span class="p">)]</span>
+    <span class="c1"># Drop channels that are entirely NaN</span>
+    <span class="n">wide</span> <span class="o">=</span> <span class="n">wide</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">how</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Deterministic column order</span>
+    <span class="k">if</span> <span class="n">wide</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">wide</span> <span class="o">=</span> <span class="n">wide</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">wide</span><span class="o">.</span><span class="n">columns</span><span class="p">)]</span>
+
+    <span class="c1"># Tidy up the labels</span>
+    <span class="n">wide</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">_TS</span>
+    <span class="n">wide</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">return</span> <span class="n">wide</span></div>
 
@@ -97,6 +117,9 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        np.ndarray: Array with shape (n_windows, window_size, n_features).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wide_df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;windoify() expects a pandas DataFrame&quot;</span><span class="p">)</span>
     
     <span class="c1"># Convert to numeric matrix: shape (n_samples, n_features)</span>
     <span class="n">values</span> <span class="o">=</span> <span class="n">wide_df</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span> <span class="o">=</span> <span class="nb">float</span><span class="p">)</span>
@@ -116,18 +139,22 @@
     <span class="c1"># Stack list of (window_size, n_features) into (n_windows, window_size, n_features)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">windows</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="features_stat"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.features_stat">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">features_stat</span><span class="p">(</span><span class="n">X3d</span><span class="p">):</span>
+<div class="viewcode-block" id="features_stat"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.features_stat">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">features_stat</span><span class="p">(</span><span class="n">X3d</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extract simple statistical features from each window.</span>
 <span class="sd">    </span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        X3d (np.ndarray): 3D telemetry data (n_windows × window_size × n_features).</span>
+<span class="sd">        X3d (np.ndarray): 3D telemetry data</span>
+<span class="sd">            (n_windows, window_size, n_features).</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        np.ndarray: 2D array of flattened feature vectors (e.g., mean, std, min, max per channel).</span>
+<span class="sd">        np.ndarray: 2D array of flattened feature vectors (mean, std, min, max per channel).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
+    
+    <span class="c1"># TODO: implement (mean, std, min, max)</span>
 
-<div class="viewcode-block" id="make_feature_table"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.make_feature_table">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">make_feature_table</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">variables</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">window_size</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mi">10</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;features_stat() is not implemented yet.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="make_feature_table"><a class="viewcode-back" href="../../../api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.make_feature_table">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">make_feature_table</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">variables</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">window_size</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate a complete feature table from preprocessed telemetry.</span>
 <span class="sd">    </span>
@@ -137,7 +164,10 @@
 <span class="sd">        window_size (int): Window length (default 50 samples).</span>
 <span class="sd">        step (int): Step size between windows.</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        pd.DataFrame: Feature table ready for model training (n_windows × n_features).</span>
+<span class="sd">         np.ndarray:</span>
+<span class="sd">            Shape (n_windows, window_size, n_features).</span>
+<span class="sd">            Ready for downstream modeling or for passing into a</span>
+<span class="sd">            future features_stat() to get a 2D feature table.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="c1"># Convert long form to wide form</span>

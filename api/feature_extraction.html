@@ -86,14 +86,15 @@ features from preprocessed telemetry data.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="telemetry_anomdet.feature_extraction.features.features_stat">
-<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.feature_extraction.features.</span></span><span class="sig-name descname"><span class="pre">features_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X3d</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/telemetry_anomdet/feature_extraction/features.html#features_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.feature_extraction.features.features_stat" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.feature_extraction.features.</span></span><span class="sig-name descname"><span class="pre">features_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/feature_extraction/features.html#features_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.feature_extraction.features.features_stat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extract simple statistical features from each window.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>X3d</strong> (<em>np.ndarray</em>) – 3D telemetry data (n_windows × window_size × n_features).</p>
+<dd class="field-odd"><p><strong>X3d</strong> (<em>np.ndarray</em>) – 3D telemetry data
+(n_windows, window_size, n_features).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>2D array of flattened feature vectors (e.g., mean, std, min, max per channel).</p>
+<dd class="field-even"><p>2D array of flattened feature vectors (mean, std, min, max per channel).</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray</p>
@@ -103,7 +104,7 @@ features from preprocessed telemetry data.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="telemetry_anomdet.feature_extraction.features.make_feature_table">
-<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.feature_extraction.features.</span></span><span class="sig-name descname"><span class="pre">make_feature_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/telemetry_anomdet/feature_extraction/features.html#make_feature_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.feature_extraction.features.make_feature_table" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.feature_extraction.features.</span></span><span class="sig-name descname"><span class="pre">make_feature_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/feature_extraction/features.html#make_feature_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.feature_extraction.features.make_feature_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a complete feature table from preprocessed telemetry.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -115,10 +116,12 @@ features from preprocessed telemetry data.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Feature table ready for model training (n_windows × n_features).</p>
+<dd class="field-even"><p>Shape (n_windows, window_size, n_features).
+Ready for downstream modeling or for passing into a
+future features_stat() to get a 2D feature table.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>pd.DataFrame</p>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
