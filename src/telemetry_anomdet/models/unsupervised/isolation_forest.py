@@ -1,4 +1,5 @@
 # src/telemetry_anomdet/models/unsupervised/isolation_forest.py
+
 """
 Isolation Forest unsupervised anomaly detector wrapper.
 
