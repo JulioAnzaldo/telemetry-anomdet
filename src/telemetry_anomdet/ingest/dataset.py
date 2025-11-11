@@ -55,6 +55,13 @@ class TelemetryDataset:
 
         return self._df.copy()
     
+    @property
+    def data(self) -> pd.DataFrame:
+        """
+        Direct access to the underlying DataFrame.
+        """
+        return self._df
+    
     def head(self, n: int = 5) -> pd.DataFrame:
         """
         Head of the underlying DataFrame (copy).
