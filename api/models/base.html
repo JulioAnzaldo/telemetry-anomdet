@@ -40,12 +40,87 @@
   <section id="module-telemetry_anomdet.models.base">
 <span id="base-models"></span><h1>Base Models<a class="headerlink" href="#module-telemetry_anomdet.models.base" title="Permalink to this heading">¶</a></h1>
 <p>Shared BaseModel for all models in telemetry_anomdet.</p>
-<p>Shared functionality goes here (save/load, config handling).</p>
+<p>Defines a unified interface for model configuration, fitting,
+prediction, and optional persistence.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="telemetry_anomdet.models.base.BaseModel">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.base.</span></span><span class="sig-name descname"><span class="pre">BaseModel</span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseModel" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.base.</span></span><span class="sig-name descname"><span class="pre">BaseModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Abstract base model for consistent API across supervised &amp; unsupervised models.</p>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p><cite>config</cite> is a free form dictionary for hyperparameters or settings.</p></li>
+<li><p>Subclasses are responsible for implementing <cite>fit</cite> and <cite>predict</cite>.</p></li>
+<li><p>Optional methods like <cite>score_samples</cite> or <cite>is_anomaly</cite> can be added
+by subclasses for anomaly detection use cases.</p></li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.base.BaseModel.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseModel.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseModel.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train the model (to be implemented by subclass).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>np.ndarray</em>) – Input data. For most models this is a 2D array of shape
+(n_samples, n_features).</p></li>
+<li><p><strong>y</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Target labels for supervised models. For unsupervised models
+this is usually None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.base.BaseModel.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseModel.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseModel.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict outputs for the given input data.</p>
+<p>For supervised models, this typically returns class labels.
+For clustering models, this might return cluster indices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>np.ndarray</em>) – Input data to predict on.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.base.BaseModel.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">pathlib.Path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseModel.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseModel.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the trained model to disk using pickle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em><em> or </em><em>Path</em>) – Destination file path.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Uses Python pickle; loading untrusted files is unsafe.</p></li>
+<li><p>Subclasses should ensure all attributes are picklable.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.base.BaseModel.load">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">pathlib.Path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseModel.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseModel.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a previously saved model instance from disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em><em> or </em><em>Path</em>) – Path to the pickled model file.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The deserialized model instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#telemetry_anomdet.models.base.BaseModel" title="telemetry_anomdet.models.base.BaseModel">BaseModel</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Assumes the file was created via <cite>BaseModel.save()</cite> or an equivalent.</p></li>
+<li><p>Only load files from trusted sources.</p></li>
+</ul>
+</dd></dl>
+
 </dd></dl>
 
 </section>
