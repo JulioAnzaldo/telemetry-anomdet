@@ -10,10 +10,11 @@ Anomalies are identified based on their distance to the closest centroid.
 from __future__ import annotations
 
 from sklearn.cluster import KMeans
-from dataclasses import dataclass
+from sklearn.preprocessing import StandardScaler
+from dataclasses import dataclass, field
 from ..base import BaseModel
 import numpy as np
-
+from typing import Optional
 
 @dataclass
 class KMeansAnomaly(BaseModel):
@@ -24,10 +25,22 @@ class KMeansAnomaly(BaseModel):
     ----------
     n_clusters : int
         Number of clusters (nominal operating modes) to identify.
-    model : object
-        Underlying KMeans instance (placeholder for sklearn.cluster.KMeans).
-    centroids : np.ndarray
-        Learned cluster centers after fitting.
+    scale : bool
+        Whether to apply `StandardScaler` normalization before clustering.
+        Recommended when features differ in scale.
+    percentile : float
+        Percentile of training-set distances used to compute the default
+        anomaly threshold in `is_anomaly()`. For example, 95.0 means that
+        the top 5% most distant training samples are considered anomalous.
+    model : Optional[KMeans]
+        The fitted scikit-learn `KMeans` instance after calling `fit()`.
+        This is `None` before fitting.
+    scaler : Optional[StandardScaler]
+        The fitted `StandardScaler` instance when `scale = True`, otherwise
+        `None`. Used to transform future inputs consistently with training.
+    centroids : Optional[np.ndarray]
+        Array of shape `(n_clusters, n_features)` containing the learned
+        cluster centers after fitting.
 
     Notes
     -----
@@ -40,6 +53,46 @@ class KMeansAnomaly(BaseModel):
     """
 
     n_clusters: int = 5
+    scale: bool = False
+    percentile: float = 95.0
+
+    # Fit artifacts
+    model: Optional[KMeans] = field(default = None, init = False)
+    scaler: Optional[StandardScaler] = field(default = None, init = False)
+    centroids: Optional[np.ndarray] = field(default = None, init = False)
+    _train_distances: Optional[np.ndarray] = field(default = None, init = False)
+    _default_threshold: Optional[float] = field(default = None, init = False)
+
+    # ---- helpers ----
+    def _require_fit(self):
+        if self.model is None:
+            raise RuntimeError("Model must be fitted before use. Call 'fit(X)' first pls.")
+
+    def _validate_X(self, X: np.ndarray, *, allow_empty: bool = False) -> np.ndarray:
+        X = np.asarray(X)
+        if X.ndim != 2:
+            raise ValueError(f"Input X must be 2D array (n_samples, n_features), got shape {X.shape}")
+        if not allow_empty and X.shape[0] == 0:
+            raise ValueError("Input X has 0 rows")
+        if X.size == 0:
+            raise ValueError("Input X has 0 elements")
+        if not np.isfinite(X).all():
+            raise ValueError("Input X contains NaN or infinite values")
+        return X
+
+    def _maybe_scale_fit(self, X: np.ndarray) -> np.ndarray:
+        if self.scale:
+            self.scaler = StandardScaler()
+            return self.scaler.fit_transform(X)
+        self.scaler = None
+        return X
+
+    def _maybe_scale_transform(self, X: np.ndarray) -> np.ndarray:
+        if self.scale:
+            if self.scaler is None:
+                raise RuntimeError("Scaler not fitted. Was model fitted with scale=True?.")
+            return self.scaler.transform(X)
+        return X
 
     # Core Model Interface
     def fit(self, X: np.ndarray):
@@ -58,28 +111,77 @@ class KMeansAnomaly(BaseModel):
             Fitted model instance for chaining.
         """
 
-        # TODO: Implement model training logic here
+        X = self._validate_X(X)
+        n_samples = X.shape[0]
+
+        if self.n_clusters < 1:
+            raise ValueError("n_clusters must be at least 1")
+        if self.n_clusters > n_samples:
+            raise ValueError(f"n_clusters ({self.n_clusters}) cannot exceed number of samples ({n_samples})")
+
+        Xs = self._maybe_scale_fit(X)
+
+
+        # Use stable settings for reproducibility
+        self.model = KMeans(
+            n_clusters=self.n_clusters,
+            n_init=10,
+            random_state=0,
+        )
+        self.model.fit(Xs)
+        self.centroids = self.model.cluster_centers_
+
+        #Distances of training points to their nearest centroid
+        dists = self.model.transform(Xs).min(axis=1)
+        self._train_distances = dists
+
+        #Default threshold based on training distances
+        p = float(self.percentile)
+        if not (0.0 < p < 100.0):
+            raise ValueError("percentile must be in (0, 100)")
+        self._default_threshold = np.percentile(dists, p)
 
         return self
 
     def predict(self, X: np.ndarray) -> np.ndarray:
         """
-        Assign each sample to the nearest cluster.
+        Predict anomaly scores for each sample.
 
         Parameters
         ----------
         X : np.ndarray
-            2D array of telemetry feature vectors to assign.
+            2D telemetry feature matrix of shape (n_samples, n_features).
 
         Returns
         -------
         np.ndarray
-            Integer cluster index for each sample (range: [0, n_clusters - 1]).
+            Array of shape (n_samples,) containing anomaly scores, where higher
+            values correspond to greater anomaly likelihood.
         """
 
-        # TODO: Implement cluster assignment logic here
+        return self.score_samples(X)
+    
+    def predict_clusters(self, X: np.ndarray) -> np.ndarray:
+        """
+        Assign each sample to its nearest cluster based on the fitted K-Means model.
 
-        return np.zeros(len(X), dtype = int)
+        Parameters
+        ----------
+        X : np.ndarray
+            2D telemetry feature matrix of shape (n_samples, n_features).
+
+        Returns
+        -------
+        np.ndarray
+            Integer array of shape (n_samples,) containing cluster labels in the
+            range [0, n_clusters - 1].
+        """
+
+        self._require_fit()
+        X = self._validate_X(X)
+        Xs = self._maybe_scale_transform(X)
+
+        return self.model.predict(Xs)
 
     def score_samples(self, X: np.ndarray) -> np.ndarray:
         """
@@ -99,9 +201,12 @@ class KMeansAnomaly(BaseModel):
             Higher distances typically correspond to more anomalous points.
         """
 
-        # TODO: Implement distance-based scoring
+        self._require_fit()
+        X = self._validate_X(X)
+        Xs = self._maybe_scale_transform(X)
+        distances = self.model.transform(Xs).min(axis=1)
+        return distances
 
-        return np.zeros(len(X), dtype = float)
 
     def is_anomaly(self, X: np.ndarray, threshold: float | None = None):
         """
@@ -112,8 +217,9 @@ class KMeansAnomaly(BaseModel):
         X : np.ndarray
             2D array of telemetry feature vectors to evaluate.
         threshold : float, optional
-            Distance cutoff for anomaly detection. If None, the implementation
-            may compute a default (e.g., 95th percentile of training distances).
+        Distance cutoff for anomaly detection. Samples with scores greater than
+        this value are considered anomalies. If None, the default threshold
+        from the training data is used, based on `self.percentile`.
 
         Returns
         -------
@@ -121,6 +227,16 @@ class KMeansAnomaly(BaseModel):
             Boolean array of shape (n_samples,) where True indicates an anomaly.
         """
 
-        # TODO: Implement thresholding logic
+        self._require_fit()
+        X = self._validate_X(X)
+        scores = self.score_samples(X)
 
-        return np.zeros(len(X), dtype = bool)
+        thr = threshold
+
+        if thr is None:
+            thr = self._default_threshold
+            #If its somehow missing, in case any artifacts got stripped, get from current scores
+            if thr is None:
+                thr = np.percentile(scores, float(self.percentile))
+
+        return scores > float(thr)
