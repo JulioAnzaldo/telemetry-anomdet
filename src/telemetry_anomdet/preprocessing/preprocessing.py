@@ -9,14 +9,12 @@ and other transformations before feature extraction.
 
 # Long form telemetry means one observation per row, wide means all variables get their own column, with timestamps as the index
 
+from typing import Optional
 import pandas as pd
 import fnmatch
 
 # Canonical column names used throughout the preprocessing pipeline
 _TS, _VAR, _VAL = "timestamp", "variable", "value"
-
-# These are the columns every telemetry DataFrame is expected to contain
-_REQUIRED_COLS = {_TS, _VAR, _VAL}
 
 def clean(df: pd.DataFrame, *, physical_bounds = None) -> pd.DataFrame:
     """
@@ -151,8 +149,41 @@ def resample(df: pd.DataFrame, *, rule: str = "5S", agg: str = "mean") -> pd.Dat
         pd.DataFrame: Resampled dataset with regular time intervals.
     """
     
-    return df
+    df = df.copy()
 
+    # Ensure proper timestamp dtype
+    df[_TS] = pd.to_datetime(df[_TS])
+
+    # Pivot to wide form
+    wide = df.pivot_table(index = _TS, columns = _VAR, values = _VAL)
+
+    # Resample
+    if agg == "mean":
+        wide = wide.resample(rule).mean()
+    elif agg == "median":
+        wide = wide.resample(rule).median()
+    elif agg == "min":
+        wide = wide.resample(rule).min()
+    elif agg == "max":
+        wide = wide.resample(rule).max()
+    else:
+        raise ValueError(f"Unsupported agg method: {agg}")
+
+    # Fill gaps with forward-fill then backfill
+    # This reduces NaNs in windowing
+    wide = wide.ffill().bfill()
+
+    # Melt back to long form
+    long = (
+        wide
+        .reset_index()
+        .melt(id_vars = [_TS], var_name=_VAR, value_name=_VAL)
+        .dropna(subset = [_VAL]) # remove variables missing entirely
+        .sort_values(_TS)
+        .reset_index(drop = True)
+    )
+
+    return long
 
 def interpolate_gaps(df: pd.DataFrame, *, method = "ffill", limit = 1) -> pd.DataFrame:
     """
@@ -181,7 +212,7 @@ def normalize_fit(df, *, method = "zscore"):
 
     pass
 
-def pipeline(df: pd.DataFrame, *, rule: str = "5S", agg: str = "mean", gap_limit: int = 1, norm_method: str = "zscore", physical_bounds = None):
+def pipeline(df: pd.DataFrame, *, physical_bounds: Optional[dict] = None, resample_rule: Optional[str] = "5S", resample_agg: str = "mean",) -> pd.DataFrame:
     """
     Execute minimal preprocessing pipeline for this dataset.
     
@@ -205,6 +236,7 @@ def pipeline(df: pd.DataFrame, *, rule: str = "5S", agg: str = "mean", gap_limit
     df = dedupe(df)
 
     # Ensure timestamps and values are valid
-    integrity_check(df, require_utc = True, require_sorted = True)
+    if resample_rule is not None:
+        df = resample(df, rule = resample_rule, agg = resample_agg)
 
     return df
