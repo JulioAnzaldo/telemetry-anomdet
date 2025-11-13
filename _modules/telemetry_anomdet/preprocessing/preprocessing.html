@@ -46,14 +46,12 @@
 
 <span class="c1"># Long form telemetry means one observation per row, wide means all variables get their own column, with timestamps as the index</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">fnmatch</span>
 
 <span class="c1"># Canonical column names used throughout the preprocessing pipeline</span>
 <span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">,</span> <span class="n">_VAL</span> <span class="o">=</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">,</span> <span class="s2">&quot;variable&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span>
-
-<span class="c1"># These are the columns every telemetry DataFrame is expected to contain</span>
-<span class="n">_REQUIRED_COLS</span> <span class="o">=</span> <span class="p">{</span><span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">,</span> <span class="n">_VAL</span><span class="p">}</span>
 
 <div class="viewcode-block" id="clean"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.clean">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">clean</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">physical_bounds</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -188,8 +186,41 @@
 <span class="sd">        pd.DataFrame: Resampled dataset with regular time intervals.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="k">return</span> <span class="n">df</span></div>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
+    <span class="c1"># Ensure proper timestamp dtype</span>
+    <span class="n">df</span><span class="p">[</span><span class="n">_TS</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">_TS</span><span class="p">])</span>
+
+    <span class="c1"># Pivot to wide form</span>
+    <span class="n">wide</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span> <span class="o">=</span> <span class="n">_TS</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">_VAR</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">_VAL</span><span class="p">)</span>
+
+    <span class="c1"># Resample</span>
+    <span class="k">if</span> <span class="n">agg</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span><span class="p">:</span>
+        <span class="n">wide</span> <span class="o">=</span> <span class="n">wide</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">agg</span> <span class="o">==</span> <span class="s2">&quot;median&quot;</span><span class="p">:</span>
+        <span class="n">wide</span> <span class="o">=</span> <span class="n">wide</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span><span class="o">.</span><span class="n">median</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">agg</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span><span class="p">:</span>
+        <span class="n">wide</span> <span class="o">=</span> <span class="n">wide</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">agg</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span><span class="p">:</span>
+        <span class="n">wide</span> <span class="o">=</span> <span class="n">wide</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported agg method: </span><span class="si">{</span><span class="n">agg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Fill gaps with forward-fill then backfill</span>
+    <span class="c1"># This reduces NaNs in windowing</span>
+    <span class="n">wide</span> <span class="o">=</span> <span class="n">wide</span><span class="o">.</span><span class="n">ffill</span><span class="p">()</span><span class="o">.</span><span class="n">bfill</span><span class="p">()</span>
+
+    <span class="c1"># Melt back to long form</span>
+    <span class="n">long</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">wide</span>
+        <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">_TS</span><span class="p">],</span> <span class="n">var_name</span><span class="o">=</span><span class="n">_VAR</span><span class="p">,</span> <span class="n">value_name</span><span class="o">=</span><span class="n">_VAL</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span> <span class="o">=</span> <span class="p">[</span><span class="n">_VAL</span><span class="p">])</span> <span class="c1"># remove variables missing entirely</span>
+        <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">_TS</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">long</span></div>
 
 <div class="viewcode-block" id="interpolate_gaps"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.interpolate_gaps">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">interpolate_gaps</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;ffill&quot;</span><span class="p">,</span> <span class="n">limit</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -218,7 +249,7 @@
 
     <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="pipeline"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.pipeline">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">pipeline</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rule</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;5S&quot;</span><span class="p">,</span> <span class="n">agg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="n">gap_limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">norm_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;zscore&quot;</span><span class="p">,</span> <span class="n">physical_bounds</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="pipeline"><a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.pipeline">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">pipeline</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">physical_bounds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">resample_rule</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;5S&quot;</span><span class="p">,</span> <span class="n">resample_agg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Execute minimal preprocessing pipeline for this dataset.</span>
 <span class="sd">    </span>
@@ -242,7 +273,8 @@
     <span class="n">df</span> <span class="o">=</span> <span class="n">dedupe</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
 
     <span class="c1"># Ensure timestamps and values are valid</span>
-    <span class="n">integrity_check</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">require_utc</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">require_sorted</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">resample_rule</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">resample</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">rule</span> <span class="o">=</span> <span class="n">resample_rule</span><span class="p">,</span> <span class="n">agg</span> <span class="o">=</span> <span class="n">resample_agg</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">df</span></div>
 </pre></div>
