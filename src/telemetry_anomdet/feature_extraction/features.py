@@ -104,18 +104,53 @@ def windowify(wide_df: pd.DataFrame, *, window_size: int = 50, step: int = 10) -
 
 def features_stat(X3d: np.ndarray) -> np.ndarray:
     """
-    Extract simple statistical features from each window.
-    
-    Arguments:
-        X3d (np.ndarray): 3D telemetry data
-            (n_windows, window_size, n_features).
-    Returns:
-        np.ndarray: 2D array of flattened feature vectors (mean, std, min, max per channel).
-    """
-    
-    # TODO: implement (mean, std, min, max)
+    Generate a 2D feature table from windowed telemetry.
 
-    raise NotImplementedError("features_stat() is not implemented yet.")
+    Arguments:
+        X3d (np.ndarray): Windowed telemetry tensor with shape
+            (n_windows, window_size, n_features), typically produced by
+            `make_feature_table()`.
+
+    Returns:
+        np.ndarray:
+            Shape (n_windows, n_features * 4).
+            For each window and each variable, this function computes
+            simple statistical features (mean, standard deviation, min,
+            and max) along the time axis and concatenates them into a
+            flat feature vector ready for downstream modeling.
+    """
+
+    X3d = np.asarray(X3d)
+
+    if X3d.ndim != 3:
+        raise ValueError(
+            f"features_stat() expects a 3D array "
+            f"(n_windows, window_size, n_features), got {X3d.shape}"
+        )
+
+    n_windows, window_size, n_features = X3d.shape
+
+    if n_windows == 0 or n_features == 0:
+        # If no data return an empty 2D array with 0 rows
+        return np.empty((0, 0), dtype = float)
+
+    # Compute stats along the time axis (axis=1)
+    means = np.nanmean(X3d, axis = 1) # (n_windows, n_features)
+    stds = np.nanstd(X3d, axis = 1) # (n_windows, n_features)
+    mins = np.nanmin(X3d, axis = 1) # (n_windows, n_features)
+    maxs = np.nanmax(X3d, axis = 1) # (n_windows, n_features)
+
+    # Concatenate into a single feature vector per window: [mean | std | min | max]
+    X_feat = np.concatenate([means, stds, mins, maxs], axis = 1)
+
+    # Replace any remaining NaN/inf with column means
+    col_means = np.nanmean(X_feat, axis=0)
+    col_means = np.where(np.isfinite(col_means), col_means, 0.0)
+    mask = ~np.isfinite(X_feat)
+    if mask.any():
+        X_feat[mask] = col_means[np.where(mask)[1]]
+
+    return X_feat
 
 def make_feature_table(df: pd.DataFrame, *, variables = None, window_size = 50, step = 10) -> np.ndarray:
     """
