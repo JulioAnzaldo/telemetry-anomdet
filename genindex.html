@@ -42,7 +42,6 @@
  | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
- | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
@@ -65,6 +64,10 @@
       <li><a href="user_guide/glossary.html#term-Anomaly-score"><strong>Anomaly score</strong></a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/models/ensemble.html#telemetry_anomdet.models.ensemble.AnomalyEnsemble">AnomalyEnsemble (class in telemetry_anomdet.models.ensemble)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="B">B</h2>
@@ -82,11 +85,13 @@
 </li>
       <li><a href="api/models/unsupervised.html#telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.classes">classes (telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.clean">clean() (in module telemetry_anomdet.preprocessing.preprocessing)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/ingest.html#telemetry_anomdet.ingest.csv_loader.coerce_long">coerce_long() (in module telemetry_anomdet.ingest.csv_loader)</a>
+</li>
+      <li><a href="api/models/ensemble.html#telemetry_anomdet.models.ensemble.AnomalyEnsemble.combine">combine (telemetry_anomdet.models.ensemble.AnomalyEnsemble attribute)</a>
 </li>
       <li><a href="user_guide/glossary.html#term-Conditional-independence"><strong>Conditional independence</strong></a>
 </li>
@@ -105,14 +110,6 @@
   </ul></td>
 </tr></table>
 
-<h2 id="E">E</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/models/ensemble.html#telemetry_anomdet.models.ensemble.EnsembleScorer">EnsembleScorer (class in telemetry_anomdet.models.ensemble)</a>
-</li>
-  </ul></td>
-</tr></table>
-
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -125,6 +122,8 @@
       <li><a href="api/models/base.html#telemetry_anomdet.models.base.BaseModel.fit">fit() (telemetry_anomdet.models.base.BaseModel method)</a>
 
       <ul>
+        <li><a href="api/models/ensemble.html#telemetry_anomdet.models.ensemble.AnomalyEnsemble.fit">(telemetry_anomdet.models.ensemble.AnomalyEnsemble method)</a>
+</li>
         <li><a href="api/models/unsupervised.html#telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.fit">(telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes method)</a>
 </li>
       </ul></li>
@@ -160,6 +159,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/models/ensemble.html#telemetry_anomdet.models.ensemble.AnomalyEnsemble.is_anomaly">is_anomaly() (telemetry_anomdet.models.ensemble.AnomalyEnsemble method)</a>
+</li>
       <li><a href="api/ingest.html#telemetry_anomdet.ingest.csv_loader.is_long_form">is_long_form() (in module telemetry_anomdet.ingest.csv_loader)</a>
 </li>
       <li><a href="api/models/unsupervised.html#telemetry_anomdet.models.unsupervised.isolation_forest.IsolationForestModel">IsolationForestModel (class in telemetry_anomdet.models.unsupervised.isolation_forest)</a>
@@ -198,6 +199,8 @@
 </li>
       <li><a href="api/models/unsupervised.html#telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.mean">mean (telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes attribute)</a>
 </li>
+      <li><a href="api/models/ensemble.html#telemetry_anomdet.models.ensemble.AnomalyEnsemble.models">models (telemetry_anomdet.models.ensemble.AnomalyEnsemble attribute)</a>
+</li>
       <li>
     module
 
@@ -229,6 +232,10 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/models/ensemble.html#telemetry_anomdet.models.ensemble.AnomalyEnsemble.normalize">normalize (telemetry_anomdet.models.ensemble.AnomalyEnsemble attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.normalize_fit">normalize_fit() (in module telemetry_anomdet.preprocessing.preprocessing)</a>
 </li>
   </ul></td>
@@ -237,6 +244,8 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/models/ensemble.html#telemetry_anomdet.models.ensemble.AnomalyEnsemble.percentile">percentile (telemetry_anomdet.models.ensemble.AnomalyEnsemble attribute)</a>
+</li>
       <li><a href="api/ingest.html#telemetry_anomdet.ingest.csv_loader.pick_time_column">pick_time_column() (in module telemetry_anomdet.ingest.csv_loader)</a>
 </li>
       <li><a href="api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.pipeline">pipeline() (in module telemetry_anomdet.preprocessing.preprocessing)</a>
@@ -250,6 +259,8 @@
       <li><a href="api/models/base.html#telemetry_anomdet.models.base.BaseModel.predict">predict() (telemetry_anomdet.models.base.BaseModel method)</a>
 
       <ul>
+        <li><a href="api/models/ensemble.html#telemetry_anomdet.models.ensemble.AnomalyEnsemble.predict">(telemetry_anomdet.models.ensemble.AnomalyEnsemble method)</a>
+</li>
         <li><a href="api/models/unsupervised.html#telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.predict">(telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes method)</a>
 </li>
       </ul></li>
@@ -271,8 +282,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/models/base.html#telemetry_anomdet.models.base.BaseModel.save">save() (telemetry_anomdet.models.base.BaseModel method)</a>
 </li>
+      <li><a href="api/models/ensemble.html#telemetry_anomdet.models.ensemble.AnomalyEnsemble.score_components">score_components() (telemetry_anomdet.models.ensemble.AnomalyEnsemble method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/models/ensemble.html#telemetry_anomdet.models.ensemble.AnomalyEnsemble.score_samples">score_samples() (telemetry_anomdet.models.ensemble.AnomalyEnsemble method)</a>
+</li>
       <li><a href="api/ingest.html#telemetry_anomdet.ingest.dataset.TelemetryDataset.synthetic">synthetic() (telemetry_anomdet.ingest.dataset.TelemetryDataset class method)</a>
 </li>
   </ul></td>

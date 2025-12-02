@@ -87,14 +87,19 @@ features from preprocessed telemetry data.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="telemetry_anomdet.feature_extraction.features.features_stat">
 <span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.feature_extraction.features.</span></span><span class="sig-name descname"><span class="pre">features_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/feature_extraction/features.html#features_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.feature_extraction.features.features_stat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extract simple statistical features from each window.</p>
+<dd><p>Generate a 2D feature table from windowed telemetry.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>X3d</strong> (<em>np.ndarray</em>) – 3D telemetry data
-(n_windows, window_size, n_features).</p>
+<dd class="field-odd"><p><strong>X3d</strong> (<em>np.ndarray</em>) – Windowed telemetry tensor with shape
+(n_windows, window_size, n_features), typically produced by
+<cite>make_feature_table()</cite>.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>2D array of flattened feature vectors (mean, std, min, max per channel).</p>
+<dd class="field-even"><p>Shape (n_windows, n_features * 4).
+For each window and each variable, this function computes
+simple statistical features (mean, standard deviation, min,
+and max) along the time axis and concatenates them into a
+flat feature vector ready for downstream modeling.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray</p>

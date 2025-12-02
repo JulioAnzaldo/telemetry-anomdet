@@ -39,14 +39,165 @@
             
   <section id="module-telemetry_anomdet.models.ensemble">
 <span id="ensemble-model"></span><h1>Ensemble Model<a class="headerlink" href="#module-telemetry_anomdet.models.ensemble" title="Permalink to this heading">¶</a></h1>
-<p>Model ensemble utilities.</p>
-<p>Combines results from multiple anomaly detection models such as
-Bayes, Isolation Forest, or One-Class SVM to produce aggregate scores.</p>
+<p>Ensemble combinator for anomaly detectors.</p>
+<p>This module defines an <cite>AnomalyEnsemble</cite> that can wrap multiple
+BaseModel compatible detectors and combine their scores into a
+single ensemble score and anomaly decision.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="telemetry_anomdet.models.ensemble.EnsembleScorer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.ensemble.</span></span><span class="sig-name descname"><span class="pre">EnsembleScorer</span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/ensemble.html#EnsembleScorer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.ensemble.EnsembleScorer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Placeholder for future implementation.</p>
+<dt class="sig sig-object py" id="telemetry_anomdet.models.ensemble.AnomalyEnsemble">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.ensemble.</span></span><span class="sig-name descname"><span class="pre">AnomalyEnsemble</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">models</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="base.html#telemetry_anomdet.models.base.BaseModel" title="telemetry_anomdet.models.base.BaseModel"><span class="pre">BaseModel</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">combine</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'robust'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">95.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/ensemble.html#AnomalyEnsemble"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.ensemble.AnomalyEnsemble" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="base.html#telemetry_anomdet.models.base.BaseModel" title="telemetry_anomdet.models.base.BaseModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></a></p>
+<p>Ensemble of anomaly detection models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>models</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="base.html#telemetry_anomdet.models.base.BaseModel" title="telemetry_anomdet.models.base.BaseModel"><em>BaseModel</em></a><em>]</em>) – <p>Dictionary mapping model names to fitted or unfitted model instances.
+Example:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>{</dt><dd><p>“kmeans”: KMeansAnomaly(n_clusters = 5),
+“pca”: PCAAnomaly(n_components = 5),</p>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+</p></li>
+<li><p><strong>combine</strong> (<em>str</em><em>, </em><em>default = &quot;mean&quot;</em>) – <p>Strategy to combine normalized scores across models.
+Options:</p>
+<blockquote>
+<div><ul>
+<li><p>”mean”   : arithmetic mean of scores</p></li>
+<li><p>”median” : median score</p></li>
+<li><p>”max”    : maximum score</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>normalize</strong> (<em>str</em><em>, </em><em>default = &quot;robust&quot;</em>) – <dl class="simple">
+<dt>How to normalize per-model scores before combining:</dt><dd><ul>
+<li><p>”none”   : use raw scores</p></li>
+<li><p>”minmax” : (x - min) / (max - min)</p></li>
+<li><p>”robust” : (x - median) / IQR, clipped to [0, 1]</p></li>
+</ul>
+</dd>
+</dl>
+<p>Normalization statistics are estimated from the training data.</p>
+</p></li>
+<li><p><strong>percentile</strong> (<em>float</em><em>, </em><em>default=95.0</em>) – Percentile of ensemble training scores used as default anomaly
+threshold in <cite>is_anomaly()</cite>. For example, 95.0 means the top 5%
+most anomalous training windows are considered anomalies.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>All wrapped models are expected to follow the <cite>BaseModel</cite> API.</p></li>
+<li><p>For scoring, the ensemble will prefer a model’s <cite>score_samples(X)</cite>
+method if it exists; otherwise it falls back to <cite>predict(X)</cite>.</p></li>
+</ul>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.ensemble.AnomalyEnsemble.models">
+<span class="sig-name descname"><span class="pre">models</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="base.html#telemetry_anomdet.models.base.BaseModel" title="telemetry_anomdet.models.base.BaseModel"><span class="pre">BaseModel</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#telemetry_anomdet.models.ensemble.AnomalyEnsemble.models" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.ensemble.AnomalyEnsemble.combine">
+<span class="sig-name descname"><span class="pre">combine</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'mean'</span></em><a class="headerlink" href="#telemetry_anomdet.models.ensemble.AnomalyEnsemble.combine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.ensemble.AnomalyEnsemble.normalize">
+<span class="sig-name descname"><span class="pre">normalize</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'robust'</span></em><a class="headerlink" href="#telemetry_anomdet.models.ensemble.AnomalyEnsemble.normalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.ensemble.AnomalyEnsemble.percentile">
+<span class="sig-name descname"><span class="pre">percentile</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">95.0</span></em><a class="headerlink" href="#telemetry_anomdet.models.ensemble.AnomalyEnsemble.percentile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.ensemble.AnomalyEnsemble.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/ensemble.html#AnomalyEnsemble.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.ensemble.AnomalyEnsemble.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit all underlying models and estimate normalization / thresholds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>np.ndarray</em>) – 2D telemetry feature matrix (n_samples, n_features).</p></li>
+<li><p><strong>y</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Optional labels (for supervised models). Most anomaly models will
+ignore this.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.ensemble.AnomalyEnsemble.score_components">
+<span class="sig-name descname"><span class="pre">score_components</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/ensemble.html#AnomalyEnsemble.score_components"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.ensemble.AnomalyEnsemble.score_components" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get per model scores for the given samples (before combination).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping model_name -&gt; 1D np.ndarray of shape (n_samples,).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.ensemble.AnomalyEnsemble.score_samples">
+<span class="sig-name descname"><span class="pre">score_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/ensemble.html#AnomalyEnsemble.score_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.ensemble.AnomalyEnsemble.score_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute ensemble anomaly scores for each sample.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>np.ndarray</em>) – 2D telemetry feature matrix.</p></li>
+<li><p><strong>normalize</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True (default), apply the configured normalization method
+(<cite>self.normalize</cite>) before combining. If False, use raw scores
+as returned by each model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>1D array of ensemble scores. Higher values correspond to
+greater anomaly likelihood.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.ensemble.AnomalyEnsemble.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/ensemble.html#AnomalyEnsemble.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.ensemble.AnomalyEnsemble.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict ensemble anomaly scores.</p>
+<p>This mirrors the unsupervised convention in the rest of the package,
+where <cite>predict()</cite> returns a score, not a class label.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.ensemble.AnomalyEnsemble.is_anomaly">
+<span class="sig-name descname"><span class="pre">is_anomaly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/ensemble.html#AnomalyEnsemble.is_anomaly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.ensemble.AnomalyEnsemble.is_anomaly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flag samples as anomalies based on ensemble scores.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>np.ndarray</em>) – 2D telemetry feature matrix.</p></li>
+<li><p><strong>threshold</strong> (<em>float</em><em>, </em><em>optional</em>) – Fixed score cutoff. Samples with scores greater than this
+value are considered anomalies.</p></li>
+<li><p><strong>percentile</strong> (<em>float</em><em>, </em><em>optional</em>) – If provided, override the default <cite>self.percentile</cite> and
+compute a threshold based on the given percentile of the
+current batch’s ensemble scores.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Boolean array of shape (n_samples,) where True indicates an anomaly.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <p>Provides an interface for combining scores from multiple anomaly detection
@@ -87,7 +238,7 @@ aggregation methods such as mean, max, and weighted scoring.</p>
 <li class="toctree-l1"><a class="reference internal" href="../feature_extraction.html">Feature Extraction Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="base.html">Base Models</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Ensemble Model</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.models.ensemble.EnsembleScorer"><code class="docutils literal notranslate"><span class="pre">EnsembleScorer</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.models.ensemble.AnomalyEnsemble"><code class="docutils literal notranslate"><span class="pre">AnomalyEnsemble</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="supervised.html">Supervised Models</a></li>
