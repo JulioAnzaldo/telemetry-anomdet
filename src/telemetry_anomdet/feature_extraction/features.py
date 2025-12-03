@@ -134,21 +134,38 @@ def features_stat(X3d: np.ndarray) -> np.ndarray:
         # If no data return an empty 2D array with 0 rows
         return np.empty((0, 0), dtype = float)
 
-    # Compute stats along the time axis (axis=1)
+    # Compute stats along the time axis (axis = 1)
     means = np.nanmean(X3d, axis = 1) # (n_windows, n_features)
     stds = np.nanstd(X3d, axis = 1) # (n_windows, n_features)
     mins = np.nanmin(X3d, axis = 1) # (n_windows, n_features)
     maxs = np.nanmax(X3d, axis = 1) # (n_windows, n_features)
+    medians = np.nanmedian(X3d, axis=1) # (n_windows, n_features)
+
+    # Linear slope per variable for each window
+    times = np.arange(window_size)
+    slopes = np.zeros((n_windows, n_features), dtype = float)
+
+    for i in range(n_windows):
+        for j in range(n_features):
+            y = X3d[i, :, j]
+            mask = np.isfinite(y)
+
+            # If all NaN or fewer than 2 finite points, slope stays 0
+            if mask.sum() < 2:
+                slopes[i, j] = 0.0
+            else:
+                a, b = np.polyfit(times[mask], y[mask], 1)
+                slopes[i, j] = a
 
     # Concatenate into a single feature vector per window: [mean | std | min | max]
-    X_feat = np.concatenate([means, stds, mins, maxs], axis = 1)
+    X_feat = np.concatenate([means, stds, mins, maxs, medians, slopes], axis = 1)
 
     # Replace any remaining NaN/inf with column means
-    col_means = np.nanmean(X_feat, axis=0)
+    col_means = np.nanmean(X_feat, axis = 0)
     col_means = np.where(np.isfinite(col_means), col_means, 0.0)
-    mask = ~np.isfinite(X_feat)
-    if mask.any():
-        X_feat[mask] = col_means[np.where(mask)[1]]
+    bad = ~np.isfinite(X_feat)
+    if bad.any():
+        X_feat[bad] = col_means[np.where(bad)[1]]
 
     return X_feat
 
