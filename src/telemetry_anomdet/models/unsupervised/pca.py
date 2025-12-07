@@ -42,8 +42,8 @@ class PCAAnomaly(BaseModel):
         Recommended when features differ significantly in scale.
     percentile : float
         Percentile of training reconstruction errors used to compute the
-        default anomaly threshold in `is_anomaly()`. For example, 99.0 means
-        that the top 1% highest-error training samples are considered
+        default anomaly threshold in `is_anomaly()`. For example, 95.0 means
+        that the top 5% highest-error training samples are considered
         anomalous by default.
     model : Optional[PCA]
         The fitted scikit-learn `PCA` instance after calling `fit()`.
@@ -61,13 +61,17 @@ class PCAAnomaly(BaseModel):
 
     n_components: Optional[int] = None
     scale: bool = True
-    percentile: float = 99.0
+    percentile: float = 95.0
 
     # Fit artifacts
-    model: Optional[PCA] = field(default = None, init = False)
-    scaler: Optional[StandardScaler] = field(default=None, init = False)
-    _train_scores: Optional[np.ndarray] = field(default = None, init = False)
-    _default_threshold: Optional[float] = field(default = None, init = False)
+    model: Optional[PCA] = field(default=None, init=False)
+    scaler: Optional[StandardScaler] = field(default=None, init=False)
+    _train_scores: Optional[np.ndarray] = field(default=None, init=False)
+    _default_threshold: Optional[float] = field(default=None, init=False)
+
+    def __post_init__(self):
+        # Ensure BaseModel initialization (for config, repr)
+        super().__init__()
 
     # ---- helpers ----
     def _require_fit(self):
@@ -104,7 +108,7 @@ class PCAAnomaly(BaseModel):
             return self.scaler.transform(X)
         return X
 
-    # ---- core model interface ----
+    # core model interface
     def fit(self, X: np.ndarray):
         """
         Fit the PCA model to the telemetry feature matrix.
@@ -121,7 +125,22 @@ class PCAAnomaly(BaseModel):
             Fitted model instance for chaining.
         """
 
-        # TODO: validate X, fit PCA, compute training reconstruction errors, and set _train_scores/_default_threshold.
+        X = self._validate_X(X)
+
+        # Apply scaling
+        Xs = self._maybe_scale_fit(X)
+
+        # Fit sklearn PCA
+        pca = PCA(n_components=self.n_components)
+        Z = pca.fit_transform(Xs)
+        X_recon = pca.inverse_transform(Z)
+
+        self.model = pca
+
+        # Compute training reconstruction errors
+        errors = np.sum((Xs - X_recon) ** 2, axis=1)
+        self._train_scores = errors
+        self._default_threshold = np.percentile(errors, self.percentile)
 
         return self
 
@@ -154,13 +173,23 @@ class PCAAnomaly(BaseModel):
         Returns
         -------
         np.ndarray
-            Array of shape (n_samples,) containing reconstruction-error scores.
+            Array of shape (n_samples) containing reconstruction-error scores.
             Higher values typically correspond to more anomalous points.
         """
 
-        # TODO: implement reconstruction error using the fitted PCA model
+        self._require_fit()
+        X = self._validate_X(X)
+        Xs = self._maybe_scale_transform(X)
 
-        raise NotImplementedError
+        pca = self.model  # type: ignore[assignment]
+
+        # Project and reconstruct using the fitted PCA
+        Z = pca.transform(Xs)
+        X_recon = pca.inverse_transform(Z)
+
+        # Reconstruction error
+        errors = np.sum((Xs - X_recon) ** 2, axis=1)
+        return errors
 
     def is_anomaly(self, X: np.ndarray, threshold: Optional[float] = None) -> np.ndarray:
         """
@@ -182,6 +211,11 @@ class PCAAnomaly(BaseModel):
             Boolean array of shape (n_samples,) where True indicates an anomaly.
         """
 
-        # TODO: call score_samples(), pick a threshold (either given or _default_threshold), and return a boolean mask
+        scores = self.score_samples(X)
 
-        raise NotImplementedError
+        if threshold is None:
+            if self._default_threshold is None:
+                raise RuntimeError("No threshold available. Fit the model first.")
+            threshold = self._default_threshold
+
+        return scores > threshold
