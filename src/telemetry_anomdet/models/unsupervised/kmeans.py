@@ -66,7 +66,7 @@ class KMeansAnomaly(BaseModel):
     # ---- helpers ----
     def _require_fit(self):
         if self.model is None:
-            raise RuntimeError("Model must be fitted before use. Call 'fit(X)' first pls.")
+            raise RuntimeError("Model must be fitted before use. Call 'fit(X)' first.")
 
     def _validate_X(self, X: np.ndarray, *, allow_empty: bool = False) -> np.ndarray:
         X = np.asarray(X)
@@ -90,7 +90,7 @@ class KMeansAnomaly(BaseModel):
     def _maybe_scale_transform(self, X: np.ndarray) -> np.ndarray:
         if self.scale:
             if self.scaler is None:
-                raise RuntimeError("Scaler not fitted. Was model fitted with scale=True?.")
+                raise RuntimeError("Scaler not fitted. Was model fitted with scale = True?.")
             return self.scaler.transform(X)
         return X
 
