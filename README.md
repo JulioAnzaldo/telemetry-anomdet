@@ -3,7 +3,7 @@
 An open-source anomaly detection toolkit for spacecraft telemetry. Combines classical and deep learning detectors in a stacking ensemble with explainable AI. Designed to deliver actionable diagnostics within the ground station inter-pass window.
 
 [![Documentation](https://img.shields.io/badge/docs-Online-blue)](https://julioanzaldo.github.io/telemetry-anomdet/)
-[![Test PyPI](https://img.shields.io/badge/Test--PyPI-yellow?logo=pypi)](https://test.pypi.org/project/telemetry-anomdet/)
+[![Test PyPI](https://img.shields.io/badge/Test-PyPI-yellow)](https://test.pypi.org/project/telemetry-anomdet/)
 
 ## Overview
 telemetry-anomdet simplifies the ground station telemetry pipeline:
