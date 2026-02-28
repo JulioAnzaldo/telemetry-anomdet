@@ -1,17 +1,20 @@
-<h2 align="center">Telemetry Anomaly Detection Toolkit</h2>
+<h2 align="center">telemetry-anomdet</h2>
 
-A lightweight Python package for preprocessing, feature extraction, and unsupervised anomaly detection on spacecraft telemetry. Includes a Streamlit dashboard for quick visualization, with future CLI and Docker support planned.
+An open-source anomaly detection toolkit for spacecraft telemetry. Combines classical and deep learning detectors in a stacking ensemble with explainable AI. Designed to deliver actionable diagnostics within the ground station inter-pass window.
 
 [![Documentation](https://img.shields.io/badge/docs-Online-blue)](https://julioanzaldo.github.io/telemetry-anomdet/)
+[![TestPyPI](https://img.shields.io/badge/TestPyPI-telemetry--anomdet-orange?logo=pypi)](https://test.pypi.org/project/telemetry-anomdet/)
 
 ## Overview
-TADT aims to simplify the pipeline of:
+telemetry-anomdet simplifies the ground station telemetry pipeline:
 
-- Ingesting heterogeneous telemetry
-- Running unsupervised anomaly detection
-- Visualizing results via Streamlight dashboard
-- Extracting features (statistical, spectral, rolling window)
-- Applying preprocessing (resampling, noise filtering, interpolation)
+- Ingesting heterogeneous telemetry (CCSDS, CSV, HDF5)
+- Applying preprocessing (resampling, noise filtering, gap interpolation, physical bounds validation)
+- Extracting features (statistical, rolling window, sliding window tensors for sequence models)
+- Running a stacking ensemble of unsupervised anomaly detectors with dynamic thresholding
+- Explaining detections via per-channel attribution and human-in-the-loop feedback
+
+Validated on SMAP, OPSSAT.
 
 ## System requirements
 
