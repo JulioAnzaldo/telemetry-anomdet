@@ -4,36 +4,86 @@ Glossary
 .. glossary::
 
    Long form
-      Each row represents a single data point: (timestamp, variable, value).  
-      Used for ingest and preprocessing because it generalizes well across sensors.
+      Each row represents a single observation: ``(timestamp, variable, value)``.
+      Used throughout ingest and preprocessing because it generalizes across
+      any number of sensors without schema changes.
 
    Wide form
-      Each row represents one timestamp, and each column is a variable.  
-      Used for feature extraction and model input.
+      Each row represents one timestamp; each column is a sensor channel.
+      Produced by ``pivot_wide()`` as the first step of feature extraction.
 
    Window
-      A fixed-size block of sequential telemetry samples (50–100).  
-      Each window becomes one feature vector for the model.
+      A fixed-size block of sequential telemetry samples, typically 50–100 readings.
+      ``windowify()`` slides a window over wide-form data to produce a 3D tensor
+      of shape ``(n_windows, window_size, n_features)``. Each window is one
+      observation for the anomaly detectors.
 
    Anomaly score
-      A numeric measure of how unlikely a telemetry window is under the learned model.  
-      Low probability means high anomaly score.
+      A scalar measuring how unlike nominal behavior a telemetry window is.
+      Higher scores indicate greater anomaly likelihood. All detectors in
+      telemetry-anomdet return scores where higher = more anomalous, matching
+      the PyOD convention.
+
+   BaseDetector
+      The abstract base class all detectors inherit from. Enforces the
+      ``fit`` / ``decision_function`` / ``predict`` / ``is_anomaly`` interface
+      and guarantees ``decision_scores_``, ``threshold_``, and ``labels_``
+      are set after fitting. Modeled on PyOD's ``BaseDetector``.
+
+   decision_function
+      Returns raw anomaly scores, shape ``(n_windows,)``. Higher = more anomalous.
+      Never returns binary labels — that is ``predict()``. The two are never swapped.
+
+   score_components
+      Returns a ``dict`` of per-model raw scores before combination:
+      ``{model_name: np.ndarray}``. This is the input to ``SHAPExplainer`` —
+      SHAP perturbs input windows and measures how each channel affects each
+      model's score independently.
+
+   SHAP
+      SHapley Additive exPlanations. A game-theoretic method for attributing
+      a model's output to its input features. In telemetry-anomdet, SHAP
+      operates over ``score_components()`` to produce per-channel attribution
+      values: how much did each sensor channel contribute to the ensemble
+      anomaly score for a given window.
+
+   GDN
+      Graph Deviation Network (Deng & Hooi, AAAI 2021). Models each sensor
+      as a node in a learned graph. During training it learns the nominal
+      relationships between sensors. At inference time, anomaly scores are
+      deviations from those expected relational behaviors — detecting faults
+      that are invisible to univariate detectors because each sensor
+      individually looks normal.
+
+   TranAD
+      Transformer-based anomaly detection (Tuli et al., VLDB 2022). Consumes
+      the raw 3D windowed tensor directly. Uses a two-phase attention mechanism
+      to reconstruct telemetry windows; anomaly scores are reconstruction errors.
+
+   Robust normalization
+      Per-model score scaling using median and IQR (interquartile range) rather
+      than min/max. Preferred in anomaly detection because anomalies are extreme
+      values by definition — they would skew a minmax scale and compress the
+      normal operating range. Robust normalization centers the middle 50% of
+      training scores on ``[0, 1]`` and clips everything else.
 
    Feature
-      A numerical summary (mean, standard deviation, min, max, etc.) computed from each window.
-
-   Gaussian Naive Bayes
-      A probabilistic model assuming each feature follows a normal distribution and  
-      that all features are conditionally independent given the system’s state.
-
-   Conditional independence
-      The assumption that once the system’s overall state is known,  
-      the behavior of one sensor does not affect another.
+      A numerical summary computed from a telemetry window. ``features_stat()``
+      produces six statistics per channel per window: mean, std, min, max,
+      median, slope. Yielding a 2D feature matrix of shape
+      ``(n_windows, n_features * 6)`` used by classical detectors.
 
    CCSDS
-      Consultative Committee for Space Data Systems; a standardized packet protocol  
-      used by many satellite missions for telemetry and telecommand.
+      Consultative Committee for Space Data Systems. A standardized packet
+      protocol used by many spacecraft missions for telemetry and telecommand
+      downlink.
 
-   Kafka
-      A distributed event-streaming platform used for real-time data pipelines.  
-      In this project, it enables streaming telemetry and anomaly scores.
+   Inter-pass window
+      The gap between two ground station contact passes, typically a few hours
+      for LEO spacecraft.
+
+   DiagnosticReport
+      The structured output of the LLM reasoning layer. Fields:
+      ``anomaly_type``, ``severity``, ``primary_channels``, ``explanation``,
+      ``recommended_action``, ``confidence``. Generated by Llama 3.1 8B (or similar)
+      from SHAP attributions and anomaly context.
