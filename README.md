@@ -7,9 +7,7 @@
   <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/JulioAnzaldo/telemetry-anomdet"></a>
 </p>
 
-**telemetry-anomdet** is an open-source anomaly detection toolkit for spacecraft telemetry. It runs a stacking ensemble of classical and deep learning detectors with per-channel SHAP attribution and LLM-generated diagnostic reports, designed to deliver actionable diagnostics within the ground station inter-pass window.
-
-Validated on SMAP (NASA) and OPS-SAT (ESA).
+**telemetry-anomdet** is an open-source anomaly detection toolkit for spacecraft telemetry. It runs a stacking ensemble of classical and deep learning detectors with per-channel SHAP attribution, SymTorch symbolic fault expressions, and LLM-generated diagnostic reports.
 
 ---
 
@@ -111,6 +109,7 @@ components = ensemble.score_components(X_test)
 | LLM diagnostic reports on Jetson Orin -- Llama 3.1 8B via llama.cpp, SHAP chart as image input per ICLR 2025 findings | Phase 4 |
 | Human-in-the-loop feedback -- operator flags adjust `is_anomaly()` threshold dynamically, no retraining | Phase 5 |
 | Cross-dataset generalization -- ensemble trained on SMAP evaluated on OPS-SAT without retraining | Phase 6 |
+| SymTorch symbolic distillation of GDN -- extracts human-readable fault expressions per sensor relationship, giving the LLM mechanism-level context beyond SHAP weights | Stretch |
 
 ## Getting Help
 
