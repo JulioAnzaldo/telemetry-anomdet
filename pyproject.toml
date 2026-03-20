@@ -1,6 +1,6 @@
 [project]
 name = "telemetry-anomdet"
-version = "0.0.4"
+version = "0.0.5"
 description = "Telemetry anomaly detection toolkit with preprocessing, feature extraction, and unsupervised models."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -43,10 +43,10 @@ dev = [
   "ruff>=0.1,<1.0",
 ]
 docs = [
-  "sphinx>=5.0,<6.0",
-  "sphinx-rtd-theme>=1.2,<2.0",
-  "sphinx-autodoc-typehints>=1.22,<2.0",
-  "numpydoc>=1.5,<2.0",
+  "sphinx>=7.0",
+  "sphinx-rtd-theme>=2.0",
+  "sphinx-autodoc-typehints>=2.0",
+  "numpydoc>=1.7",
 ]
 # Phase 2 -- uncomment when GDN/TranAD training starts
 # deep = [
