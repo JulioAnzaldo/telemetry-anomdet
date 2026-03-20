@@ -8,11 +8,11 @@ Each feature is assumed to follow a Gaussian (normal) distribution conditioned o
 
 from __future__ import annotations
 from dataclasses import dataclass
-from ..base import BaseModel
+from ..base import BaseDetector
 import numpy as np
 
 @dataclass
-class GaussianNaiveBayes(BaseModel):
+class GaussianNaiveBayes(BaseDetector):
     """
     Gaussian Naive Bayes classifier.
 

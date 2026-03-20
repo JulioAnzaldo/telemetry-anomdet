@@ -139,7 +139,7 @@ def features_stat(X3d: np.ndarray) -> np.ndarray:
     stds = np.nanstd(X3d, axis = 1) # (n_windows, n_features)
     mins = np.nanmin(X3d, axis = 1) # (n_windows, n_features)
     maxs = np.nanmax(X3d, axis = 1) # (n_windows, n_features)
-    medians = np.nanmedian(X3d, axis=1) # (n_windows, n_features)
+    medians = np.nanmedian(X3d, axis = 1) # (n_windows, n_features)
 
     # Linear slope per variable for each window
     times = np.arange(window_size)

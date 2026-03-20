@@ -1,0 +1,28 @@
+/* telemetry-anomdet docs — custom overrides */
+
+/* Background color */
+body {
+    background-color: #f5efe5 !important;
+}
+
+div.document,
+div.sphinxsidebar,
+div.bodywrapper,
+div.body {
+    background-color: #f5efe5 !important;
+}
+
+/* Widen content area */
+.document {
+    max-width: 1100px !important;
+    width: 100% !important;
+}
+
+.body {
+    max-width: none !important;
+}
+
+/* Give the sidebar a bit more breathing room */
+div.sphinxsidebar {
+    width: 260px !important;
+}

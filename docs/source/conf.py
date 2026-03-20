@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath('../../src'))
 project = 'telemetry_anomdet'
 copyright = '2025, Julio Anzaldo'
 author = 'Julio Anzaldo'
-release = '0.0.2'
+release = '0.0.4'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -39,4 +39,10 @@ root_doc = 'index'
 
 html_theme = 'alabaster'
 html_static_path = ['_static']
+html_css_files = ['custom.css']
 html_baseurl = "https://julioanzaldo.github.io/telemetry-anomdet/"
+
+html_theme_options = {
+    'page_width': '1200px',
+    'sidebar_width': '260px',
+}
