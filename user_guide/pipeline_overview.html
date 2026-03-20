@@ -1,20 +1,18 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Pipeline Overview &#8212; telemetry_anomdet 0.0.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
+    <title>Pipeline Overview &#8212; telemetry_anomdet 0.0.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=d209826e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=90bc4e81" />
+    <script src="../_static/documentation_options.js?v=8c5712d9"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/user_guide/pipeline_overview.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -38,14 +36,15 @@
           <div class="body" role="main">
             
   <section id="pipeline-overview">
-<h1>Pipeline Overview<a class="headerlink" href="#pipeline-overview" title="Permalink to this heading">¶</a></h1>
+<h1>Pipeline Overview<a class="headerlink" href="#pipeline-overview" title="Link to this heading">¶</a></h1>
 <p>This page summarizes the full telemetry anomaly detection workflow.</p>
 <ol class="arabic simple">
-<li><p>Ingestion – Load and normalize telemetry (CSV, CCSDS, or HDF5)</p></li>
-<li><p>Preprocessing – Clean, deduplicate, resample, fill gaps</p></li>
-<li><p>Feature Extraction – Convert to wide form, window, compute statistics</p></li>
-<li><p>Modeling – Apply Gaussian Naive Bayes to detect anomalies</p></li>
-<li><p>Visualization – Plot scores and highlight anomalies</p></li>
+<li><p><strong>Ingestion</strong> — Load telemetry from CSV or CCSDS into a long-form <code class="docutils literal notranslate"><span class="pre">TelemetryDataset</span></code></p></li>
+<li><p><strong>Preprocessing</strong> — Clean, deduplicate, resample, interpolate gaps, normalize (<code class="docutils literal notranslate"><span class="pre">pipeline()</span></code>)</p></li>
+<li><p><strong>Feature Extraction</strong> — Pivot to wide form, slide windows via <code class="docutils literal notranslate"><span class="pre">windowify()</span></code>, producing a 3D tensor <code class="docutils literal notranslate"><span class="pre">(n_windows,</span> <span class="pre">window_size,</span> <span class="pre">n_features)</span></code></p></li>
+<li><p><strong>Detection</strong> — Pass the 3D tensor to <code class="docutils literal notranslate"><span class="pre">AnomalyEnsemble.fit()</span></code> (training) or <code class="docutils literal notranslate"><span class="pre">decision_function()</span></code> / <code class="docutils literal notranslate"><span class="pre">is_anomaly()</span></code> (inference). The ensemble combines scores from <code class="docutils literal notranslate"><span class="pre">PCAAnomaly</span></code>, <code class="docutils literal notranslate"><span class="pre">KMeansAnomaly</span></code>, and <code class="docutils literal notranslate"><span class="pre">IsolationForestModel</span></code> (classical) and, in Phase 2, <code class="docutils literal notranslate"><span class="pre">GDN</span></code> and <code class="docutils literal notranslate"><span class="pre">TranAD</span></code> (deep). All detectors share the <code class="docutils literal notranslate"><span class="pre">BaseDetector</span></code> interface; the caller never adapts per model.</p></li>
+<li><p><strong>Attribution</strong> — <code class="docutils literal notranslate"><span class="pre">score_components()</span></code> returns per-model raw scores. <code class="docutils literal notranslate"><span class="pre">SHAPExplainer</span></code> (Phase 3) perturbs input channels to produce per-channel attribution weights.</p></li>
+<li><p><strong>Diagnosis</strong> — The LLM reasoning layer (Phase 4) receives SHAP attributions and generates a structured <code class="docutils literal notranslate"><span class="pre">DiagnosticReport</span></code> with anomaly type, severity, primary channels, explanation, and recommended action.</p></li>
 </ol>
 </section>
 
@@ -54,7 +53,7 @@
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../index.html">telemetry_anomdet</a></h1>
 
@@ -65,7 +64,16 @@
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
@@ -80,11 +88,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../api/ingest.html">Ingestion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/preprocessing.html">Preprocessing Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/feature_extraction.html">Feature Extraction Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/models/base.html">Base Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/models/base.html">BaseDetector</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/models/ensemble.html">Ensemble Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/models/supervised.html">Supervised Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/models/unsupervised.html">Unsupervised Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/models/visualization.html">Visualization Utilities</a></li>
 </ul>
 
 <div class="relations">
@@ -96,16 +102,6 @@
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -122,8 +118,8 @@
       &#169;2025, Julio Anzaldo.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
       <a href="../_sources/user_guide/pipeline_overview.rst.txt"

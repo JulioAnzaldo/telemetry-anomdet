@@ -1,20 +1,18 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Glossary &#8212; telemetry_anomdet 0.0.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
+    <title>Glossary &#8212; telemetry_anomdet 0.0.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=d209826e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=90bc4e81" />
+    <script src="../_static/documentation_options.js?v=8c5712d9"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/user_guide/glossary.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -38,33 +36,77 @@
           <div class="body" role="main">
             
   <section id="glossary">
-<h1>Glossary<a class="headerlink" href="#glossary" title="Permalink to this heading">¶</a></h1>
+<h1>Glossary<a class="headerlink" href="#glossary" title="Link to this heading">¶</a></h1>
 <dl class="simple glossary">
-<dt id="term-Long-form">Long form<a class="headerlink" href="#term-Long-form" title="Permalink to this term">¶</a></dt><dd><p>Each row represents a single data point: (timestamp, variable, value).
-Used for ingest and preprocessing because it generalizes well across sensors.</p>
+<dt id="term-Long-form">Long form<a class="headerlink" href="#term-Long-form" title="Link to this term">¶</a></dt><dd><p>Each row represents a single observation: <code class="docutils literal notranslate"><span class="pre">(timestamp,</span> <span class="pre">variable,</span> <span class="pre">value)</span></code>.
+Used throughout ingest and preprocessing because it generalizes across
+any number of sensors without schema changes.</p>
 </dd>
-<dt id="term-Wide-form">Wide form<a class="headerlink" href="#term-Wide-form" title="Permalink to this term">¶</a></dt><dd><p>Each row represents one timestamp, and each column is a variable.
-Used for feature extraction and model input.</p>
+<dt id="term-Wide-form">Wide form<a class="headerlink" href="#term-Wide-form" title="Link to this term">¶</a></dt><dd><p>Each row represents one timestamp; each column is a sensor channel.
+Produced by <code class="docutils literal notranslate"><span class="pre">pivot_wide()</span></code> as the first step of feature extraction.</p>
 </dd>
-<dt id="term-Window">Window<a class="headerlink" href="#term-Window" title="Permalink to this term">¶</a></dt><dd><p>A fixed-size block of sequential telemetry samples (50–100).
-Each window becomes one feature vector for the model.</p>
+<dt id="term-Window">Window<a class="headerlink" href="#term-Window" title="Link to this term">¶</a></dt><dd><p>A fixed-size block of sequential telemetry samples, typically 50–100 readings.
+<code class="docutils literal notranslate"><span class="pre">windowify()</span></code> slides a window over wide-form data to produce a 3D tensor
+of shape <code class="docutils literal notranslate"><span class="pre">(n_windows,</span> <span class="pre">window_size,</span> <span class="pre">n_features)</span></code>. Each window is one
+observation for the anomaly detectors.</p>
 </dd>
-<dt id="term-Anomaly-score">Anomaly score<a class="headerlink" href="#term-Anomaly-score" title="Permalink to this term">¶</a></dt><dd><p>A numeric measure of how unlikely a telemetry window is under the learned model.
-Low probability means high anomaly score.</p>
+<dt id="term-Anomaly-score">Anomaly score<a class="headerlink" href="#term-Anomaly-score" title="Link to this term">¶</a></dt><dd><p>A scalar measuring how unlike nominal behavior a telemetry window is.
+Higher scores indicate greater anomaly likelihood. All detectors in
+telemetry-anomdet return scores where higher = more anomalous, matching
+the PyOD convention.</p>
 </dd>
-<dt id="term-Feature">Feature<a class="headerlink" href="#term-Feature" title="Permalink to this term">¶</a></dt><dd><p>A numerical summary (mean, standard deviation, min, max, etc.) computed from each window.</p>
+<dt id="term-BaseDetector">BaseDetector<a class="headerlink" href="#term-BaseDetector" title="Link to this term">¶</a></dt><dd><p>The abstract base class all detectors inherit from. Enforces the
+<code class="docutils literal notranslate"><span class="pre">fit</span></code> / <code class="docutils literal notranslate"><span class="pre">decision_function</span></code> / <code class="docutils literal notranslate"><span class="pre">predict</span></code> / <code class="docutils literal notranslate"><span class="pre">is_anomaly</span></code> interface
+and guarantees <code class="docutils literal notranslate"><span class="pre">decision_scores_</span></code>, <code class="docutils literal notranslate"><span class="pre">threshold_</span></code>, and <code class="docutils literal notranslate"><span class="pre">labels_</span></code>
+are set after fitting. Modeled on PyOD’s <code class="docutils literal notranslate"><span class="pre">BaseDetector</span></code>.</p>
 </dd>
-<dt id="term-Gaussian-Naive-Bayes">Gaussian Naive Bayes<a class="headerlink" href="#term-Gaussian-Naive-Bayes" title="Permalink to this term">¶</a></dt><dd><p>A probabilistic model assuming each feature follows a normal distribution and
-that all features are conditionally independent given the system’s state.</p>
+<dt id="term-decision_function">decision_function<a class="headerlink" href="#term-decision_function" title="Link to this term">¶</a></dt><dd><p>Returns raw anomaly scores, shape <code class="docutils literal notranslate"><span class="pre">(n_windows,)</span></code>. Higher = more anomalous.
+Never returns binary labels — that is <code class="docutils literal notranslate"><span class="pre">predict()</span></code>. The two are never swapped.</p>
 </dd>
-<dt id="term-Conditional-independence">Conditional independence<a class="headerlink" href="#term-Conditional-independence" title="Permalink to this term">¶</a></dt><dd><p>The assumption that once the system’s overall state is known,
-the behavior of one sensor does not affect another.</p>
+<dt id="term-score_components">score_components<a class="headerlink" href="#term-score_components" title="Link to this term">¶</a></dt><dd><p>Returns a <code class="docutils literal notranslate"><span class="pre">dict</span></code> of per-model raw scores before combination:
+<code class="docutils literal notranslate"><span class="pre">{model_name:</span> <span class="pre">np.ndarray}</span></code>. This is the input to <code class="docutils literal notranslate"><span class="pre">SHAPExplainer</span></code> —
+SHAP perturbs input windows and measures how each channel affects each
+model’s score independently.</p>
 </dd>
-<dt id="term-CCSDS">CCSDS<a class="headerlink" href="#term-CCSDS" title="Permalink to this term">¶</a></dt><dd><p>Consultative Committee for Space Data Systems; a standardized packet protocol
-used by many satellite missions for telemetry and telecommand.</p>
+<dt id="term-SHAP">SHAP<a class="headerlink" href="#term-SHAP" title="Link to this term">¶</a></dt><dd><p>SHapley Additive exPlanations. A game-theoretic method for attributing
+a model’s output to its input features. In telemetry-anomdet, SHAP
+operates over <code class="docutils literal notranslate"><span class="pre">score_components()</span></code> to produce per-channel attribution
+values: how much did each sensor channel contribute to the ensemble
+anomaly score for a given window.</p>
 </dd>
-<dt id="term-Kafka">Kafka<a class="headerlink" href="#term-Kafka" title="Permalink to this term">¶</a></dt><dd><p>A distributed event-streaming platform used for real-time data pipelines.
-In this project, it enables streaming telemetry and anomaly scores.</p>
+<dt id="term-GDN">GDN<a class="headerlink" href="#term-GDN" title="Link to this term">¶</a></dt><dd><p>Graph Deviation Network (Deng &amp; Hooi, AAAI 2021). Models each sensor
+as a node in a learned graph. During training it learns the nominal
+relationships between sensors. At inference time, anomaly scores are
+deviations from those expected relational behaviors — detecting faults
+that are invisible to univariate detectors because each sensor
+individually looks normal.</p>
+</dd>
+<dt id="term-TranAD">TranAD<a class="headerlink" href="#term-TranAD" title="Link to this term">¶</a></dt><dd><p>Transformer-based anomaly detection (Tuli et al., VLDB 2022). Consumes
+the raw 3D windowed tensor directly. Uses a two-phase attention mechanism
+to reconstruct telemetry windows; anomaly scores are reconstruction errors.</p>
+</dd>
+<dt id="term-Robust-normalization">Robust normalization<a class="headerlink" href="#term-Robust-normalization" title="Link to this term">¶</a></dt><dd><p>Per-model score scaling using median and IQR (interquartile range) rather
+than min/max. Preferred in anomaly detection because anomalies are extreme
+values by definition — they would skew a minmax scale and compress the
+normal operating range. Robust normalization centers the middle 50% of
+training scores on <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code> and clips everything else.</p>
+</dd>
+<dt id="term-Feature">Feature<a class="headerlink" href="#term-Feature" title="Link to this term">¶</a></dt><dd><p>A numerical summary computed from a telemetry window. <code class="docutils literal notranslate"><span class="pre">features_stat()</span></code>
+produces six statistics per channel per window: mean, std, min, max,
+median, slope. Yielding a 2D feature matrix of shape
+<code class="docutils literal notranslate"><span class="pre">(n_windows,</span> <span class="pre">n_features</span> <span class="pre">*</span> <span class="pre">6)</span></code> used by classical detectors.</p>
+</dd>
+<dt id="term-CCSDS">CCSDS<a class="headerlink" href="#term-CCSDS" title="Link to this term">¶</a></dt><dd><p>Consultative Committee for Space Data Systems. A standardized packet
+protocol used by many spacecraft missions for telemetry and telecommand
+downlink.</p>
+</dd>
+<dt id="term-Inter-pass-window">Inter-pass window<a class="headerlink" href="#term-Inter-pass-window" title="Link to this term">¶</a></dt><dd><p>The gap between two ground station contact passes, typically a few hours
+for LEO spacecraft.</p>
+</dd>
+<dt id="term-DiagnosticReport">DiagnosticReport<a class="headerlink" href="#term-DiagnosticReport" title="Link to this term">¶</a></dt><dd><p>The structured output of the LLM reasoning layer. Fields:
+<code class="docutils literal notranslate"><span class="pre">anomaly_type</span></code>, <code class="docutils literal notranslate"><span class="pre">severity</span></code>, <code class="docutils literal notranslate"><span class="pre">primary_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">explanation</span></code>,
+<code class="docutils literal notranslate"><span class="pre">recommended_action</span></code>, <code class="docutils literal notranslate"><span class="pre">confidence</span></code>. Generated by Llama 3.1 8B (or similar)
+from SHAP attributions and anomaly context.</p>
 </dd>
 </dl>
 </section>
@@ -74,7 +116,7 @@ In this project, it enables streaming telemetry and anomaly scores.</p>
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../index.html">telemetry_anomdet</a></h1>
 
@@ -85,7 +127,16 @@ In this project, it enables streaming telemetry and anomaly scores.</p>
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
@@ -100,11 +151,9 @@ In this project, it enables streaming telemetry and anomaly scores.</p>
 <li class="toctree-l1"><a class="reference internal" href="../api/ingest.html">Ingestion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/preprocessing.html">Preprocessing Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/feature_extraction.html">Feature Extraction Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/models/base.html">Base Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/models/base.html">BaseDetector</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/models/ensemble.html">Ensemble Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/models/supervised.html">Supervised Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/models/unsupervised.html">Unsupervised Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/models/visualization.html">Visualization Utilities</a></li>
 </ul>
 
 <div class="relations">
@@ -116,16 +165,6 @@ In this project, it enables streaming telemetry and anomaly scores.</p>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -142,8 +181,8 @@ In this project, it enables streaming telemetry and anomaly scores.</p>
       &#169;2025, Julio Anzaldo.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
       <a href="../_sources/user_guide/glossary.rst.txt"

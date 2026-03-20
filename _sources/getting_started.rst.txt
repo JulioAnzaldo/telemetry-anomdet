@@ -6,53 +6,48 @@ This guide will walk you through setting up the ``telemetry-anomdet`` package fo
 Installation
 ------------
 
-It is highly recommended to use a Python virtual environment to manage project dependencies. This ensures that the packages you install for this project do not interfere with other projects on your system.
+Contributors use `uv <https://docs.astral.sh/uv/>`_ to manage the project environment.
+uv handles virtual environment creation and dependency installation automatically -- no
+manual ``venv`` setup required.
 
-**1. Clone the repository and navigate to the project directory:**
+**1. Install uv:**
+
+.. code-block:: bash
+
+    # macOS / Linux
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    # Windows (PowerShell)
+    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+**2. Clone the repository and install:**
 
 .. code-block:: bash
 
     git clone https://github.com/JulioAnzaldo/telemetry-anomdet.git
     cd telemetry-anomdet
+    uv sync
 
-**2. Create and activate a virtual environment:**
+``uv sync`` creates ``.venv`` automatically, installs all core dependencies, and
+generates ``uv.lock`` for reproducible installs. No separate activate step is needed
+-- uv commands run inside the environment automatically.
 
-.. code-block:: bash
-
-    # On macOS or Linux
-    python3 -m venv venv
-    source venv/bin/activate
-
-    # On Windows
-    py -m venv venv
-    venv\Scripts\activate
-
-Your command line prompt should now show ``(venv)`` to indicate the virtual environment is active.
-
-**3. Install the package locally in editable mode:**
-
-The package can be installed with different sets of dependencies. The core library supports CSV files by default. For CCSDS support, install the optional ``ccsds`` dependency.
+To include optional dependencies:
 
 .. code-block:: bash
 
-    # Install the core library with CSV support
-    pip install -e "."
-
-    # Install with optional CCSDS support (recommended for full functionality)
-    pip install -e ".[ccsds]"
+    uv sync --extra ccsds      # CCSDS packet support
+    uv sync --group dev        # testing and linting tools
+    uv sync --group docs       # Sphinx and documentation tools
+    uv sync --all-groups       # everything (recommended for contributors)
 
 Running Tests
 -------------
 
-To verify that the package and its dependencies are installed correctly, you can run the test suite. This requires the ``dev`` dependencies to be installed, which include ``pytest``.
-
 .. code-block:: bash
 
-    # First, install development dependencies (if not already done)
-    pip install -e ".[dev]"
-
-    # Run the tests
-    pytest -v
+    uv sync --group dev
+    uv run pytest -v
 
 Basic Usage
 -----------
@@ -84,26 +79,12 @@ Create a new branch for your specific feature or bug fix. This keeps your change
 
     git switch -c feature/new-feature
 
-**3. Install the package locally in editable mode:**
-
-The package can be installed with different sets of dependencies. The core library supports CSV files by default. Optional dependencies are available for development, documentation, and CCSDS support.
+**3. Sync the environment:**
 
 .. code-block:: bash
 
-    # Install the core library with CSV support
-    pip install -e "."
-
-    # Install with optional CCSDS support
-    pip install -e ".[ccsds]"
-
-    # Install development dependencies (tests, formatting, linting)
-    pip install -e ".[dev]"
-
-    # Install documentation dependencies (Sphinx, themes, etc.)
-    pip install -e ".[docs]"
-
-    # Install everything (recommended for contributors)
-    pip install -e ".[dev-all]"
+    uv sync --all-groups       # installs core + dev + docs dependencies
+    uv sync --extra ccsds      # add CCSDS support if needed
 
 **4. Push your branch and open a pull request:**
 Push your branch to the remote repository and open a pull request against the ``dev`` branch.

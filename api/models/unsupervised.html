@@ -1,25 +1,22 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Unsupervised Models &#8212; telemetry_anomdet 0.0.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <title>Unsupervised Models &#8212; telemetry_anomdet 0.0.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=d209826e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=90bc4e81" />
+    <script src="../../_static/documentation_options.js?v=8c5712d9"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/api/models/unsupervised.html" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Visualization Utilities" href="visualization.html" />
-    <link rel="prev" title="Supervised Models" href="supervised.html" />
+    <link rel="prev" title="Ensemble Model" href="ensemble.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
   
@@ -37,82 +34,205 @@
 
           <div class="body" role="main">
             
-  <section id="module-telemetry_anomdet.models.unsupervised.gaussian_nb">
-<span id="unsupervised-models"></span><h1>Unsupervised Models<a class="headerlink" href="#module-telemetry_anomdet.models.unsupervised.gaussian_nb" title="Permalink to this heading">¶</a></h1>
-<p>Gaussian Naive Bayes</p>
-<p>Each feature is assumed to follow a Gaussian (normal) distribution conditioned on the class label y.</p>
+  <section id="unsupervised-models">
+<h1>Unsupervised Models<a class="headerlink" href="#unsupervised-models" title="Link to this heading">¶</a></h1>
+<p>All unsupervised detectors inherit from <a class="reference internal" href="base.html#telemetry_anomdet.models.base.BaseDetector" title="telemetry_anomdet.models.base.BaseDetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseDetector</span></code></a>
+and accept 3D input <code class="docutils literal notranslate"><span class="pre">(n_windows,</span> <span class="pre">window_size,</span> <span class="pre">n_features)</span></code> — the direct output of
+<code class="docutils literal notranslate"><span class="pre">windowify()</span></code>. Classical models flatten internally via <code class="docutils literal notranslate"><span class="pre">features_stat()</span></code>. The caller
+never manages this conversion.</p>
+<section id="module-telemetry_anomdet.models.unsupervised.pca">
+<span id="pcaanomaly"></span><h2>PCAAnomaly<a class="headerlink" href="#module-telemetry_anomdet.models.unsupervised.pca" title="Link to this heading">¶</a></h2>
+<p>PCA based anomaly detection.</p>
+<p>This model learns a low dimensional subspace of nominal telemetry features
+using Principal Component Analysis (PCA). Anomaly scores are computed as
+the reconstruction error when projecting samples into the PCA subspace
+and back into the original space.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.unsupervised.gaussian_nb.</span></span><span class="sig-name descname"><span class="pre">GaussianNaiveBayes</span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/unsupervised/gaussian_nb.html#GaussianNaiveBayes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="base.html#telemetry_anomdet.models.base.BaseModel" title="telemetry_anomdet.models.base.BaseModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></a></p>
-<p>Gaussian Naive Bayes classifier.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.classes">
-<span class="sig-name descname"><span class="pre">classes</span></span><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.classes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Unique class labels observed during training.</p>
+<dt class="sig sig-object py" id="telemetry_anomdet.models.unsupervised.pca.PCAAnomaly">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.unsupervised.pca.</span></span><span class="sig-name descname"><span class="pre">PCAAnomaly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_components</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">95.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/unsupervised/pca.html#PCAAnomaly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.pca.PCAAnomaly" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="base.html#telemetry_anomdet.models.base.BaseDetector" title="telemetry_anomdet.models.base.BaseDetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseDetector</span></code></a></p>
+<p>PCA-based anomaly detector.</p>
+<p>Accepts 3D windowed input (n_windows, window_size, n_features) and
+flattens internally via features_stat() before fitting PCA. The caller
+never needs to manage this conversion.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_components</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Number of principal components to retain. If None, all components
+are kept. Choose a value that retains your desired fraction of
+variance — inspect <code class="docutils literal notranslate"><span class="pre">model.explained_variance_ratio_</span></code> after fitting.</p></li>
+<li><p><strong>scale</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Apply StandardScaler before PCA. Recommended when telemetry channels
+differ significantly in scale (e.g. voltage vs. temperature).</p></li>
+<li><p><strong>percentile</strong> (<em>float</em><em>, </em><em>default = 95.0</em>) – Percentile of training reconstruction errors used to set the default
+anomaly threshold. 95.0 means the top 5% most anomalous training
+windows are labelled as anomalies.</p></li>
+<li><p><strong>fit</strong><strong>)</strong> (<em>Attributes</em><em> (</em><em>set after</em>)</p></li>
+<li><p><strong>--------------------------</strong></p></li>
+<li><p><strong>decision_scores</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>,</em><em>)</em>) – Reconstruction errors on training data.</p></li>
+<li><p><strong>threshold</strong> (<em>float</em>) – Default anomaly cutoff derived from training scores at <code class="docutils literal notranslate"><span class="pre">percentile</span></code>.</p></li>
+<li><p><strong>labels</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>,</em><em>)</em>) – Binary anomaly labels on training data. 0 = normal, 1 = anomaly.</p></li>
+<li><p><strong>model</strong> (<em>sklearn.decomposition.PCA</em>) – Fitted PCA instance.</p></li>
+<li><p><strong>scaler</strong> (<em>sklearn.preprocessing.StandardScaler</em><em> or </em><em>None</em>) – Fitted scaler when <code class="docutils literal notranslate"><span class="pre">scale</span> <span class="pre">=</span> <span class="pre">True</span></code>, otherwise None.</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.mean">
-<span class="sig-name descname"><span class="pre">mean</span></span><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.mean" title="Permalink to this definition">¶</a></dt>
-<dd><p>Per-class feature means.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.unsupervised.pca.PCAAnomaly.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#telemetry_anomdet.models.unsupervised.pca.PCAAnomaly" title="telemetry_anomdet.models.unsupervised.pca.PCAAnomaly"><span class="pre">PCAAnomaly</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/unsupervised/pca.html#PCAAnomaly.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.pca.PCAAnomaly.fit" title="Link to this definition">¶</a></dt>
+<dd><p>Fit PCA on nominal telemetry windows.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>, </em><em>window_size</em><em>, </em><em>n_features</em><em>)</em>) – Windowed telemetry tensor from windowify().</p></li>
+<li><p><strong>y</strong> (<em>ignored</em>) – Present for API consistency.</p></li>
+</ul>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.var">
-<span class="sig-name descname"><span class="pre">var</span></span><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.var" title="Permalink to this definition">¶</a></dt>
-<dd><p>Per-class feature variances.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>self</strong></p>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.priors">
-<span class="sig-name descname"><span class="pre">priors</span></span><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.priors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Class prior probabilities.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#telemetry_anomdet.models.unsupervised.pca.PCAAnomaly" title="telemetry_anomdet.models.unsupervised.pca.PCAAnomaly">PCAAnomaly</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.fit">
-<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/unsupervised/gaussian_nb.html#GaussianNaiveBayes.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.fit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Estimate mean, variance, and prior for each class.</p>
+<dt class="sig sig-object py" id="telemetry_anomdet.models.unsupervised.pca.PCAAnomaly.decision_function">
+<span class="sig-name descname"><span class="pre">decision_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/unsupervised/pca.html#PCAAnomaly.decision_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.pca.PCAAnomaly.decision_function" title="Link to this definition">¶</a></dt>
+<dd><p>Compute reconstruction error for each window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>, </em><em>window_size</em><em>, </em><em>n_features</em><em>)</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>scores</strong> – Reconstruction errors. Higher = more anomalous.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray, shape (n_windows,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-telemetry_anomdet.models.unsupervised.kmeans">
+<span id="kmeansanomaly"></span><h2>KMeansAnomaly<a class="headerlink" href="#module-telemetry_anomdet.models.unsupervised.kmeans" title="Link to this heading">¶</a></h2>
+<p>K-Means clustering anomaly detection.</p>
+<p>Each telemetry window is assigned to its nearest cluster centroid.
+Anomaly scores are distances to the nearest centroid. Windows far from
+any learned nominal operating mode score higher and are flagged as anomalies.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.unsupervised.kmeans.KMeansAnomaly">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.unsupervised.kmeans.</span></span><span class="sig-name descname"><span class="pre">KMeansAnomaly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clusters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">95.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/unsupervised/kmeans.html#KMeansAnomaly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.kmeans.KMeansAnomaly" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="base.html#telemetry_anomdet.models.base.BaseDetector" title="telemetry_anomdet.models.base.BaseDetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseDetector</span></code></a></p>
+<p>K-Means clustering based anomaly detector.</p>
+<p>Accepts 3D windowed input (n_windows, window_size, n_features) and
+flattens internally via features_stat() before clustering. The caller
+never needs to manage this conversion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_clusters</strong> (<em>int</em><em>, </em><em>default = 5</em>) – Number of clusters (nominal operating modes) to learn. Each cluster
+represents a recurring pattern in the telemetry.</p></li>
+<li><p><strong>scale</strong> (<em>bool</em><em>, </em><em>default = False</em>) – Apply StandardScaler before clustering. Enable when channels differ
+significantly in scale so distance calculations are not dominated by
+high-magnitude channels.</p></li>
+<li><p><strong>percentile</strong> (<em>float</em><em>, </em><em>default = 95.0</em>) – Percentile of training centroid distances used to set the default
+anomaly threshold. 95.0 means the top 5% most distant training
+windows are labelled as anomalies.</p></li>
+<li><p><strong>fit</strong><strong>)</strong> (<em>Attributes</em><em> (</em><em>set after</em>)</p></li>
+<li><p><strong>--------------------------</strong></p></li>
+<li><p><strong>decision_scores</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>,</em><em>)</em>) – Distance-to-nearest-centroid scores on training data.</p></li>
+<li><p><strong>threshold</strong> (<em>float</em>) – Default anomaly cutoff derived from training scores at <code class="docutils literal notranslate"><span class="pre">percentile</span></code>.</p></li>
+<li><p><strong>labels</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>,</em><em>)</em>) – Binary anomaly labels on training data. 0 = normal, 1 = anomaly.</p></li>
+<li><p><strong>model</strong> (<em>sklearn.cluster.KMeans</em>) – Fitted KMeans instance.</p></li>
+<li><p><strong>centroids</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_clusters</em><em>, </em><em>n_features</em><em>)</em>) – Learned cluster centers in the (optionally scaled) feature space.</p></li>
+<li><p><strong>scaler</strong> (<em>sklearn.preprocessing.StandardScaler</em><em> or </em><em>None</em>) – Fitted scaler when <code class="docutils literal notranslate"><span class="pre">scale=True</span></code>, otherwise None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.unsupervised.kmeans.KMeansAnomaly.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#telemetry_anomdet.models.unsupervised.kmeans.KMeansAnomaly" title="telemetry_anomdet.models.unsupervised.kmeans.KMeansAnomaly"><span class="pre">KMeansAnomaly</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/unsupervised/kmeans.html#KMeansAnomaly.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.kmeans.KMeansAnomaly.fit" title="Link to this definition">¶</a></dt>
+<dd><p>Fit K-Means on nominal telemetry windows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>, </em><em>window_size</em><em>, </em><em>n_features</em><em>)</em>) – Windowed telemetry tensor from windowify().</p></li>
+<li><p><strong>y</strong> (<em>ignored</em>) – Present for API consistency.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>self</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#telemetry_anomdet.models.unsupervised.kmeans.KMeansAnomaly" title="telemetry_anomdet.models.unsupervised.kmeans.KMeansAnomaly">KMeansAnomaly</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If n_clusters &lt; 1 or n_clusters &gt; n_windows.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.predict">
-<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/unsupervised/gaussian_nb.html#GaussianNaiveBayes.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes.predict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Predict class label for each sample.</p>
+<dt class="sig sig-object py" id="telemetry_anomdet.models.unsupervised.kmeans.KMeansAnomaly.decision_function">
+<span class="sig-name descname"><span class="pre">decision_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/unsupervised/kmeans.html#KMeansAnomaly.decision_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.kmeans.KMeansAnomaly.decision_function" title="Link to this definition">¶</a></dt>
+<dd><p>Compute distance-to-nearest-centroid scores for each window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>, </em><em>window_size</em><em>, </em><em>n_features</em><em>)</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>scores</strong> – Centroid distances. Higher = more anomalous.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray, shape (n_windows,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.unsupervised.kmeans.KMeansAnomaly.predict_clusters">
+<span class="sig-name descname"><span class="pre">predict_clusters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/unsupervised/kmeans.html#KMeansAnomaly.predict_clusters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.kmeans.KMeansAnomaly.predict_clusters" title="Link to this definition">¶</a></dt>
+<dd><p>Assign each window to its nearest cluster.</p>
+<p>Unique to KMeansAnomaly. Not part of the BaseDetector interface.
+Useful for understanding which nominal operating mode each window
+belongs to, independent of whether it is flagged as an anomaly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>, </em><em>window_size</em><em>, </em><em>n_features</em><em>)</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>cluster_labels</strong> – Cluster index in [0, n_clusters - 1] for each window.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray of int, shape (n_windows,)</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
 
-<span class="target" id="module-telemetry_anomdet.models.unsupervised.isolation_forest"></span><p>Isolation Forest unsupervised anomaly detector wrapper.</p>
+</section>
+<section id="isolationforestmodel">
+<h2>IsolationForestModel<a class="headerlink" href="#isolationforestmodel" title="Link to this heading">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">IsolationForestModel</span></code> is under active development and will be completed in Phase 1
+(SMAP Integration). It will wrap <code class="docutils literal notranslate"><span class="pre">sklearn.ensemble.IsolationForest</span></code> as a full
+<code class="docutils literal notranslate"><span class="pre">BaseDetector</span></code> subclass and be registered in <code class="docutils literal notranslate"><span class="pre">AnomalyEnsemble</span></code> alongside
+<code class="docutils literal notranslate"><span class="pre">PCAAnomaly</span></code> and <code class="docutils literal notranslate"><span class="pre">KMeansAnomaly</span></code>.</p>
+</div>
+<p id="module-telemetry_anomdet.models.unsupervised.isolation_forest">Isolation Forest unsupervised anomaly detector wrapper.</p>
 <p>This module exposes a simple class with a consistent API:
 - fit(X)
 - predict(X) -&gt; anomaly scores (higher = more anomalous)
 - save / load via BaseModel</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="telemetry_anomdet.models.unsupervised.isolation_forest.IsolationForestModel">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.unsupervised.isolation_forest.</span></span><span class="sig-name descname"><span class="pre">IsolationForestModel</span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/unsupervised/isolation_forest.html#IsolationForestModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.isolation_forest.IsolationForestModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="base.html#telemetry_anomdet.models.base.BaseModel" title="telemetry_anomdet.models.base.BaseModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></a></p>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.unsupervised.isolation_forest.</span></span><span class="sig-name descname"><span class="pre">IsolationForestModel</span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/unsupervised/isolation_forest.html#IsolationForestModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.unsupervised.isolation_forest.IsolationForestModel" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="base.html#telemetry_anomdet.models.base.BaseDetector" title="telemetry_anomdet.models.base.BaseDetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseDetector</span></code></a></p>
 <p>Wrapper for sklearn IsolationForest.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -122,13 +242,14 @@
 </dd></dl>
 
 </section>
+</section>
 
 
           </div>
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../../index.html">telemetry_anomdet</a></h1>
 
@@ -139,7 +260,16 @@
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting Started</a></li>
@@ -154,36 +284,24 @@
 <li class="toctree-l1"><a class="reference internal" href="../ingest.html">Ingestion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../preprocessing.html">Preprocessing Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../feature_extraction.html">Feature Extraction Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="base.html">Base Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="base.html">BaseDetector</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ensemble.html">Ensemble Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="supervised.html">Supervised Models</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Unsupervised Models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.models.unsupervised.gaussian_nb.GaussianNaiveBayes"><code class="docutils literal notranslate"><span class="pre">GaussianNaiveBayes</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.models.unsupervised.isolation_forest.IsolationForestModel"><code class="docutils literal notranslate"><span class="pre">IsolationForestModel</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-telemetry_anomdet.models.unsupervised.pca">PCAAnomaly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-telemetry_anomdet.models.unsupervised.kmeans">KMeansAnomaly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#isolationforestmodel">IsolationForestModel</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization Utilities</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../../index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="supervised.html" title="previous chapter">Supervised Models</a></li>
-      <li>Next: <a href="visualization.html" title="next chapter">Visualization Utilities</a></li>
+      <li>Previous: <a href="ensemble.html" title="previous chapter">Ensemble Model</a></li>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -200,8 +318,8 @@
       &#169;2025, Julio Anzaldo.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
       <a href="../../_sources/api/models/unsupervised.rst.txt"

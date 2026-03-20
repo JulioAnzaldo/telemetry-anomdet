@@ -1,19 +1,17 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>telemetry_anomdet.models.base &#8212; telemetry_anomdet 0.0.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/sphinx_highlight.js"></script>
+    <title>telemetry_anomdet.models.base &#8212; telemetry_anomdet 0.0.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=d209826e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=90bc4e81" />
+    <script src="../../../_static/documentation_options.js?v=8c5712d9"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/_modules/telemetry_anomdet/models/base.html" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -38,126 +36,405 @@
 <span></span><span class="c1"># src/telemetry_anomdet/models/base.py</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Shared BaseModel for all models in telemetry_anomdet.</span>
+<span class="sd">BaseDetector: Shared interface for all anomaly detectors in  telemetry_anomdet.</span>
 
-<span class="sd">Defines a unified interface for model configuration, fitting,</span>
-<span class="sd">prediction, and optional persistence.</span>
+<span class="sd">Design</span>
+<span class="sd">------</span>
+<span class="sd">All detectors in this library follow PyOD convention.</span>
+
+<span class="sd">    fit(x): Train the model on the provided data, sets post-fit attributes.</span>
+<span class="sd">    predict(x): Return binary labels (0 for normal, 1 for anomaly).</span>
+<span class="sd">    decision_function(x): Return anomaly scores (higher means more anomalous).</span>
+<span class="sd">    is_anomaly(x): Boolean mask. Supports runtime thresholding override.</span>
+
+<span class="sd">Input Convention</span>
+<span class="sd">----------------</span>
+<span class="sd">All detectors accept X of shape (n_windows, window_size, n_features). Classical detecrtors flatten X internally </span>
+<span class="sd">using feature_stat(). Sequence detectors (GDN, TranAD) consume X directly. </span>
+<span class="sd">The caller never maneges this distinction.</span>
+
+<span class="sd">Post-fit Attributes</span>
+<span class="sd">----------------</span>
+<span class="sd">After fit(), every detectror exposes:</span>
+
+<span class="sd">    decision_scores_: np.ndarray (n_windows,) Training anomaly scores.</span>
+<span class="sd">    threshold_:       float                   Score cutoff from training.</span>
+<span class="sd">    labels_:          np.ndarray (n_windows,) Binary labels from training (0 normal, 1 anomaly).</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 
-<div class="viewcode-block" id="BaseModel"><a class="viewcode-back" href="../../../api/models/base.html#telemetry_anomdet.models.base.BaseModel">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">BaseModel</span><span class="p">():</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<div class="viewcode-block" id="BaseDetector">
+<a class="viewcode-back" href="../../../api/models/base.html#telemetry_anomdet.models.base.BaseDetector">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseDetector</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Abstract base model for consistent API across supervised &amp; unsupervised models.</span>
+<span class="sd">    Abstract base class for all anomaly detectors in telemetry-anomdet.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    percentile : float, default = 95.0</span>
+<span class="sd">        Percentile of training anomaly scores used to set ``threshold_``.</span>
+<span class="sd">        For example, 95.0 means the top 5% most anomalous training windows</span>
+<span class="sd">        are labelled as anomalies by default. Must be in (0, 100).</span>
+
+<span class="sd">    Attributes (set after fit)</span>
+<span class="sd">    --------------------------</span>
+<span class="sd">    decision_scores_ : np.ndarray, shape (n_windows,)</span>
+<span class="sd">        Anomaly scores on the training data. Higher values indicate greater</span>
+<span class="sd">        anomaly likelihood. Set by ``_set_post_fit()`` at the end of ``fit()``.</span>
+<span class="sd">    threshold_ : float</span>
+<span class="sd">        Score cutoff derived from ``decision_scores_`` at ``self.percentile``.</span>
+<span class="sd">        Used as the default decision boundary in ``predict()`` and</span>
+<span class="sd">        ``is_anomaly()``.</span>
+<span class="sd">    labels_ : np.ndarray, shape (n_windows,)</span>
+<span class="sd">        Binary anomaly labels on the training data. 0 = normal, 1 = anomaly.</span>
+<span class="sd">        Derived from ``decision_scores_`` and ``threshold_``.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    - `config` is a free form dictionary for hyperparameters or settings.</span>
-<span class="sd">    - Subclasses are responsible for implementing `fit` and `predict`.</span>
-<span class="sd">    - Optional methods like `score_samples` or `is_anomaly` can be added</span>
-<span class="sd">      by subclasses for anomaly detection use cases.</span>
+<span class="sd">    Subclasses must implement ``fit()`` and ``decision_function()``.</span>
+<span class="sd">    All other methods are provided and should not need to be overridden</span>
+<span class="sd">    unless the detector has non-standard scoring behavior.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">percentile</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">95.0</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mf">0.0</span> <span class="o">&lt;</span> <span class="n">percentile</span> <span class="o">&lt;</span> <span class="mf">100.0</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;percentile must be in (0, 100), got </span><span class="si">{</span><span class="n">percentile</span><span class="si">!r}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">percentile</span> <span class="o">=</span> <span class="n">percentile</span>
+
+        <span class="c1"># Post-fit attributes; None until fit() is called!</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decision_scores_</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold_</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels_</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="BaseDetector.fit">
+<a class="viewcode-back" href="../../../api/models/base.html#telemetry_anomdet.models.base.BaseDetector.fit">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BaseDetector&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize the model with an optional configuration dictionary.</span>
+<span class="sd">        Train the detector on nominal telemetry windows.</span>
+
+<span class="sd">        Subclasses must call ``self._set_post_fit(scores)`` at the end of</span>
+<span class="sd">        this method, where ``scores`` are the training anomaly scores. This</span>
+<span class="sd">        sets ``decision_scores_``, ``threshold_``, and ``labels_``</span>
+<span class="sd">        automatically.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        config : dict, optional</span>
-<span class="sd">            Hyperparameters or other settings for this model instance.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span> <span class="ow">or</span> <span class="p">{}</span>
-
-<div class="viewcode-block" id="BaseModel.fit"><a class="viewcode-back" href="../../../api/models/base.html#telemetry_anomdet.models.base.BaseModel.fit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Train the model (to be implemented by subclass).</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        X : np.ndarray</span>
-<span class="sd">            Input data. For most models this is a 2D array of shape</span>
-<span class="sd">            (n_samples, n_features).</span>
+<span class="sd">        X : np.ndarray, shape (n_windows, window_size, n_features)</span>
+<span class="sd">            Windowed telemetry tensor from ``windowify()``.</span>
 <span class="sd">        y : np.ndarray, optional</span>
-<span class="sd">            Target labels for supervised models. For unsupervised models</span>
-<span class="sd">            this is usually None.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
-    
-    <span class="c1"># Core methods (implemented by subclass)</span>
-<div class="viewcode-block" id="BaseModel.predict"><a class="viewcode-back" href="../../../api/models/base.html#telemetry_anomdet.models.base.BaseModel.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Predict outputs for the given input data.</span>
-
-<span class="sd">        For supervised models, this typically returns class labels.</span>
-<span class="sd">        For clustering models, this might return cluster indices.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        X : np.ndarray</span>
-<span class="sd">            Input data to predict on.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
-    
-<div class="viewcode-block" id="BaseModel.save"><a class="viewcode-back" href="../../../api/models/base.html#telemetry_anomdet.models.base.BaseModel.save">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Save the trained model to disk using pickle.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        path : str or Path</span>
-<span class="sd">            Destination file path.</span>
-
-<span class="sd">        Notes</span>
-<span class="sd">        -----</span>
-<span class="sd">        - Uses Python pickle; loading untrusted files is unsafe.</span>
-<span class="sd">        - Subclasses should ensure all attributes are picklable.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
-    
-<div class="viewcode-block" id="BaseModel.load"><a class="viewcode-back" href="../../../api/models/base.html#telemetry_anomdet.models.base.BaseModel.load">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Load a previously saved model instance from disk.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        path : str or Path</span>
-<span class="sd">            Path to the pickled model file.</span>
+<span class="sd">            Ignored for unsupervised detectors. Present for API consistency.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        BaseModel</span>
-<span class="sd">            The deserialized model instance.</span>
+<span class="sd">        self : BaseDetector</span>
+<span class="sd">            Fitted detector instance, for method chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="o">...</span></div>
+
+    
+<div class="viewcode-block" id="BaseDetector.decision_function">
+<a class="viewcode-back" href="../../../api/models/base.html#telemetry_anomdet.models.base.BaseDetector.decision_function">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">decision_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute raw anomaly scores for each input window.</span>
+
+<span class="sd">        Higher scores indicate greater anomaly likelihood. This is the</span>
+<span class="sd">        core scoring method. All other scoring methods call this one.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : np.ndarray, shape (n_windows, window_size, n_features)</span>
+<span class="sd">            Windowed telemetry tensor from ``windowify()``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        scores : np.ndarray, shape (n_windows,)</span>
+<span class="sd">            Anomaly score per window.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="o">...</span></div>
+
+    
+    <span class="c1"># Core methods (implemented by subclass)</span>
+<div class="viewcode-block" id="BaseDetector.predict">
+<a class="viewcode-back" href="../../../api/models/base.html#telemetry_anomdet.models.base.BaseDetector.predict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Classify each window as normal (0) or anomalous (1).</span>
+
+<span class="sd">        Uses ``threshold_`` from training by default. For runtime threshold</span>
+<span class="sd">        adjustment, use ``is_anomaly()`` with a ``threshold`` or</span>
+<span class="sd">        ``percentile`` override instead.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : np.ndarray, shape (n_windows, window_size, n_features)</span>
+<span class="sd">            Windowed telemetry tensor from ``windowify()``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        labels : np.ndarray, shape (n_windows,)</span>
+<span class="sd">            Binary labels. 0 = normal, 1 = anomaly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decision_function</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">scores</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_threshold</span><span class="p">())</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="BaseDetector.is_anomaly">
+<a class="viewcode-back" href="../../../api/models/base.html#telemetry_anomdet.models.base.BaseDetector.is_anomaly">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_anomaly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">percentile</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Boolean anomaly mask with optional runtime threshold override.</span>
+
+<span class="sd">        This is the human-in-the-loop hook. Operators can adjust sensitivity</span>
+<span class="sd">        at inference time without retraining by passing a custom ``threshold``</span>
+<span class="sd">        or ``percentile``. If neither is provided, the training derived</span>
+<span class="sd">        ``threshold_`` is used.</span>
+
+<span class="sd">        Priority: ``threshold`` &gt; ``percentile`` &gt; ``threshold_``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : np.ndarray, shape (n_windows, window_size, n_features)</span>
+<span class="sd">            Windowed telemetry tensor from ``windowify()``.</span>
+<span class="sd">        threshold : float, optional</span>
+<span class="sd">            Fixed score cutoff. Windows with scores above this are anomalies.</span>
+<span class="sd">        percentile : float, optional</span>
+<span class="sd">            Compute the cutoff as this percentile of the current batch&#39;s</span>
+<span class="sd">            scores. Useful when the operator wants to flag only the top N%</span>
+<span class="sd">            of a given pass&#39;s windows rather than using training statistics.</span>
+<span class="sd">            Must be in (0, 100).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        mask : np.ndarray of bool, shape (n_windows,)</span>
+<span class="sd">            True where the window is anomalous.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Default — use training threshold:</span>
+<span class="sd">            flags = detector.is_anomaly(X3d)</span>
+
+<span class="sd">        Tighten sensitivity (only top 2% flagged):</span>
+<span class="sd">            flags = detector.is_anomaly(X3d, percentile=98.0)</span>
+
+<span class="sd">        Fixed cutoff from operator feedback:</span>
+<span class="sd">            flags = detector.is_anomaly(X3d, threshold=0.72)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decision_function</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">thr</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">percentile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mf">0.0</span> <span class="o">&lt;</span> <span class="n">percentile</span> <span class="o">&lt;</span> <span class="mf">100.0</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;percentile must be in (0, 100), got </span><span class="si">{</span><span class="n">percentile</span><span class="si">!r}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">thr</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">percentile</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">thr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_threshold</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">scores</span> <span class="o">&gt;</span> <span class="n">thr</span></div>
+
+    
+<div class="viewcode-block" id="BaseDetector.score_samples">
+<a class="viewcode-back" href="../../../api/models/base.html#telemetry_anomdet.models.base.BaseDetector.score_samples">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">score_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Alias for ``decision_function()``.</span>
+
+<span class="sd">        Provided for compatibility with code that uses the sklearn/PyOD</span>
+<span class="sd">        ``score_samples`` convention. Prefer ``decision_function()`` for</span>
+<span class="sd">        new code.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : np.ndarray, shape (n_windows, window_size, n_features)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        scores : np.ndarray, shape (n_windows,)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">decision_function</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></div>
+
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_post_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scores</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the three standard post-fit attributes from training scores.</span>
+
+<span class="sd">        Call this at the end of ``fit()`` in every subclass:</span>
+
+<span class="sd">            scores = self._compute_my_scores(X)</span>
+<span class="sd">            self._set_post_fit(scores)</span>
+<span class="sd">            return self</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        scores : np.ndarray, shape (n_windows,)</span>
+<span class="sd">            Anomaly scores on the training data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scores</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;_set_post_fit() expects a 1D score array, got shape </span><span class="si">{</span><span class="n">scores</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decision_scores_</span> <span class="o">=</span> <span class="n">scores</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">percentile</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels_</span> <span class="o">=</span> <span class="p">(</span><span class="n">scores</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the training derived threshold, raising if not yet fitted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> is not fitted. Call fit() first.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_require_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raise if the detector has not been fitted.</span>
+
+<span class="sd">        Use at the top of ``decision_function()`` in subclasses:</span>
+
+<span class="sd">            def decision_function(self, X):</span>
+<span class="sd">                self._require_fit()</span>
+<span class="sd">                X = self._validate_X(X)</span>
+<span class="sd">                ...</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> is not fitted. Call fit() first.&quot;</span>
+            <span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_X</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate and coerce input to a clean 3D float array.</span>
+
+<span class="sd">        Enforces the (n_windows, window_size, n_features) input convention.</span>
+<span class="sd">        Call at the top of both ``fit()`` and ``decision_function()``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : array like</span>
+<span class="sd">            Input to validate.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        X : np.ndarray, shape (n_windows, window_size, n_features)</span>
+<span class="sd">            Validated array, coerced to float64.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If X is not 3D, has 0 windows, or contains non-finite values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">float</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Expected 3D input (n_windows, window_size, n_features), &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;got shape </span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Pass the direct output of windowify().&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Input X has 0 windows. Check that windowify() received &quot;</span>
+                <span class="s2">&quot;enough data for at least one window.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input X has window_size = 0.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input X has 0 features (channels).&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="n">n_bad</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">X</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Input X contains </span><span class="si">{</span><span class="n">n_bad</span><span class="si">}</span><span class="s2"> non-finite value(s) (NaN or Inf). &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Run interpolate_gaps() and normalize_fit() before windowing.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">X</span>
+    
+<div class="viewcode-block" id="BaseDetector.save">
+<a class="viewcode-back" href="../../../api/models/base.html#telemetry_anomdet.models.base.BaseDetector.save">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serialize the fitted detector to disk using pickle.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : str or Path</span>
+<span class="sd">            Destination file path. Conventionally ends in ``.pkl``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="BaseDetector.load">
+<a class="viewcode-back" href="../../../api/models/base.html#telemetry_anomdet.models.base.BaseDetector.load">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BaseDetector&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deserialize a detector from disk.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : str or Path</span>
+<span class="sd">            Path to a pickled detector file created by ``save()``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        detector : BaseDetector</span>
+<span class="sd">            The deserialized, fitted detector instance.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
-<span class="sd">        - Assumes the file was created via `BaseModel.save()` or an equivalent.</span>
-<span class="sd">        - Only load files from trusted sources.</span>
+<span class="sd">        Only load files from trusted sources.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">cname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="n">cname</span><span class="si">}</span><span class="s2"> config=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="si">}</span><span class="s2">&gt;&quot;</span></div>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">fitted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_params</span><span class="p">()</span>
+        <span class="n">param_str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">v</span><span class="si">!r}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">param_str</span><span class="si">}</span><span class="s2">, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;fitted=</span><span class="si">{</span><span class="n">fitted</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return constructor parameters for ``__repr__``.</span>
+
+<span class="sd">        Subclasses can override this to include their own hyperparameters.</span>
+<span class="sd">        By default returns ``{&quot;percentile&quot;: self.percentile}``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;percentile&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">percentile</span><span class="p">}</span></div>
+
 </pre></div>
 
           </div>
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../../../index.html">telemetry_anomdet</a></h1>
 
@@ -168,7 +445,16 @@
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
@@ -183,11 +469,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../api/ingest.html">Ingestion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/preprocessing.html">Preprocessing Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/feature_extraction.html">Feature Extraction Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../api/models/base.html">Base Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/models/base.html">BaseDetector</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/models/ensemble.html">Ensemble Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../api/models/supervised.html">Supervised Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/models/unsupervised.html">Unsupervised Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../api/models/visualization.html">Visualization Utilities</a></li>
 </ul>
 
 <div class="relations">
@@ -199,16 +483,6 @@
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -225,8 +499,8 @@
       &#169;2025, Julio Anzaldo.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>
 

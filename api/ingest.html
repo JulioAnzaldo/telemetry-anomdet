@@ -1,20 +1,18 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Ingestion &#8212; telemetry_anomdet 0.0.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
+    <title>Ingestion &#8212; telemetry_anomdet 0.0.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=d209826e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=90bc4e81" />
+    <script src="../_static/documentation_options.js?v=8c5712d9"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/api/ingest.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -38,11 +36,11 @@
           <div class="body" role="main">
             
   <section id="ingestion">
-<h1>Ingestion<a class="headerlink" href="#ingestion" title="Permalink to this heading">¶</a></h1>
+<h1>Ingestion<a class="headerlink" href="#ingestion" title="Link to this heading">¶</a></h1>
 <p>This module contains functions for loading telemetry data from various sources.</p>
-<span class="target" id="module-telemetry_anomdet.ingest.csv_loader"></span><dl class="py function">
+<dl class="py function" id="module-telemetry_anomdet.ingest.csv_loader">
 <dt class="sig sig-object py" id="telemetry_anomdet.ingest.csv_loader.load_from_csv">
-<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.csv_loader.</span></span><span class="sig-name descname"><span class="pre">load_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_cols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset" title="telemetry_anomdet.ingest.dataset.TelemetryDataset"><span class="pre">TelemetryDataset</span></a></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/csv_loader.html#load_from_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.csv_loader.load_from_csv" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.csv_loader.</span></span><span class="sig-name descname"><span class="pre">load_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_cols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset" title="telemetry_anomdet.ingest.dataset.TelemetryDataset"><span class="pre">TelemetryDataset</span></a></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/csv_loader.html#load_from_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.csv_loader.load_from_csv" title="Link to this definition">¶</a></dt>
 <dd><p>Load telemetry from a CSV file.</p>
 <p>Notes:
 CSV must contain at least colums: timestamp, variable, value. timestamp will be converted to pandas datetime.</p>
@@ -56,13 +54,13 @@ TelemetryDataset</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="telemetry_anomdet.ingest.csv_loader.is_long_form">
-<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.csv_loader.</span></span><span class="sig-name descname"><span class="pre">is_long_form</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/csv_loader.html#is_long_form"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.csv_loader.is_long_form" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.csv_loader.</span></span><span class="sig-name descname"><span class="pre">is_long_form</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/csv_loader.html#is_long_form"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.csv_loader.is_long_form" title="Link to this definition">¶</a></dt>
 <dd><p>Determine whether a CSV is already in “long” form by checking that all three semantic roles appear under some alias.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="telemetry_anomdet.ingest.csv_loader.coerce_long">
-<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.csv_loader.</span></span><span class="sig-name descname"><span class="pre">coerce_long</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/csv_loader.html#coerce_long"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.csv_loader.coerce_long" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.csv_loader.</span></span><span class="sig-name descname"><span class="pre">coerce_long</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/csv_loader.html#coerce_long"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.csv_loader.coerce_long" title="Link to this definition">¶</a></dt>
 <dd><p>Final cleanup for a long form DataFrame
 - sort by time, then variable
 - ensure variable is string
@@ -71,26 +69,26 @@ TelemetryDataset</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="telemetry_anomdet.ingest.csv_loader.pick_time_column">
-<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.csv_loader.</span></span><span class="sig-name descname"><span class="pre">pick_time_column</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/csv_loader.html#pick_time_column"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.csv_loader.pick_time_column" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.csv_loader.</span></span><span class="sig-name descname"><span class="pre">pick_time_column</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/csv_loader.html#pick_time_column"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.csv_loader.pick_time_column" title="Link to this definition">¶</a></dt>
 <dd><p>Choose which colun is the time axis for <em>wide</em> CSV.
 - if time_col is explicitly provided, verify it exists and return it
 - else, try and match from alias candidates (like: “timestamp”, “time”)
 - if nothing can be found, raise error listing options and actual columns</p>
 </dd></dl>
 
-<span class="target" id="module-telemetry_anomdet.ingest.ccsds_loader"></span><dl class="py function">
+<dl class="py function" id="module-telemetry_anomdet.ingest.ccsds_loader">
 <dt class="sig sig-object py" id="telemetry_anomdet.ingest.ccsds_loader.load_from_ccsds">
-<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.ccsds_loader.</span></span><span class="sig-name descname"><span class="pre">load_from_ccsds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_or_stream</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset" title="telemetry_anomdet.ingest.dataset.TelemetryDataset"><span class="pre">TelemetryDataset</span></a></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/ccsds_loader.html#load_from_ccsds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.ccsds_loader.load_from_ccsds" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.ccsds_loader.</span></span><span class="sig-name descname"><span class="pre">load_from_ccsds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_or_stream</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset" title="telemetry_anomdet.ingest.dataset.TelemetryDataset"><span class="pre">TelemetryDataset</span></a></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/ccsds_loader.html#load_from_ccsds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.ccsds_loader.load_from_ccsds" title="Link to this definition">¶</a></dt>
 <dd><p>Load telemetry from a CCSDS file or stream.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="telemetry_anomdet.ingest.dataset.TelemetryDataset">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.dataset.</span></span><span class="sig-name descname"><span class="pre">TelemetryDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/dataset.html#TelemetryDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset" title="Permalink to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.dataset.</span></span><span class="sig-name descname"><span class="pre">TelemetryDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/dataset.html#TelemetryDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset" title="Link to this definition">¶</a></dt>
 <dd><p>Container for telemetry data.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="telemetry_anomdet.ingest.dataset.TelemetryDataset.synthetic">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">synthetic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/dataset.html#TelemetryDataset.synthetic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset.synthetic" title="Permalink to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">synthetic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/dataset.html#TelemetryDataset.synthetic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset.synthetic" title="Link to this definition">¶</a></dt>
 <dd><p>Generate a small synthetic telemetry dataset for development / testing.</p>
 <p>Parameters:
 N/A for now.</p>
@@ -100,19 +98,19 @@ TelemetryDataset</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="telemetry_anomdet.ingest.dataset.TelemetryDataset.to_pandas">
-<span class="sig-name descname"><span class="pre">to_pandas</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/dataset.html#TelemetryDataset.to_pandas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset.to_pandas" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">to_pandas</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/dataset.html#TelemetryDataset.to_pandas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset.to_pandas" title="Link to this definition">¶</a></dt>
 <dd><p>Return a copy of the Dataframe to prevent accidental mutation.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="telemetry_anomdet.ingest.dataset.TelemetryDataset.data">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">DataFrame</span></em><a class="headerlink" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset.data" title="Permalink to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">data</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">DataFrame</span></span><a class="headerlink" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset.data" title="Link to this definition">¶</a></dt>
 <dd><p>Direct access to the underlying DataFrame.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="telemetry_anomdet.ingest.dataset.TelemetryDataset.head">
-<span class="sig-name descname"><span class="pre">head</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/dataset.html#TelemetryDataset.head"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset.head" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">head</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/dataset.html#TelemetryDataset.head"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset.head" title="Link to this definition">¶</a></dt>
 <dd><p>Head of the underlying DataFrame (copy).</p>
 </dd></dl>
 
@@ -125,7 +123,7 @@ TelemetryDataset</p>
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../index.html">telemetry_anomdet</a></h1>
 
@@ -136,7 +134,16 @@ TelemetryDataset</p>
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
@@ -159,11 +166,9 @@ TelemetryDataset</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="preprocessing.html">Preprocessing Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="feature_extraction.html">Feature Extraction Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="models/base.html">Base Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models/base.html">BaseDetector</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models/ensemble.html">Ensemble Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="models/supervised.html">Supervised Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models/unsupervised.html">Unsupervised Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="models/visualization.html">Visualization Utilities</a></li>
 </ul>
 
 <div class="relations">
@@ -175,16 +180,6 @@ TelemetryDataset</p>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -201,8 +196,8 @@ TelemetryDataset</p>
       &#169;2025, Julio Anzaldo.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
       <a href="../_sources/api/ingest.rst.txt"
