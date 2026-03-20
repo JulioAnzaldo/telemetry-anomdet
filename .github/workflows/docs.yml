@@ -3,7 +3,7 @@ name: Docs
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       # Run when documentation changes
       - 'docs/**'
@@ -36,9 +36,7 @@ jobs:
         run: uv sync --group docs --extra ccsds
 
       - name: Build Sphinx docs
-        run: |
-          cd docs
-          uv run make html
+        run: uv run sphinx-build -b html docs/source docs/build/html
 
       # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
