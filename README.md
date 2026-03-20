@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://julioanzaldo.github.io/telemetry-anomdet/"><img alt="Documentation" src="https://img.shields.io/badge/docs-online-blue"></a>
-  <a href="https://test.pypi.org/project/telemetry-anomdet/"><img alt="Test PyPI" src="https://img.shields.io/badge/Test-PyPI-yellow?logo=pypi&logoColor=white"></a>
+  <a href="https://test.pypi.org/project/telemetry-anomdet/"><img alt="Test PyPI" src="https://img.shields.io/badge/Test-PyPI-yellow"></a>
   <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/issues"><img alt="GitHub Issues" src="https://img.shields.io/github/issues/JulioAnzaldo/telemetry-anomdet"></a>
   <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/JulioAnzaldo/telemetry-anomdet"></a>
 </p>
@@ -26,6 +26,10 @@
 ## Quick Install
 
 ```bash
+# recommended
+uv add telemetry-anomdet
+
+# or with pip
 pip install telemetry-anomdet
 ```
 
@@ -33,7 +37,7 @@ pip install telemetry-anomdet
 
 ### Fit the Ensemble on Nominal Telemetry
 
-All detectors are trained on **nominal data only** -- no anomaly labels used during training. Labels are used exclusively for evaluation.
+All detectors are trained on **nominal data only**, no anomaly labels used during training. Labels are used exclusively for evaluation.
 
 ```python
 import numpy as np
@@ -41,17 +45,17 @@ from telemetry_anomdet.models.unsupervised.pca import PCAAnomaly
 from telemetry_anomdet.models.unsupervised.kmeans import KMeansAnomaly
 from telemetry_anomdet.models.ensemble import AnomalyEnsemble
 
-# X_train: (n_windows, window_size, n_features) -- produced by windowify()
+# X_train: (n_windows, window_size, n_features), produced by windowify()
 X_train = ...
 
 ensemble = AnomalyEnsemble(
-    models={
-        "pca":    PCAAnomaly(n_components=10),
-        "kmeans": KMeansAnomaly(n_clusters=5, scale=True),
+    models = {
+        "pca":    PCAAnomaly(n_components = 10),
+        "kmeans": KMeansAnomaly(n_clusters = 5, scale = True),
     },
-    combine="mean",
-    normalize="robust",
-    percentile=95.0,
+    combine = "mean",
+    normalize = "robust",
+    percentile = 95.0,
 )
 
 ensemble.fit(X_train)
@@ -63,9 +67,9 @@ ensemble.fit(X_train)
 scores = ensemble.decision_function(X_test)   # higher = more anomalous
 flags  = ensemble.is_anomaly(X_test)          # boolean mask at training threshold
 
-# Runtime sensitivity override -- no retraining needed
-flags_strict = ensemble.is_anomaly(X_test, percentile=98.0)
-flags_custom  = ensemble.is_anomaly(X_test, threshold=0.75)
+# Runtime sensitivity override, no retraining needed
+flags_strict = ensemble.is_anomaly(X_test, percentile = 98.0)
+flags_custom  = ensemble.is_anomaly(X_test, threshold = 0.75)
 ```
 
 ### Per-Model Score Decomposition
@@ -87,12 +91,12 @@ components = ensemble.score_components(X_test)
 # LLM diagnostic report (Phase 4)
 # report = llm_engine.explain(shap_values, context, channel_names)
 # DiagnosticReport(
-#     anomaly_type="power subsystem fault",
+#     anomaly_type = "power subsystem fault",
 #     severity="high",
-#     primary_channels=["sensor_01", "sensor_07"],
-#     explanation="...",
-#     recommended_action="...",
-#     confidence=0.87,
+#     primary_channels = ["sensor_01", "sensor_07"],
+#     explanation = "...",
+#     recommended_action = "...",
+#     confidence = 0.87,
 # )
 ```
 
