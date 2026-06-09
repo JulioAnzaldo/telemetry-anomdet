@@ -10,14 +10,13 @@ any learned nominal operating mode score higher and are flagged as anomalies.
 
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
-from ..base import BaseDetector
 from ...feature_extraction import features
+from ..base import BaseDetector
+
 
 class KMeansAnomaly(BaseDetector):
     """
@@ -57,15 +56,20 @@ class KMeansAnomaly(BaseDetector):
         Fitted scaler when ``scale=True``, otherwise None.
     """
 
-    def __init__(self, n_clusters: int = 5, scale: bool = False, percentile: float = 95.0,):
+    def __init__(
+        self,
+        n_clusters: int = 5,
+        scale: bool = False,
+        percentile: float = 95.0,
+    ):
         super().__init__(percentile=percentile)
         self.n_clusters = n_clusters
         self.scale = scale
 
         # Fit artifacts: set in fit()
-        self.model: Optional[KMeans] = None
-        self.centroids: Optional[np.ndarray] = None
-        self.scaler: Optional[StandardScaler] = None
+        self.model: KMeans | None = None
+        self.centroids: np.ndarray | None = None
+        self.scaler: StandardScaler | None = None
 
     # ---- helpers ----
     def _flatten(self, X: np.ndarray) -> np.ndarray:
@@ -93,18 +97,16 @@ class KMeansAnomaly(BaseDetector):
     def _scale_transform(self, X2d: np.ndarray) -> np.ndarray:
         if self.scale:
             if self.scaler is None:
-                raise RuntimeError(
-                    "Scaler is not fitted. Was the model fitted with scale=True?"
-                )
+                raise RuntimeError("Scaler is not fitted. Was the model fitted with scale=True?")
             return self.scaler.transform(X2d)
         return X2d
 
     def _centroid_distances(self, Xs: np.ndarray) -> np.ndarray:
         """Distance from each sample to its nearest centroid."""
-        return self.model.transform(Xs).min(axis = 1)
+        return self.model.transform(Xs).min(axis=1)
 
     # ---- BaseDetector interface ----
-    def fit(self, X: np.ndarray, y: np.ndarray | None = None) -> "KMeansAnomaly":
+    def fit(self, X: np.ndarray, y: np.ndarray | None = None) -> KMeansAnomaly:
         """
         Fit K-Means on nominal telemetry windows.
 
@@ -139,9 +141,9 @@ class KMeansAnomaly(BaseDetector):
         Xs = self._scale_fit(X2d)
 
         self.model = KMeans(
-            n_clusters = self.n_clusters,
-            n_init = 10,
-            random_state = 0,
+            n_clusters=self.n_clusters,
+            n_init=10,
+            random_state=0,
         )
         self.model.fit(Xs)
         self.centroids = self.model.cluster_centers_

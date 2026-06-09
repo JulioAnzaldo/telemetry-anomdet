@@ -1,9 +1,12 @@
 # src/telemetry_anomdet/ingest/csv_loader.py
 
 from __future__ import annotations
-from telemetry_anomdet.ingest.dataset import TelemetryDataset
-from typing import Optional, Sequence, Mapping, Iterable
+
+from collections.abc import Iterable, Mapping, Sequence
+
 import pandas as pd
+
+from telemetry_anomdet.ingest.dataset import TelemetryDataset
 
 # Canonical columns
 _TS, _VAR, _VAL = "timestamp", "variable", "value"
@@ -15,25 +18,28 @@ DEFAULT_ALIASES: Mapping[str, Iterable[str]] = {
     _VAL: {"value", "reading", "val", "y"},
 }
 
-def load_from_csv(path: str, *, time_col: Optional[str] = None, value_cols: Optional[Sequence[str]] = None) -> TelemetryDataset:
+
+def load_from_csv(
+    path: str, *, time_col: str | None = None, value_cols: Sequence[str] | None = None
+) -> TelemetryDataset:
     """
-        Load telemetry from a CSV file.
+    Load telemetry from a CSV file.
 
-        Notes:
-        CSV must contain at least colums: timestamp, variable, value. timestamp will be converted to pandas datetime.
+    Notes:
+    CSV must contain at least colums: timestamp, variable, value. timestamp will be converted to pandas datetime.
 
-        Arguments:
-        path - Path to CSV file.
-        time_col - Explicit time column, if ommitted, guessed from aliases
-        value_cols - Explicit value columns
+    Arguments:
+    path - Path to CSV file.
+    time_col - Explicit time column, if ommitted, guessed from aliases
+    value_cols - Explicit value columns
 
-        Returns:
-        TelemetryDataset
+    Returns:
+    TelemetryDataset
     """
-    
+
     df = pd.read_csv(path)
     aliases_local = DEFAULT_ALIASES
-    
+
     # If in long form, normalize column names to canonical
     if is_long_form(df.columns.tolist(), aliases_local):
         ren = {}
@@ -46,7 +52,7 @@ def load_from_csv(path: str, *, time_col: Optional[str] = None, value_cols: Opti
         out = coerce_long(out)
 
         return TelemetryDataset(out)
-    
+
     # If not in long form, convert from Wide to melt
     tcol = pick_time_column(df.columns.tolist(), time_col=time_col, aliases=aliases_local)
     wide = df.copy()
@@ -64,24 +70,26 @@ def load_from_csv(path: str, *, time_col: Optional[str] = None, value_cols: Opti
         if not meas:
             raise ValueError("No measurement columns found. Provide value_cols=[].")
 
-    long = wide.melt(id_vars = tcol, value_vars = meas, var_name = _VAR, value_name = _VAL)
-    long = long.rename(columns = {tcol: _TS})
+    long = wide.melt(id_vars=tcol, value_vars=meas, var_name=_VAR, value_name=_VAL)
+    long = long.rename(columns={tcol: _TS})
     long = coerce_long(long)
 
     return TelemetryDataset(long)
+
 
 # Helper for finding datasets with timestamps/variables/values - returns t/f
 def is_long_form(cols: Sequence[str], aliases: Mapping[str, Iterable[str]]) -> bool:
     """
     Determine whether a CSV is already in "long" form by checking that all three semantic roles appear under some alias.
     """
-    
+
     lc = set(c.lower() for c in cols)
     has_ts = any(a in lc for a in aliases[_TS])
     has_var = any(a in lc for a in aliases[_VAR])
     has_val = any(a in lc for a in aliases[_VAL])
-    
+
     return has_ts and has_var and has_val
+
 
 def coerce_long(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -98,7 +106,10 @@ def coerce_long(df: pd.DataFrame) -> pd.DataFrame:
 
     return df[[_TS, _VAR, _VAL]]
 
-def pick_time_column(cols: Sequence[str], *, time_col: Optional[str], aliases: Mapping[str, Iterable[str]]) -> str:
+
+def pick_time_column(
+    cols: Sequence[str], *, time_col: str | None, aliases: Mapping[str, Iterable[str]]
+) -> str:
     """
     Choose which colun is the time axis for *wide* CSV.
     - if time_col is explicitly provided, verify it exists and return it
@@ -110,12 +121,12 @@ def pick_time_column(cols: Sequence[str], *, time_col: Optional[str], aliases: M
         if time_col in cols:
             return time_col
         raise KeyError(f"time_col='{time_col}' not found in columns: {list(cols)}")
-    
+
     lowered = {c.lower().strip(): c for c in cols}
     for cand in aliases.get(_TS, ()):
         if cand in lowered:
             return lowered[cand]
-        
+
     raise KeyError(
         "No time column found. Provide time_col= or include one of the aliases: "
         f"{aliases.get(_TS)}. Columns seen: {list(cols)}"

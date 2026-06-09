@@ -14,8 +14,8 @@ All detectors in this library follow PyOD convention.
 
 Input Convention
 ----------------
-All detectors accept X of shape (n_windows, window_size, n_features). Classical detecrtors flatten X internally 
-using feature_stat(). Sequence detectors (GDN, TranAD) consume X directly. 
+All detectors accept X of shape (n_windows, window_size, n_features). Classical detecrtors flatten X internally
+using feature_stat(). Sequence detectors (GDN, TranAD) consume X directly.
 The caller never maneges this distinction.
 
 Post-fit Attributes
@@ -29,11 +29,12 @@ After fit(), every detectror exposes:
 
 from __future__ import annotations
 
+import pickle
 from abc import ABC, abstractmethod
 from pathlib import Path
-import pickle
 
 import numpy as np
+
 
 class BaseDetector(ABC):
     """
@@ -68,9 +69,7 @@ class BaseDetector(ABC):
 
     def __init__(self, percentile: float = 95.0):
         if not (0.0 < percentile < 100.0):
-            raise ValueError(
-                f"percentile must be in (0, 100), got {percentile!r}."
-            )
+            raise ValueError(f"percentile must be in (0, 100), got {percentile!r}.")
         self.percentile = percentile
 
         # Post-fit attributes; None until fit() is called!
@@ -79,7 +78,7 @@ class BaseDetector(ABC):
         self.labels_: np.ndarray | None = None
 
     @abstractmethod
-    def fit(self, X: np.ndarray, y: np.ndarray | None = None) -> "BaseDetector":
+    def fit(self, X: np.ndarray, y: np.ndarray | None = None) -> BaseDetector:
         """
         Train the detector on nominal telemetry windows.
 
@@ -102,7 +101,7 @@ class BaseDetector(ABC):
         """
 
         ...
-    
+
     @abstractmethod
     def decision_function(self, X: np.ndarray) -> np.ndarray:
         """
@@ -123,7 +122,7 @@ class BaseDetector(ABC):
         """
 
         ...
-    
+
     # Core methods (implemented by subclass)
     def predict(self, X: np.ndarray):
         """
@@ -145,8 +144,14 @@ class BaseDetector(ABC):
         """
         scores = self.decision_function(X)
         return (scores > self._get_threshold()).astype(int)
-    
-    def is_anomaly(self, X: np.ndarray, *, threshold: float | None = None, percentile: float | None = None,) -> np.ndarray:
+
+    def is_anomaly(
+        self,
+        X: np.ndarray,
+        *,
+        threshold: float | None = None,
+        percentile: float | None = None,
+    ) -> np.ndarray:
         """
         Boolean anomaly mask with optional runtime threshold override.
 
@@ -191,15 +196,13 @@ class BaseDetector(ABC):
             thr = float(threshold)
         elif percentile is not None:
             if not (0.0 < percentile < 100.0):
-                raise ValueError(
-                    f"percentile must be in (0, 100), got {percentile!r}."
-                )
+                raise ValueError(f"percentile must be in (0, 100), got {percentile!r}.")
             thr = float(np.percentile(scores, percentile))
         else:
             thr = self._get_threshold()
 
         return scores > thr
-    
+
     def score_samples(self, X: np.ndarray) -> np.ndarray:
         """
         Alias for ``decision_function()``.
@@ -217,7 +220,7 @@ class BaseDetector(ABC):
         scores : np.ndarray, shape (n_windows,)
         """
         return self.decision_function(X)
-    
+
     def _set_post_fit(self, scores: np.ndarray) -> None:
         """
         Set the three standard post-fit attributes from training scores.
@@ -235,23 +238,19 @@ class BaseDetector(ABC):
         """
         scores = np.asarray(scores, dtype=float)
         if scores.ndim != 1:
-            raise ValueError(
-                f"_set_post_fit() expects a 1D score array, got shape {scores.shape}."
-            )
+            raise ValueError(f"_set_post_fit() expects a 1D score array, got shape {scores.shape}.")
         self.decision_scores_ = scores
         self.threshold_ = float(np.percentile(scores, self.percentile))
         self.labels_ = (scores > self.threshold_).astype(int)
-    
+
     def _get_threshold(self) -> float:
         """
         Return the training derived threshold, raising if not yet fitted.
         """
         if self.threshold_ is None:
-            raise RuntimeError(
-                f"{self.__class__.__name__} is not fitted. Call fit() first."
-            )
+            raise RuntimeError(f"{self.__class__.__name__} is not fitted. Call fit() first.")
         return self.threshold_
-    
+
     def _require_fit(self) -> None:
         """
         Raise if the detector has not been fitted.
@@ -264,10 +263,8 @@ class BaseDetector(ABC):
                 ...
         """
         if self.threshold_ is None:
-            raise RuntimeError(
-                f"{self.__class__.__name__} is not fitted. Call fit() first."
-            )
-    
+            raise RuntimeError(f"{self.__class__.__name__} is not fitted. Call fit() first.")
+
     def _validate_X(self, X: np.ndarray) -> np.ndarray:
         """
         Validate and coerce input to a clean 3D float array.
@@ -290,7 +287,7 @@ class BaseDetector(ABC):
         ValueError
             If X is not 3D, has 0 windows, or contains non-finite values.
         """
-        X = np.asarray(X, dtype = float)
+        X = np.asarray(X, dtype=float)
 
         if X.ndim != 3:
             raise ValueError(
@@ -314,7 +311,7 @@ class BaseDetector(ABC):
                 f"Run interpolate_gaps() and normalize_fit() before windowing."
             )
         return X
-    
+
     def save(self, path: str | Path) -> None:
         """
         Serialize the fitted detector to disk using pickle.
@@ -328,9 +325,9 @@ class BaseDetector(ABC):
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("wb") as f:
             pickle.dump(self, f)
-    
+
     @classmethod
-    def load(cls, path: str | Path) -> "BaseDetector":
+    def load(cls, path: str | Path) -> BaseDetector:
         """
         Deserialize a detector from disk.
 
@@ -356,11 +353,8 @@ class BaseDetector(ABC):
         fitted = self.threshold_ is not None
         params = self._get_params()
         param_str = ", ".join(f"{k}={v!r}" for k, v in params.items())
-        return (
-            f"{self.__class__.__name__}({param_str}, "
-            f"fitted={fitted})"
-        )
-    
+        return f"{self.__class__.__name__}({param_str}, fitted={fitted})"
+
     def _get_params(self) -> dict:
         """
         Return constructor parameters for ``__repr__``.

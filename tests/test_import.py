@@ -9,18 +9,22 @@ __version__ attribute is defined.
 """
 
 import importlib
+
 import telemetry_anomdet
+
 
 def test_package_import():
     """Package imports without error."""
     package = importlib.import_module("telemetry_anomdet")
     assert package is not None
 
+
 def test_version_present():
     """Package exposes non-empty __version__ string."""
     assert hasattr(telemetry_anomdet, "__version__")
     v = telemetry_anomdet.__version__
     assert isinstance(v, str) and v.strip() != ""
+
 
 def test_core_modules_import():
     """Core submodules import without error."""

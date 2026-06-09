@@ -4,17 +4,18 @@
 Ensemble combinator for anomaly detectors.
 
 This module defines an `AnomalyEnsemble` that can wrap multiple
-BaseDetector compatible detectors and combine their scores into a 
+BaseDetector compatible detectors and combine their scores into a
 single ensemble score and anomaly decision.
 """
 
 from __future__ import annotations
 
-from typing import Dict, Mapping, Optional
+from collections.abc import Mapping
 
 import numpy as np
 
 from .base import BaseDetector
+
 
 class AnomalyEnsemble(BaseDetector):
     """
@@ -53,13 +54,19 @@ class AnomalyEnsemble(BaseDetector):
         Binary anomaly labels on training data. 0 = normal, 1 = anomaly.
     """
 
-    def __init__(self, models: Mapping[str, BaseDetector], combine: str = "mean", normalize: str = "robust", percentile: float = 95.0,):
-        super().__init__(percentile = percentile)
+    def __init__(
+        self,
+        models: Mapping[str, BaseDetector],
+        combine: str = "mean",
+        normalize: str = "robust",
+        percentile: float = 95.0,
+    ):
+        super().__init__(percentile=percentile)
         self.models = models
         self.combine = combine
         self.normalize = normalize
 
-        self._norm_stats: Dict[str, dict] = {}
+        self._norm_stats: dict[str, dict] = {}
 
     # ---- Helpers ----
     def _compute_norm_stats(self, scores: np.ndarray, method: str) -> dict:
@@ -97,8 +104,8 @@ class AnomalyEnsemble(BaseDetector):
             return {"min": s_min, "max": s_max}
         if method == "robust":
             med = float(np.median(scores))
-            q1  = float(np.percentile(scores, 25.0))
-            q3  = float(np.percentile(scores, 75.0))
+            q1 = float(np.percentile(scores, 25.0))
+            q3 = float(np.percentile(scores, 75.0))
             iqr = q3 - q1
             if iqr <= 0.0:
                 iqr = 1e-12
@@ -129,7 +136,7 @@ class AnomalyEnsemble(BaseDetector):
             Normalized scores clipped to ``[0, 1]``.
         """
 
-        scores = np.asarray(scores, dtype = float)
+        scores = np.asarray(scores, dtype=float)
         if method == "none":
             return scores
         if method == "minmax":
@@ -153,15 +160,15 @@ class AnomalyEnsemble(BaseDetector):
         np.ndarray, shape (n_windows,)
         """
         if self.combine == "mean":
-            return np.mean(S, axis = 0)
+            return np.mean(S, axis=0)
         if self.combine == "median":
-            return np.median(S, axis = 0)
+            return np.median(S, axis=0)
         if self.combine == "max":
-            return np.max(S, axis = 0)
+            return np.max(S, axis=0)
         raise ValueError(f"Unknown combine strategy: {self.combine!r}")
 
     # ---- BaseDetector interface ----
-    def fit(self, X: np.ndarray, y: np.ndarray | None = None) -> "AnomalyEnsemble":
+    def fit(self, X: np.ndarray, y: np.ndarray | None = None) -> AnomalyEnsemble:
         """
         Fit all detectors and estimate normalization statistics.
 
@@ -190,10 +197,12 @@ class AnomalyEnsemble(BaseDetector):
         }
 
         # Build normalized score matrix to ensemble scores
-        S = np.vstack([
-            self._apply_norm(scores, self._norm_stats[name], self.normalize)
-            for name, scores in per_model.items()
-        ])
+        S = np.vstack(
+            [
+                self._apply_norm(scores, self._norm_stats[name], self.normalize)
+                for name, scores in per_model.items()
+            ]
+        )
         ensemble_scores = self._combine_matrix(S)
 
         self._set_post_fit(ensemble_scores)
@@ -230,12 +239,12 @@ class AnomalyEnsemble(BaseDetector):
                     )
                 S.append(self._apply_norm(scores, stats, self.normalize))
             else:
-                S.append(np.asarray(scores, dtype = float))
+                S.append(np.asarray(scores, dtype=float))
 
         return self._combine_matrix(np.vstack(S))
 
     # ---- SHAP hook ----
-    def score_components(self, X: np.ndarray) -> Dict[str, np.ndarray]:
+    def score_components(self, X: np.ndarray) -> dict[str, np.ndarray]:
         """
         Per-model raw anomaly scores before combination.
 
@@ -257,8 +266,8 @@ class AnomalyEnsemble(BaseDetector):
     # ---- repr ----
     def _get_params(self) -> dict:
         return {
-            "models":    list(self.models.keys()),
-            "combine":   self.combine,
+            "models": list(self.models.keys()),
+            "combine": self.combine,
             "normalize": self.normalize,
             "percentile": self.percentile,
         }

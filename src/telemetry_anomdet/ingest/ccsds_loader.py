@@ -1,9 +1,11 @@
 # src/telemetry_anomdet/ingest/ccsds_loader.pyv
 
 from __future__ import annotations
-from ccsdspy import FixedLength, VariableLength, PacketField, PacketArray
-from telemetry_anomdet.ingest.dataset import TelemetryDataset
+
 import pandas as pd
+
+from telemetry_anomdet.ingest.dataset import TelemetryDataset
+
 
 def load_from_ccsds(file_or_stream) -> TelemetryDataset:
     """

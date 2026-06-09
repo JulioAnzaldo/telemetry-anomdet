@@ -11,14 +11,13 @@ and back into the original space.
 
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-from ..base import BaseDetector
 from ...feature_extraction import features
+from ..base import BaseDetector
+
 
 class PCAAnomaly(BaseDetector):
     """
@@ -56,14 +55,19 @@ class PCAAnomaly(BaseDetector):
         Fitted scaler when ``scale = True``, otherwise None.
     """
 
-    def __init__(self, n_components: Optional[int] = None, scale: bool = True, percentile: float = 95.0,):
-        super().__init__(percentile = percentile)
+    def __init__(
+        self,
+        n_components: int | None = None,
+        scale: bool = True,
+        percentile: float = 95.0,
+    ):
+        super().__init__(percentile=percentile)
         self.n_components = n_components
         self.scale = scale
 
         # Fit artifacts: set in fit()
-        self.model: Optional[PCA] = None
-        self.scaler: Optional[StandardScaler] = None
+        self.model: PCA | None = None
+        self.scaler: StandardScaler | None = None
 
     # ---- helpers ----
     def _flatten(self, X: np.ndarray) -> np.ndarray:
@@ -87,13 +91,11 @@ class PCAAnomaly(BaseDetector):
             return self.scaler.fit_transform(X2d)
         self.scaler = None
         return X2d
-    
+
     def _scale_transform(self, X2d: np.ndarray) -> np.ndarray:
         if self.scale:
             if self.scaler is None:
-                raise RuntimeError(
-                    "Scaler is not fitted. Was the model fitted with scale = True?"
-                )
+                raise RuntimeError("Scaler is not fitted. Was the model fitted with scale = True?")
             return self.scaler.transform(X2d)
         return X2d
 
@@ -101,9 +103,9 @@ class PCAAnomaly(BaseDetector):
         """Project into PCA subspace and compute per-window reconstruction error."""
         Z = self.model.transform(Xs)
         X_recon = self.model.inverse_transform(Z)
-        return np.sum((Xs - X_recon) ** 2, axis = 1)
+        return np.sum((Xs - X_recon) ** 2, axis=1)
 
-    def fit(self, X: np.ndarray, y: np.ndarray | None = None) -> "PCAAnomaly":
+    def fit(self, X: np.ndarray, y: np.ndarray | None = None) -> PCAAnomaly:
         """
         Fit PCA on nominal telemetry windows.
 
@@ -122,7 +124,7 @@ class PCAAnomaly(BaseDetector):
         X2d = self._flatten(X)
         Xs = self._scale_fit(X2d)
 
-        self.model = PCA(n_components = self.n_components)
+        self.model = PCA(n_components=self.n_components)
         self.model.fit(Xs)
 
         scores = self._reconstruction_error(Xs)
@@ -147,7 +149,7 @@ class PCAAnomaly(BaseDetector):
         X2d = self._flatten(X)
         Xs = self._scale_transform(X2d)
         return self._reconstruction_error(Xs)
-    
+
     def _get_params(self) -> dict:
         return {
             "n_components": self.n_components,
