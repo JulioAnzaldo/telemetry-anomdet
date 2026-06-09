@@ -44,19 +44,20 @@
 
 <span class="c1"># Long form telemetry means one observation per row, wide means all variables get their own column, with timestamps as the index</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">fnmatch</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
 <span class="c1"># Canonical column names used throughout the preprocessing pipeline</span>
 <span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">,</span> <span class="n">_VAL</span> <span class="o">=</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">,</span> <span class="s2">&quot;variable&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span>
 
+
 <div class="viewcode-block" id="clean">
 <a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.clean">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">clean</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">physical_bounds</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">clean</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">physical_bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Remove non existant values, non numeric readings, and physically impossible sensor values.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Arguments:</span>
 <span class="sd">        df (pd.DataFrame): Long form telemetry data with columns [&#39;timestamp&#39;, &#39;variable&#39;, &#39;value&#39;].</span>
 <span class="sd">        physical_bounds (dict, optional): Mapping of variable names or patterns to (min, max) valid ranges.</span>
@@ -69,12 +70,12 @@
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
     <span class="c1"># Drop rows with missing core fields</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span> <span class="o">=</span> <span class="p">[</span><span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">,</span> <span class="n">_VAL</span><span class="p">])</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">,</span> <span class="n">_VAL</span><span class="p">])</span>
 
     <span class="c1"># Apply physical bounds</span>
     <span class="k">if</span> <span class="n">physical_bounds</span><span class="p">:</span>
         <span class="c1"># Mask that marks all rows as valid</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 
         <span class="c1"># Loop over each variable pattern and its allowed (min, max) range</span>
         <span class="k">for</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">bounds</span> <span class="ow">in</span> <span class="n">physical_bounds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -85,11 +86,13 @@
             <span class="c1"># Bounds must be a 2 element tuple/list (min/max)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must be (min, max)&quot;</span><span class="p">)</span>
-            
+
             <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span> <span class="o">=</span> <span class="n">bounds</span>
 
-            <span class="c1"># Select rows whose variable name matches the given pattern</span>
-            <span class="n">sel</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">_VAR</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">pattern</span><span class="p">))</span>
+            <span class="c1"># Select rows whose variable name matches the given pattern.</span>
+            <span class="c1"># Bind `pattern` as a default arg so the closure captures this</span>
+            <span class="c1"># iteration&#39;s value, not the loop variable (ruff B023).</span>
+            <span class="n">sel</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">_VAR</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="n">pattern</span><span class="p">:</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">pattern</span><span class="p">))</span>
 
             <span class="c1"># Mask out rows that fall below or above the valid range</span>
             <span class="k">if</span> <span class="n">lower</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -101,9 +104,10 @@
             <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
 
     <span class="c1"># Deterministic ordering (by timestamp and variable)</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">])</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">])</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">df</span></div>
+
 
 
 <div class="viewcode-block" id="dedupe">
@@ -111,16 +115,16 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">dedupe</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Remove duplicate or retransmitted rows.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Arguments:</span>
 <span class="sd">        df (pd.DataFrame): Long form telemetry data with potential duplicates.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        pd.DataFrame: DataFrame with duplicates (timestamp, variable) removed.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;dedupe() expects a pandas DataFrame&quot;</span><span class="p">)</span>
-    
+
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
     <span class="c1"># Sort so duplicates are grouped together</span>
@@ -130,18 +134,21 @@
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
 
     <span class="c1"># Drop retransmits (same timestamps, keep last occurence)</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span> <span class="o">=</span> <span class="p">[</span><span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">],</span> <span class="n">keep</span> <span class="o">=</span> <span class="s2">&quot;last&quot;</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">],</span> <span class="n">keep</span><span class="o">=</span><span class="s2">&quot;last&quot;</span><span class="p">)</span>
 
     <span class="c1"># Reset index for cleanliness before returning</span>
-    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="integrity_check">
 <a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.integrity_check">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">integrity_check</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">require_utc</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">require_sorted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">integrity_check</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">require_utc</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">require_sorted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Verify timestamp format, timezone, and column consistency.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Arguments:</span>
 <span class="sd">        df (pd.DataFrame): Long form telemetry data.</span>
 <span class="sd">        require_utc (bool): If True, ensure timestamps are UTC.</span>
@@ -149,59 +156,60 @@
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If schema or ordering fails validation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;integrity_check() expects a pandas DataFrame&quot;</span><span class="p">)</span>
-    
+
     <span class="c1"># Extract timestamp column</span>
     <span class="n">ts</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">_TS</span><span class="p">]</span>
 
     <span class="c1"># Ensure datetime (datetime64), if not try to coerce</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_datetime64_any_dtype</span><span class="p">(</span><span class="n">ts</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">ts</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="s2">&quot;raise&quot;</span><span class="p">,</span> <span class="n">utc</span> <span class="o">=</span> <span class="n">require_utc</span><span class="p">)</span>
+            <span class="n">ts</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;raise&quot;</span><span class="p">,</span> <span class="n">utc</span><span class="o">=</span><span class="n">require_utc</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;timestamp&#39; must be datetime format&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
-        
+
     <span class="c1"># UTC requirement</span>
     <span class="k">if</span> <span class="n">require_utc</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">ts</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">tz</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Timestamps must be timezone aware UTC&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">tz</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;UTC&quot;</span><span class="p">,</span> <span class="s2">&quot;UTC+00:00&quot;</span><span class="p">,</span> <span class="s2">&quot;tzutc()&quot;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Timestamps must be in UTC.&quot;</span><span class="p">)</span>
-        
+
     <span class="c1"># Sorted requirement (chronological order if required)</span>
     <span class="k">if</span> <span class="n">require_sorted</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ts</span><span class="o">.</span><span class="n">is_monotonic_increasing</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Timestamps must be ascending.&quot;</span><span class="p">)</span>
-    
+
     <span class="c1"># &#39;value&#39; must be numeric</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_numeric_dtype</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">_VAL</span><span class="p">]):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;value&#39; column must be numeric.&quot;</span><span class="p">)</span>
-    
+
     <span class="k">return</span></div>
+
 
 
 <div class="viewcode-block" id="resample">
 <a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.resample">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">resample</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rule</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;5S&quot;</span><span class="p">,</span> <span class="n">agg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">resample</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rule</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;5s&quot;</span><span class="p">,</span> <span class="n">agg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Resample irregularly spaced data to a uniform cadence.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Arguments:</span>
 <span class="sd">        df (pd.DataFrame): Long form telemetry data.</span>
-<span class="sd">        rule (str): Resample frequency (&#39;1S&#39;, &#39;5S&#39;, &#39;1min&#39;).</span>
+<span class="sd">        rule (str): Resample frequency (&#39;1s&#39;, &#39;5s&#39;, &#39;1min&#39;).</span>
 <span class="sd">        agg (str): Aggregation method (&#39;mean&#39;, &#39;median&#39;, etc.) when multiple values exist per interval.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        pd.DataFrame: Resampled dataset with regular time intervals.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
     <span class="c1"># Ensure proper timestamp dtype</span>
     <span class="n">df</span><span class="p">[</span><span class="n">_TS</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">_TS</span><span class="p">])</span>
 
     <span class="c1"># Pivot to wide form</span>
-    <span class="n">wide</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span> <span class="o">=</span> <span class="n">_TS</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">_VAR</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">_VAL</span><span class="p">)</span>
+    <span class="n">wide</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">_TS</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">_VAR</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">_VAL</span><span class="p">)</span>
 
     <span class="c1"># Resample</span>
     <span class="k">if</span> <span class="n">agg</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span><span class="p">:</span>
@@ -221,78 +229,158 @@
 
     <span class="c1"># Melt back to long form</span>
     <span class="n">long</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">wide</span>
-        <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-        <span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">_TS</span><span class="p">],</span> <span class="n">var_name</span><span class="o">=</span><span class="n">_VAR</span><span class="p">,</span> <span class="n">value_name</span><span class="o">=</span><span class="n">_VAL</span><span class="p">)</span>
-        <span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span> <span class="o">=</span> <span class="p">[</span><span class="n">_VAL</span><span class="p">])</span> <span class="c1"># remove variables missing entirely</span>
+        <span class="n">wide</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="n">_TS</span><span class="p">],</span> <span class="n">var_name</span><span class="o">=</span><span class="n">_VAR</span><span class="p">,</span> <span class="n">value_name</span><span class="o">=</span><span class="n">_VAL</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="n">_VAL</span><span class="p">])</span>  <span class="c1"># remove variables missing entirely</span>
         <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">_TS</span><span class="p">)</span>
-        <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">long</span></div>
 
 
+
 <div class="viewcode-block" id="interpolate_gaps">
 <a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.interpolate_gaps">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">interpolate_gaps</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;ffill&quot;</span><span class="p">,</span> <span class="n">limit</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">interpolate_gaps</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ffill&quot;</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fill small missing gaps to ensure continuous time steps.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Arguments:</span>
-<span class="sd">        df (pd.DataFrame): Resampled telemetry data.</span>
-<span class="sd">        method (str): Interpolation strategy (&#39;ffill&#39;, &#39;linear&#39;, &#39;bfill&#39;, etc.).</span>
-<span class="sd">        limit (int): Maximum consecutive non existant values steps to fill.</span>
+<span class="sd">        df (pd.DataFrame): Resampled telemetry data in long form.</span>
+<span class="sd">        method (str): Interpolation strategy (&#39;ffill&#39;, &#39;bfill&#39;, &#39;linear&#39;, etc.).</span>
+<span class="sd">        limit (int, optional): Maximum consecutive non existant value steps to fill.</span>
+<span class="sd">            None means no limit.</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        pd.DataFrame: Gap filled dataset.</span>
+<span class="sd">        pd.DataFrame: Gap filled dataset in long form.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
-    <span class="k">return</span> <span class="n">df</span></div>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;interpolate_gaps() expects a pandas DataFrame&quot;</span><span class="p">)</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">df</span><span class="p">[</span><span class="n">_TS</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">_TS</span><span class="p">])</span>
+
+    <span class="c1"># Pivot to wide form so each variable is a contiguous time series</span>
+    <span class="n">wide</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">_TS</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">_VAR</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">_VAL</span><span class="p">)</span>
+
+    <span class="c1"># Fill gaps column by column, capped at `limit` consecutive steps</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;ffill&quot;</span><span class="p">:</span>
+        <span class="n">wide</span> <span class="o">=</span> <span class="n">wide</span><span class="o">.</span><span class="n">ffill</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;bfill&quot;</span><span class="p">:</span>
+        <span class="n">wide</span> <span class="o">=</span> <span class="n">wide</span><span class="o">.</span><span class="n">bfill</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Time-aware interpolation methods (e.g. &#39;linear&#39;, &#39;time&#39;, &#39;spline&#39;)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">wide</span> <span class="o">=</span> <span class="n">wide</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span> <span class="n">limit_direction</span><span class="o">=</span><span class="s2">&quot;forward&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">NotImplementedError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported interpolation method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+    <span class="c1"># Melt back to long form, dropping gaps that remained unfilled</span>
+    <span class="n">long</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">wide</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="n">_TS</span><span class="p">],</span> <span class="n">var_name</span><span class="o">=</span><span class="n">_VAR</span><span class="p">,</span> <span class="n">value_name</span><span class="o">=</span><span class="n">_VAL</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="n">_VAL</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="n">_TS</span><span class="p">,</span> <span class="n">_VAR</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">long</span></div>
+
 
 
 <div class="viewcode-block" id="normalize_fit">
 <a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.normalize_fit">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">normalize_fit</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;zscore&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_fit</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;zscore&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute normalization parameters for each variable. </span>
-<span class="sd">    </span>
+<span class="sd">    Compute normalization parameters for each variable.</span>
+
 <span class="sd">    Arguments:</span>
 <span class="sd">        df (pd.DataFrame): Cleaned telemetry data (usually training subset).</span>
 <span class="sd">        method (str): Normalization method (&#39;zscore&#39; or &#39;minmax&#39;).</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        dict: Mapping {variable: (mean, std)} or {variable: (min, range)}.</span>
+<span class="sd">        dict: Mapping {variable: (center, scale)} where the pair is</span>
+<span class="sd">            (mean, std) for &#39;zscore&#39; or (min, range) for &#39;minmax&#39;.</span>
+<span class="sd">            A scale of 0 (constant variable) is stored as 1.0 so that</span>
+<span class="sd">            applying the parameters never divides by zero.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">pass</span></div>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;normalize_fit() expects a pandas DataFrame&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;zscore&quot;</span><span class="p">,</span> <span class="s2">&quot;minmax&quot;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported normalization method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Compute per-variable statistics independently</span>
+    <span class="k">for</span> <span class="n">variable</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">_VAR</span><span class="p">):</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="n">_VAL</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;zscore&quot;</span><span class="p">:</span>
+            <span class="n">center</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+            <span class="c1"># Sample std (ddof = 1); guard against constant/single-sample series</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># minmax</span>
+            <span class="n">center</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">center</span><span class="p">)</span>
+
+        <span class="c1"># Avoid divide-by-zero for constant variables when params are applied</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">scale</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+        <span class="n">params</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">params</span></div>
+
 
 
 <div class="viewcode-block" id="pipeline">
 <a class="viewcode-back" href="../../../api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.pipeline">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">pipeline</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">physical_bounds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">resample_rule</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;5S&quot;</span><span class="p">,</span> <span class="n">resample_agg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">pipeline</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">physical_bounds</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">resample_rule</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;5s&quot;</span><span class="p">,</span>
+    <span class="n">resample_agg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+    <span class="n">interpolate_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ffill&quot;</span><span class="p">,</span>
+    <span class="n">gap_limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Execute minimal preprocessing pipeline for this dataset.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Steps: clean -&gt; dedupe -&gt; integrity_check -&gt; resample -&gt; interpolate_gaps.</span>
-<span class="sd">    </span>
+
+<span class="sd">    Normalization is intentionally kept out of this pipeline. Following</span>
+<span class="sd">    scikit-learn convention, fitting normalization stats is a separate step:</span>
+<span class="sd">    call :func:`normalize_fit` on the returned (training) frame and reuse the</span>
+<span class="sd">    resulting params at inference to prevent leakage.</span>
+
 <span class="sd">    Arguments:</span>
 <span class="sd">        df (pd.DataFrame): Raw telemetry dataset.</span>
-<span class="sd">        rule (str): Resampling frequency (default &#39;5S&#39;).</span>
-<span class="sd">        agg (str): Aggregation method (default &#39;mean&#39;).</span>
-<span class="sd">        gap_limit (int): Max forward-fill gap length.</span>
-<span class="sd">        norm_method (str): Optional normalization mode.</span>
 <span class="sd">        physical_bounds (dict, optional): Min/max physical limits per variable.</span>
+<span class="sd">        resample_rule (str): Resampling frequency (default &#39;5s&#39;). None skips resampling.</span>
+<span class="sd">        resample_agg (str): Aggregation method (default &#39;mean&#39;).</span>
+<span class="sd">        interpolate_method (str): Gap-fill strategy (&#39;ffill&#39;, &#39;linear&#39;, etc.).</span>
+<span class="sd">        gap_limit (int, optional): Max consecutive steps to interpolate.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        pd.DataFrame: Fully preprocessed dataset.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="c1"># Remove nulls, non physical readings, and sort data</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">clean</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">physical_bounds</span> <span class="o">=</span> <span class="n">physical_bounds</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">clean</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">physical_bounds</span><span class="o">=</span><span class="n">physical_bounds</span><span class="p">)</span>
 
     <span class="c1"># Remove dupes or retransmits</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">dedupe</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
 
-    <span class="c1"># Ensure timestamps and values are valid</span>
+    <span class="c1"># Validate schema/ordering before time-based operations</span>
+    <span class="n">integrity_check</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">require_utc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">require_sorted</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Resample to a uniform cadence, then fill remaining small gaps</span>
     <span class="k">if</span> <span class="n">resample_rule</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">resample</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">rule</span> <span class="o">=</span> <span class="n">resample_rule</span><span class="p">,</span> <span class="n">agg</span> <span class="o">=</span> <span class="n">resample_agg</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">resample</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">rule</span><span class="o">=</span><span class="n">resample_rule</span><span class="p">,</span> <span class="n">agg</span><span class="o">=</span><span class="n">resample_agg</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">interpolate_gaps</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">interpolate_method</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">gap_limit</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">df</span></div>
 
