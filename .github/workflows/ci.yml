@@ -9,8 +9,34 @@ on:
     branches: [ dev, feature/** ]
 
 jobs:
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Ruff lint
+        run: uv run ruff check src tests
+
+      - name: Ruff format check
+        run: uv run ruff format --check src tests
+
   tests:
     name: Unit Tests
+    needs: lint
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -33,7 +59,7 @@ jobs:
         run: uv sync --group dev
 
       - name: Run tests
-        run: uv run pytest -q
+        run: uv run pytest -q --cov --cov-report=term-missing
 
   docs:
     name: Docs Build
