@@ -3,8 +3,8 @@
 <p align="center">
   <a href="https://julioanzaldo.github.io/telemetry-anomdet/"><img alt="Documentation" src="https://img.shields.io/badge/docs-online-blue"></a>
   <a href="https://test.pypi.org/project/telemetry-anomdet/"><img alt="Test PyPI" src="https://img.shields.io/badge/Test-PyPI-yellow"></a>
-  <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/issues"><img alt="GitHub Issues" src="https://img.shields.io/github/issues/JulioAnzaldo/telemetry-anomdet"></a>
-  <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/JulioAnzaldo/telemetry-anomdet"></a>
+  <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/JulioAnzaldo/telemetry-anomdet/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-blue"></a>
 </p>
 
 **telemetry-anomdet** is an open-source anomaly detection toolkit for spacecraft telemetry. It runs a stacking ensemble of classical and deep learning detectors with per-channel SHAP attribution, SymTorch symbolic fault expressions, and LLM-generated diagnostic reports.
