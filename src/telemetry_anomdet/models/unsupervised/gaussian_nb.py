@@ -7,9 +7,13 @@ Each feature is assumed to follow a Gaussian (normal) distribution conditioned o
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
-from ..base import BaseDetector
+
 import numpy as np
+
+from ..base import BaseDetector
+
 
 @dataclass
 class GaussianNaiveBayes(BaseDetector):
@@ -32,7 +36,7 @@ class GaussianNaiveBayes(BaseDetector):
         """
         Estimate mean, variance, and prior for each class.
         """
-        
+
         pass
 
     def _pdf(self, class_idx, x: np.ndarray):

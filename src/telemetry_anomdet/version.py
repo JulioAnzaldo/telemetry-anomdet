@@ -5,9 +5,9 @@ Package version.
 """
 
 try:
-    from importlib.metadata import version, PackageNotFoundError
+    from importlib.metadata import PackageNotFoundError, version
 except ImportError:  # Python < 3.8
-    from importlib_metadata import version, PackageNotFoundError # type: ignore[assignment]
+    from importlib_metadata import PackageNotFoundError, version  # type: ignore[assignment]
 
 try:
     __version__ = version("telemetry-anomdet")

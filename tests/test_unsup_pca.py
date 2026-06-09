@@ -1,11 +1,12 @@
 import numpy as np
 import pytest
-from telemetry_anomdet.models.unsupervised.pca import PCAAnomaly
 
+from telemetry_anomdet.models.unsupervised.pca import PCAAnomaly
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def make_X3d(rng, center, n_windows, window_size=10, n_features=4):
     X2d = rng.normal(center, 0.3, size=(n_windows, n_features))
@@ -16,10 +17,11 @@ def make_X3d(rng, center, n_windows, window_size=10, n_features=4):
 # Smoke test
 # ---------------------------------------------------------------------------
 
+
 def test_pca_basic_fit_and_scores():
     rng = np.random.default_rng(0)
     X_train = rng.normal(0, 1, size=(100, 10, 4))
-    X_test  = rng.normal(0, 1, size=(20, 10, 4))
+    X_test = rng.normal(0, 1, size=(20, 10, 4))
 
     det = PCAAnomaly().fit(X_train)
     scores = det.decision_function(X_test)
@@ -32,6 +34,7 @@ def test_pca_basic_fit_and_scores():
 # ---------------------------------------------------------------------------
 # Post-fit attributes
 # ---------------------------------------------------------------------------
+
 
 def test_pca_postfit_attributes():
     X = np.random.default_rng(1).normal(size=(80, 10, 4))
@@ -49,6 +52,7 @@ def test_pca_postfit_attributes():
 # predict returns binary labels
 # ---------------------------------------------------------------------------
 
+
 def test_pca_predict_returns_binary():
     X = np.random.default_rng(2).normal(size=(60, 10, 4))
     det = PCAAnomaly().fit(X)
@@ -61,11 +65,12 @@ def test_pca_predict_returns_binary():
 # Anomalous windows score higher
 # ---------------------------------------------------------------------------
 
+
 def test_pca_anomalous_scores_higher():
     rng = np.random.default_rng(3)
-    X_train  = make_X3d(rng, [0, 0, 0, 0], 200)
+    X_train = make_X3d(rng, [0, 0, 0, 0], 200)
     X_normal = make_X3d(rng, [0, 0, 0, 0], 50)
-    X_anom   = make_X3d(rng, [15, 15, 15, 15], 50)   # far outside subspace
+    X_anom = make_X3d(rng, [15, 15, 15, 15], 50)  # far outside subspace
 
     det = PCAAnomaly(n_components=2).fit(X_train)
 
@@ -76,6 +81,7 @@ def test_pca_anomalous_scores_higher():
 # n_components parameter
 # ---------------------------------------------------------------------------
 
+
 def test_pca_n_components_respected():
     X = np.random.default_rng(4).normal(size=(100, 10, 6))
     det = PCAAnomaly(n_components=2).fit(X)
@@ -85,6 +91,7 @@ def test_pca_n_components_respected():
 # ---------------------------------------------------------------------------
 # scale=False variant
 # ---------------------------------------------------------------------------
+
 
 def test_pca_scale_false():
     X = np.random.default_rng(5).normal(size=(60, 10, 4))
@@ -98,30 +105,34 @@ def test_pca_scale_false():
 # is_anomaly threshold and percentile overrides (inherited)
 # ---------------------------------------------------------------------------
 
+
 def test_pca_is_anomaly_threshold_override():
     X = np.random.default_rng(6).normal(size=(100, 10, 4))
     det = PCAAnomaly().fit(X)
 
-    mask_all  = det.is_anomaly(X, threshold=-999.0)
+    mask_all = det.is_anomaly(X, threshold=-999.0)
     mask_none = det.is_anomaly(X, threshold=999.0)
     assert mask_all.all()
     assert not mask_none.any()
+
 
 def test_pca_is_anomaly_percentile_override():
     X = np.random.default_rng(7).normal(size=(200, 10, 4))
     det = PCAAnomaly().fit(X)
     mask = det.is_anomaly(X, percentile=99.0)
-    assert mask.sum() <= 4   # roughly 1% of 200
+    assert mask.sum() <= 4  # roughly 1% of 200
 
 
 # ---------------------------------------------------------------------------
 # Input validation
 # ---------------------------------------------------------------------------
 
+
 def test_pca_rejects_2d_input():
     det = PCAAnomaly().fit(np.random.default_rng(0).normal(size=(50, 10, 4)))
     with pytest.raises(ValueError, match="3D"):
         det.decision_function(np.ones((50, 4)))
+
 
 def test_pca_requires_fit_before_predict():
     with pytest.raises(RuntimeError, match="not fitted"):
@@ -131,6 +142,7 @@ def test_pca_requires_fit_before_predict():
 # ---------------------------------------------------------------------------
 # Repr
 # ---------------------------------------------------------------------------
+
 
 def test_pca_repr():
     det = PCAAnomaly(n_components=3)

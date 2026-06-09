@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
-from telemetry_anomdet.models.ensemble import AnomalyEnsemble
-from telemetry_anomdet.models.unsupervised.pca import PCAAnomaly
-from telemetry_anomdet.models.unsupervised.kmeans import KMeansAnomaly
 
+from telemetry_anomdet.models.ensemble import AnomalyEnsemble
+from telemetry_anomdet.models.unsupervised.kmeans import KMeansAnomaly
+from telemetry_anomdet.models.unsupervised.pca import PCAAnomaly
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -11,7 +11,7 @@ from telemetry_anomdet.models.unsupervised.kmeans import KMeansAnomaly
 
 RNG = np.random.default_rng(42)
 X_TRAIN = RNG.normal(0, 1, size=(100, 10, 4))
-X_TEST  = RNG.normal(0, 1, size=(20, 10, 4))
+X_TEST = RNG.normal(0, 1, size=(20, 10, 4))
 
 
 def make_ensemble(**kwargs) -> AnomalyEnsemble:
@@ -25,6 +25,7 @@ def make_ensemble(**kwargs) -> AnomalyEnsemble:
 # Smoke test
 # ---------------------------------------------------------------------------
 
+
 def test_ensemble_fit_and_decision_function():
     ens = make_ensemble().fit(X_TRAIN)
     scores = ens.decision_function(X_TEST)
@@ -35,6 +36,7 @@ def test_ensemble_fit_and_decision_function():
 # ---------------------------------------------------------------------------
 # Post-fit attributes
 # ---------------------------------------------------------------------------
+
 
 def test_ensemble_postfit_attributes():
     ens = make_ensemble(percentile=95.0).fit(X_TRAIN)
@@ -54,6 +56,7 @@ def test_ensemble_norm_stats_populated():
 # score_components
 # ---------------------------------------------------------------------------
 
+
 def test_score_components_keys_and_shapes():
     ens = make_ensemble().fit(X_TRAIN)
     components = ens.score_components(X_TEST)
@@ -66,6 +69,7 @@ def test_score_components_keys_and_shapes():
 # ---------------------------------------------------------------------------
 # combine strategies
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.parametrize("combine", ["mean", "median", "max"])
 def test_combine_strategies(combine):
@@ -83,6 +87,7 @@ def test_combine_invalid_raises():
 # ---------------------------------------------------------------------------
 # normalize strategies
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.parametrize("normalize", ["robust", "minmax", "none"])
 def test_normalize_strategies(normalize):
@@ -116,6 +121,7 @@ def test_normalize_minmax_scores_clipped():
 # predict and is_anomaly are inherited from BaseDetector
 # ---------------------------------------------------------------------------
 
+
 def test_ensemble_predict_returns_binary():
     ens = make_ensemble().fit(X_TRAIN)
     preds = ens.predict(X_TEST)
@@ -133,6 +139,7 @@ def test_ensemble_is_anomaly_threshold_override():
 # Unfitted ensemble raises on decision_function
 # ---------------------------------------------------------------------------
 
+
 def test_ensemble_unfitted_raises():
     ens = make_ensemble()
     with pytest.raises(RuntimeError, match="not fitted"):
@@ -143,10 +150,11 @@ def test_ensemble_unfitted_raises():
 # normalize=False flag on decision_function
 # ---------------------------------------------------------------------------
 
+
 def test_decision_function_normalize_false_returns_raw():
     """normalize=False on decision_function skips per-model norm."""
     ens = make_ensemble(normalize="robust").fit(X_TRAIN)
-    raw   = ens.decision_function(X_TEST, normalize=False)
+    raw = ens.decision_function(X_TEST, normalize=False)
     normd = ens.decision_function(X_TEST, normalize=True)
     # They differ when normalization is non-trivial
     assert not np.allclose(raw, normd)
@@ -155,6 +163,7 @@ def test_decision_function_normalize_false_returns_raw():
 # ---------------------------------------------------------------------------
 # Repr
 # ---------------------------------------------------------------------------
+
 
 def test_ensemble_repr():
     ens = make_ensemble()

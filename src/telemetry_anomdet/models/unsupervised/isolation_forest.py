@@ -10,9 +10,11 @@ This module exposes a simple class with a consistent API:
 """
 
 from __future__ import annotations
-from sklearn.ensemble import IsolationForest
+
 from dataclasses import dataclass
+
 from ..base import BaseDetector
+
 
 @dataclass
 class IsolationForestModel(BaseDetector):
