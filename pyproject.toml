@@ -35,16 +35,16 @@ classifiers = [
 
 [project.optional-dependencies]
 ccsds = [
-  "ccsdspy>=0.10,<2.0",
+  "ccsdspy>=2.0.0,<3.0",
 ]
 
 [dependency-groups]
 dev = [
-  "pytest>=9.0.3,<10.0",
+  "pytest>=9.1.0,<10.0",
   "pytest-cov>=7.1.0,<8.0",
   "pre-commit>=4.6.0,<5.0",
   "black>=26.5.1,<27.0",
-  "ruff>=0.15.16,<1.0",
+  "ruff>=0.15.17,<1.0",
 ]
 docs = [
   "sphinx>=7.0",
