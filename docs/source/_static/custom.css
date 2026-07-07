@@ -1,4 +1,4 @@
-/* telemetry-anomdet docs — custom overrides */
+/* telemetry-anomdet docs - custom overrides */
 
 /* Background color */
 body {
@@ -25,4 +25,21 @@ div.body {
 /* Give the sidebar a bit more breathing room */
 div.sphinxsidebar {
     width: 260px !important;
+}
+
+/* "Copy for LLM" button (injected by llm_copy.js) */
+.llm-copy-btn {
+    float: right;
+    margin: 0 0 0.5em 0.75em;
+    padding: 0.3em 0.8em;
+    font-size: 0.85em;
+    color: #33475b;
+    background-color: #e7ddc9;
+    border: 1px solid #cbbfa6;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.llm-copy-btn:hover {
+    background-color: #dccfb4;
 }

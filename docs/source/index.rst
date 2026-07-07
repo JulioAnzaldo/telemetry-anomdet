@@ -2,16 +2,16 @@ Telemetry Anomaly Detection Toolkit
 ====================================
 
 **telemetry-anomdet** is an open-source anomaly detection toolkit for spacecraft telemetry.
-It ingests raw telemetry (CCSDS, CSV), preprocesses it, and runs a stacking ensemble of
+It ingests raw telemetry (SMAP, CSV), preprocesses it, and runs a stacking ensemble of
 classical and deep learning detectors with per-channel SHAP attribution and LLM-generated
-diagnostic reports — designed to produce actionable diagnostics within the ground station
+diagnostic reports, designed to produce actionable diagnostics within the ground station
 inter-pass window.
 
-Validated on SMAP (NASA) and OPS-SAT (ESA).
+Validated on SMAP (NASA), with OPS-SAT (ESA) as a cross-dataset generalization source.
 
 Current features:
 
-- CCSDS and CSV ingestion into long-form ``TelemetryDataset``
+- SMAP and CSV ingestion into long-form ``TelemetryDataset`` (``load_smap``, ``load_smap_labels``, ``load_from_csv``)
 - Preprocessing pipeline: clean, dedupe, resample, interpolate gaps, normalize
 - Windowed feature extraction: statistical features and raw 3D tensors for sequence models
 - ``BaseDetector`` interface: unified ``fit`` / ``decision_function`` / ``predict`` / ``is_anomaly`` API shared by all detectors
@@ -22,10 +22,10 @@ Current features:
 Coming in the next few months:
 
 - ``IsolationForestAnomaly``
-- ``GDN`` — graph deviation network for inter-sensor relational anomalies
-- ``TranAD`` — transformer-based sequence reconstruction
-- ``SHAPExplainer`` — per-channel attribution over ``score_components()``
-- SMAP ingestion and benchmark pipeline
+- ``GDN``: graph deviation network for inter-sensor relational anomalies
+- ``TranAD``: transformer-based sequence reconstruction
+- ``SHAPExplainer``: per-channel attribution over ``score_components()``
+- SMAP benchmark evaluation pipeline (point-adjusted F1)
 
 Coming in by the end of 2026:
 
