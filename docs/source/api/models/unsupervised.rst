@@ -2,7 +2,7 @@ Unsupervised Models
 ===================
 
 All unsupervised detectors inherit from :class:`~telemetry_anomdet.models.base.BaseDetector`
-and accept 3D input ``(n_windows, window_size, n_features)`` — the direct output of
+and accept 3D input ``(n_windows, window_size, n_features)`` - the direct output of
 ``windowify()``. Classical models flatten internally via ``features_stat()``. The caller
 never manages this conversion.
 
