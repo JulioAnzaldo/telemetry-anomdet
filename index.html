@@ -5,14 +5,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Telemetry Anomaly Detection Toolkit &#8212; telemetry_anomdet 0.0.4 documentation</title>
+    <title>Telemetry Anomaly Detection Toolkit &#8212; telemetry_anomdet 0.0.6 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=d209826e" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=90bc4e81" />
-    <script src="_static/documentation_options.js?v=8c5712d9"></script>
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=6fb15465" />
+    <script src="_static/documentation_options.js?v=1fd71caa"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/llm_copy.js?v=84bd2d31"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/index.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -37,14 +38,14 @@
   <section id="telemetry-anomaly-detection-toolkit">
 <h1>Telemetry Anomaly Detection Toolkit<a class="headerlink" href="#telemetry-anomaly-detection-toolkit" title="Link to this heading">¶</a></h1>
 <p><strong>telemetry-anomdet</strong> is an open-source anomaly detection toolkit for spacecraft telemetry.
-It ingests raw telemetry (CCSDS, CSV), preprocesses it, and runs a stacking ensemble of
+It ingests raw telemetry (SMAP, CSV), preprocesses it, and runs a stacking ensemble of
 classical and deep learning detectors with per-channel SHAP attribution and LLM-generated
-diagnostic reports — designed to produce actionable diagnostics within the ground station
+diagnostic reports, designed to produce actionable diagnostics within the ground station
 inter-pass window.</p>
-<p>Validated on SMAP (NASA) and OPS-SAT (ESA).</p>
+<p>Validated on SMAP (NASA), with OPS-SAT (ESA) as a cross-dataset generalization source.</p>
 <p>Current features:</p>
 <ul class="simple">
-<li><p>CCSDS and CSV ingestion into long-form <code class="docutils literal notranslate"><span class="pre">TelemetryDataset</span></code></p></li>
+<li><p>SMAP and CSV ingestion into long-form <code class="docutils literal notranslate"><span class="pre">TelemetryDataset</span></code> (<code class="docutils literal notranslate"><span class="pre">load_smap</span></code>, <code class="docutils literal notranslate"><span class="pre">load_smap_labels</span></code>, <code class="docutils literal notranslate"><span class="pre">load_from_csv</span></code>)</p></li>
 <li><p>Preprocessing pipeline: clean, dedupe, resample, interpolate gaps, normalize</p></li>
 <li><p>Windowed feature extraction: statistical features and raw 3D tensors for sequence models</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">BaseDetector</span></code> interface: unified <code class="docutils literal notranslate"><span class="pre">fit</span></code> / <code class="docutils literal notranslate"><span class="pre">decision_function</span></code> / <code class="docutils literal notranslate"><span class="pre">predict</span></code> / <code class="docutils literal notranslate"><span class="pre">is_anomaly</span></code> API shared by all detectors</p></li>
@@ -55,10 +56,10 @@ inter-pass window.</p>
 <p>Coming in the next few months:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">IsolationForestAnomaly</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">GDN</span></code> — graph deviation network for inter-sensor relational anomalies</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TranAD</span></code> — transformer-based sequence reconstruction</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SHAPExplainer</span></code> — per-channel attribution over <code class="docutils literal notranslate"><span class="pre">score_components()</span></code></p></li>
-<li><p>SMAP ingestion and benchmark pipeline</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GDN</span></code>: graph deviation network for inter-sensor relational anomalies</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TranAD</span></code>: transformer-based sequence reconstruction</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHAPExplainer</span></code>: per-channel attribution over <code class="docutils literal notranslate"><span class="pre">score_components()</span></code></p></li>
+<li><p>SMAP benchmark evaluation pipeline (point-adjusted F1)</p></li>
 </ul>
 <p>Coming in by the end of 2026:</p>
 <ul class="simple">
@@ -207,7 +208,7 @@ inter-pass window.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &#169;2025, Julio Anzaldo.
+      &#169;2026, Julio Anzaldo.
       
       |
       Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>

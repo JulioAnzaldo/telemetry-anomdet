@@ -32,11 +32,11 @@ Glossary
 
    decision_function
       Returns raw anomaly scores, shape ``(n_windows,)``. Higher = more anomalous.
-      Never returns binary labels — that is ``predict()``. The two are never swapped.
+      Never returns binary labels - that is ``predict()``. The two are never swapped.
 
    score_components
       Returns a ``dict`` of per-model raw scores before combination:
-      ``{model_name: np.ndarray}``. This is the input to ``SHAPExplainer`` —
+      ``{model_name: np.ndarray}``. This is the input to ``SHAPExplainer`` -
       SHAP perturbs input windows and measures how each channel affects each
       model's score independently.
 
@@ -51,7 +51,7 @@ Glossary
       Graph Deviation Network (Deng & Hooi, AAAI 2021). Models each sensor
       as a node in a learned graph. During training it learns the nominal
       relationships between sensors. At inference time, anomaly scores are
-      deviations from those expected relational behaviors — detecting faults
+      deviations from those expected relational behaviors - detecting faults
       that are invisible to univariate detectors because each sensor
       individually looks normal.
 
@@ -63,7 +63,7 @@ Glossary
    Robust normalization
       Per-model score scaling using median and IQR (interquartile range) rather
       than min/max. Preferred in anomaly detection because anomalies are extreme
-      values by definition — they would skew a minmax scale and compress the
+      values by definition - they would skew a minmax scale and compress the
       normal operating range. Robust normalization centers the middle 50% of
       training scores on ``[0, 1]`` and clips everything else.
 

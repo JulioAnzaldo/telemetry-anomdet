@@ -1,0 +1,27 @@
+# telemetry-anomdet
+
+> Open-source, human-centric anomaly detection toolkit for spacecraft telemetry. It combines a stacking ensemble of classical and deep-learning detectors with per-channel SHAP attribution and pluggable LLM-generated diagnostic reports, behind a scikit-learn-compatible API.
+
+Telemetry is long-form with columns `[timestamp, variable, value]` (the native NASA SMAP / ESA OPS-SAT format, ingested without schema transforms). Detectors follow the PyOD / scikit-learn convention: `fit` / `decision_function` / `predict` / `is_anomaly`, with `decision_scores_`, `threshold_`, `labels_` as post-fit attributes. The pipeline runs ingestion, preprocessing, windowed feature extraction, ensemble scoring, and (on the roadmap) SHAP attribution and LLM diagnostic reports, targeting the ground-station inter-pass window.
+
+## Documentation
+
+- [Getting Started](https://julioanzaldo.github.io/telemetry-anomdet/getting_started.html): install and first run
+- [Pipeline Overview](https://julioanzaldo.github.io/telemetry-anomdet/user_guide/pipeline_overview.html): ingestion, preprocessing, feature extraction, detection, attribution, diagnosis
+- [Real-Time Integration](https://julioanzaldo.github.io/telemetry-anomdet/user_guide/real_time_integration.html): streaming / inter-pass usage
+- [Glossary](https://julioanzaldo.github.io/telemetry-anomdet/user_guide/glossary.html): key terms and conventions
+- [Real-Time Example](https://julioanzaldo.github.io/telemetry-anomdet/tutorials/real_time_example.html): end-to-end tutorial
+
+## API Reference
+
+- [Ingest](https://julioanzaldo.github.io/telemetry-anomdet/api/ingest.html): `TelemetryDataset`, `load_smap`, `load_smap_labels`, `load_from_csv`
+- [Preprocessing](https://julioanzaldo.github.io/telemetry-anomdet/api/preprocessing.html): `clean`, `dedupe`, `integrity_check`, `resample`, `interpolate_gaps`, `normalize_fit`, `pipeline`
+- [Feature Extraction](https://julioanzaldo.github.io/telemetry-anomdet/api/feature_extraction.html): windowing and statistical features
+- [BaseDetector](https://julioanzaldo.github.io/telemetry-anomdet/api/models/base.html): the shared detector interface
+- [AnomalyEnsemble](https://julioanzaldo.github.io/telemetry-anomdet/api/models/ensemble.html): stacking combinator, `score_components()`
+- [Unsupervised detectors](https://julioanzaldo.github.io/telemetry-anomdet/api/models/unsupervised.html): `PCAAnomaly`, `KMeansAnomaly`
+
+## Source
+
+- [GitHub repository](https://github.com/JulioAnzaldo/telemetry-anomdet)
+- [Citations](https://github.com/JulioAnzaldo/telemetry-anomdet/blob/main/CITATIONS.md): research the toolkit builds on

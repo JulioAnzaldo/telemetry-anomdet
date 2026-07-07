@@ -5,14 +5,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Real-Time Anomaly Detection Example &#8212; telemetry_anomdet 0.0.4 documentation</title>
+    <title>Real-Time Anomaly Detection Example &#8212; telemetry_anomdet 0.0.6 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=d209826e" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=90bc4e81" />
-    <script src="../_static/documentation_options.js?v=8c5712d9"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6fb15465" />
+    <script src="../_static/documentation_options.js?v=1fd71caa"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/llm_copy.js?v=84bd2d31"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/tutorials/real_time_example.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -40,11 +41,11 @@
 <p>This tutorial walks through the intended end-to-end workflow for a ground station
 pass: fitting the ensemble on nominal telemetry, then running inference on a new
 pass and flagging anomalous windows.</p>
-<p>All detectors accept 3D input of shape <code class="docutils literal notranslate"><span class="pre">(n_windows,</span> <span class="pre">window_size,</span> <span class="pre">n_features)</span></code> —
+<p>All detectors accept 3D input of shape <code class="docutils literal notranslate"><span class="pre">(n_windows,</span> <span class="pre">window_size,</span> <span class="pre">n_features)</span></code> -
 the direct output of <code class="docutils literal notranslate"><span class="pre">windowify()</span></code>. You never reshape data manually per detector.</p>
 <section id="training-on-nominal-telemetry">
 <h2>Training on Nominal Telemetry<a class="headerlink" href="#training-on-nominal-telemetry" title="Link to this heading">¶</a></h2>
-<p>Train the ensemble once on a nominal baseline pass. No anomaly labels are used —
+<p>Train the ensemble once on a nominal baseline pass. No anomaly labels are used -
 all detectors learn a model of normal behavior and score deviations from it at
 inference time.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -52,7 +53,7 @@ inference time.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">telemetry_anomdet.models.unsupervised.kmeans</span><span class="w"> </span><span class="kn">import</span> <span class="n">KMeansAnomaly</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">telemetry_anomdet.models.ensemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnomalyEnsemble</span>
 
-<span class="c1"># X_train: (n_windows, window_size, n_features) — nominal pass, no anomaly labels</span>
+<span class="c1"># X_train: (n_windows, window_size, n_features) - nominal pass, no anomaly labels</span>
 <span class="c1"># Produced by: make_feature_table() → windowify()</span>
 <span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">25</span><span class="p">))</span>
 
@@ -78,7 +79,7 @@ flagging, or <code class="docutils literal notranslate"><span class="pre">decisi
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># X_test: new pass, same shape contract</span>
 <span class="n">X_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">25</span><span class="p">))</span>
 
-<span class="c1"># Continuous anomaly scores — higher means more anomalous</span>
+<span class="c1"># Continuous anomaly scores - higher means more anomalous</span>
 <span class="n">scores</span> <span class="o">=</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">decision_function</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
 
 <span class="c1"># Boolean flags using the training-derived threshold</span>
@@ -110,11 +111,11 @@ producing per-channel attribution weights for every anomalous window.</p>
 <h2>Coming in Phase 3+<a class="headerlink" href="#coming-in-phase-3" title="Link to this heading">¶</a></h2>
 <p>Once <code class="docutils literal notranslate"><span class="pre">SHAPExplainer</span></code> and the LLM reasoning layer are implemented, the workflow
 extends to:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Phase 3 — per-channel attribution (not yet implemented)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Phase 3 - per-channel attribution (not yet implemented)</span>
 <span class="c1"># shap_values = explainer.explain(ensemble, X_anomalous)</span>
 <span class="c1"># {&quot;sensor_01&quot;: 0.42, &quot;sensor_02&quot;: 0.18, ...}</span>
 
-<span class="c1"># Phase 4 — LLM diagnostic report (not yet implemented)</span>
+<span class="c1"># Phase 4 - LLM diagnostic report (not yet implemented)</span>
 <span class="c1"># report = llm_engine.explain(shap_values, context, channel_names)</span>
 <span class="c1"># DiagnosticReport(</span>
 <span class="c1">#     anomaly_type=&quot;power subsystem fault&quot;,</span>
@@ -202,7 +203,7 @@ extends to:</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &#169;2025, Julio Anzaldo.
+      &#169;2026, Julio Anzaldo.
       
       |
       Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>

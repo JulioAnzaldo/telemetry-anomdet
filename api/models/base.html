@@ -5,14 +5,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>BaseDetector &#8212; telemetry_anomdet 0.0.4 documentation</title>
+    <title>BaseDetector &#8212; telemetry_anomdet 0.0.6 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=d209826e" />
-    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=90bc4e81" />
-    <script src="../../_static/documentation_options.js?v=8c5712d9"></script>
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=6fb15465" />
+    <script src="../../_static/documentation_options.js?v=1fd71caa"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/llm_copy.js?v=84bd2d31"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/api/models/base.html" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -41,21 +42,21 @@
 It enforces a consistent interface modeled on PyOD convention.</p>
 <p><strong>Abstract methods</strong> (subclasses must implement):</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">fit(X,</span> <span class="pre">y=None)</span></code> — train on nominal telemetry windows; must call <code class="docutils literal notranslate"><span class="pre">_set_post_fit(scores)</span></code> before returning</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">decision_function(X)</span></code> — return raw anomaly scores, shape <code class="docutils literal notranslate"><span class="pre">(n_windows,)</span></code>; higher = more anomalous</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fit(X,</span> <span class="pre">y=None)</span></code> - train on nominal telemetry windows; must call <code class="docutils literal notranslate"><span class="pre">_set_post_fit(scores)</span></code> before returning</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">decision_function(X)</span></code> - return raw anomaly scores, shape <code class="docutils literal notranslate"><span class="pre">(n_windows,)</span></code>; higher = more anomalous</p></li>
 </ul>
 <p><strong>Provided methods</strong> (inherited free by all subclasses):</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">predict(X)</span></code> — binary labels (0 = normal, 1 = anomaly) using <code class="docutils literal notranslate"><span class="pre">threshold_</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">is_anomaly(X,</span> <span class="pre">*,</span> <span class="pre">threshold=None,</span> <span class="pre">percentile=None)</span></code> — boolean mask with optional runtime threshold override</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">score_samples(X)</span></code> — alias for <code class="docutils literal notranslate"><span class="pre">decision_function()</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">save(path)</span></code> / <code class="docutils literal notranslate"><span class="pre">load(path)</span></code> — pickle serialization</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">predict(X)</span></code> - binary labels (0 = normal, 1 = anomaly) using <code class="docutils literal notranslate"><span class="pre">threshold_</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_anomaly(X,</span> <span class="pre">*,</span> <span class="pre">threshold=None,</span> <span class="pre">percentile=None)</span></code> - boolean mask with optional runtime threshold override</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score_samples(X)</span></code> - alias for <code class="docutils literal notranslate"><span class="pre">decision_function()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">save(path)</span></code> / <code class="docutils literal notranslate"><span class="pre">load(path)</span></code> - pickle serialization</p></li>
 </ul>
 <p><strong>Post-fit guarantee</strong>: after <code class="docutils literal notranslate"><span class="pre">fit()</span></code>, every detector always exposes:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">decision_scores_</span></code> — training anomaly scores, shape <code class="docutils literal notranslate"><span class="pre">(n_windows,)</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">threshold_</span></code> — score cutoff at <code class="docutils literal notranslate"><span class="pre">self.percentile</span></code> of training scores</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">labels_</span></code> — binary training labels derived from <code class="docutils literal notranslate"><span class="pre">decision_scores_</span></code> and <code class="docutils literal notranslate"><span class="pre">threshold_</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">decision_scores_</span></code> - training anomaly scores, shape <code class="docutils literal notranslate"><span class="pre">(n_windows,)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">threshold_</span></code> - score cutoff at <code class="docutils literal notranslate"><span class="pre">self.percentile</span></code> of training scores</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">labels_</span></code> - binary training labels derived from <code class="docutils literal notranslate"><span class="pre">decision_scores_</span></code> and <code class="docutils literal notranslate"><span class="pre">threshold_</span></code></p></li>
 </ul>
 <p id="module-telemetry_anomdet.models.base">BaseDetector: Shared interface for all anomaly detectors in  telemetry_anomdet.</p>
 <section id="design">
@@ -338,7 +339,7 @@ new code.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &#169;2025, Julio Anzaldo.
+      &#169;2026, Julio Anzaldo.
       
       |
       Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
