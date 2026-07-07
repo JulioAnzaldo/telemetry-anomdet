@@ -102,18 +102,22 @@ components = ensemble.score_components(X_test)
 
 ## Features
 
-| Feature | Status |
-|---|---|
-| Unified `BaseDetector` interface: All detectors share `fit` / `decision_function` / `predict` / `is_anomaly`, classical and deep | Complete |
-| Stacking ensemble with robust normalization (median + IQR): Anomaly scores are extreme by definition, minmax would compress the normal range | Complete |
-| `score_components()` SHAP hook: Per-model raw scores before combination, enabling per-channel attribution without retraining | Complete |
-| `GDN`: Graph Deviation Network that learns inter-sensor relationships and detects relational faults invisible to univariate methods | Phase 2 |
-| `TranAD`: Transformer sequence reconstruction. Consumes raw 3D windows, no flattening | Phase 2 |
-| Per-channel SHAP attribution over `score_components()` | Phase 3 |
-| LLM diagnostic reports on Jetson Orin, Llama 3.1 8B via llama.cpp, SHAP chart as image input per ICLR 2025 findings | Phase 4 |
-| Human-in-the-loop feedback: Operator flags adjust `is_anomaly()` threshold dynamically, no retraining | Phase 5 |
-| Cross-dataset generalization: Ensemble trained on SMAP evaluated on OPS-SAT without retraining | Phase 6 |
-| SymTorch symbolic distillation of GDN: Extracts human readable fault expressions per sensor relationship, giving the LLM mechanism level context beyond SHAP weights | Stretch |
+**Available now**
+
+- **One interface for every detector.** Classical and deep detectors share the same `fit` / `decision_function` / `predict` / `is_anomaly` API, so stacking or swapping models needs no per-model glue.
+- **Stacking ensemble** with robust (median + IQR) score normalization, built for anomaly scores that are extreme by definition.
+- **Per-model score decomposition** via `score_components()`, the hook that enables per-channel attribution without retraining.
+- **Spacecraft-native ingestion.** SMAP and CSV load straight into a long-form `TelemetryDataset`, no schema wrangling.
+- **Runtime sensitivity control.** `is_anomaly()` accepts a percentile or threshold override, so operators re-tune without retraining.
+
+**On the roadmap**
+
+- `GDN` and `TranAD` deep detectors: inter-sensor relational and transformer-reconstruction faults (Phase 2)
+- `SHAPExplainer`: per-channel attribution over `score_components()` (Phase 3)
+- LLM diagnostic reports, SHAP chart supplied as an image (Phase 4)
+- Human-in-the-loop threshold feedback (Phase 5)
+- OPS-SAT cross-dataset generalization (Phase 6)
+- SymTorch symbolic distillation to closed-form fault expressions for edge / microcontroller deployment (stretch)
 
 ## Getting Help
 
