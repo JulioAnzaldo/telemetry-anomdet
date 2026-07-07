@@ -5,13 +5,13 @@ This tutorial walks through the intended end-to-end workflow for a ground statio
 pass: fitting the ensemble on nominal telemetry, then running inference on a new
 pass and flagging anomalous windows.
 
-All detectors accept 3D input of shape ``(n_windows, window_size, n_features)`` —
+All detectors accept 3D input of shape ``(n_windows, window_size, n_features)`` -
 the direct output of ``windowify()``. You never reshape data manually per detector.
 
 Training on Nominal Telemetry
 ------------------------------
 
-Train the ensemble once on a nominal baseline pass. No anomaly labels are used —
+Train the ensemble once on a nominal baseline pass. No anomaly labels are used -
 all detectors learn a model of normal behavior and score deviations from it at
 inference time.
 
@@ -22,7 +22,7 @@ inference time.
     from telemetry_anomdet.models.unsupervised.kmeans import KMeansAnomaly
     from telemetry_anomdet.models.ensemble import AnomalyEnsemble
 
-    # X_train: (n_windows, window_size, n_features) — nominal pass, no anomaly labels
+    # X_train: (n_windows, window_size, n_features) - nominal pass, no anomaly labels
     # Produced by: make_feature_table() → windowify()
     X_train = np.random.default_rng(0).normal(size=(500, 50, 25))
 
@@ -50,7 +50,7 @@ flagging, or ``decision_function()`` to get the raw scores for downstream proces
     # X_test: new pass, same shape contract
     X_test = np.random.default_rng(1).normal(size=(100, 50, 25))
 
-    # Continuous anomaly scores — higher means more anomalous
+    # Continuous anomaly scores - higher means more anomalous
     scores = ensemble.decision_function(X_test)
 
     # Boolean flags using the training-derived threshold
@@ -86,11 +86,11 @@ extends to:
 
 .. code-block:: python
 
-    # Phase 3 — per-channel attribution (not yet implemented)
+    # Phase 3 - per-channel attribution (not yet implemented)
     # shap_values = explainer.explain(ensemble, X_anomalous)
     # {"sensor_01": 0.42, "sensor_02": 0.18, ...}
 
-    # Phase 4 — LLM diagnostic report (not yet implemented)
+    # Phase 4 - LLM diagnostic report (not yet implemented)
     # report = llm_engine.explain(shap_values, context, channel_names)
     # DiagnosticReport(
     #     anomaly_type="power subsystem fault",
