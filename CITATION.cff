@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use telemetry-anomdet in your research, please cite it as below."
+title: telemetry-anomdet
+type: software
+authors:
+  - given-names: Julio
+    family-names: Anzaldo
+    email: anzaldojuliojesus@gmail.com
+  - given-names: Shaizaan
+    family-names: Qureshi
+  - given-names: Mohamed
+    family-names: Aiad
+  - given-names: Evan
+    family-names: Booth
+version: 0.0.6
+license: Apache-2.0
+repository-code: https://github.com/JulioAnzaldo/telemetry-anomdet
+url: https://julioanzaldo.github.io/telemetry-anomdet/
+keywords:
+  - telemetry
+  - anomaly-detection
+  - spacecraft
+  - machine-learning
+  - explainable-ai
+  - time-series
