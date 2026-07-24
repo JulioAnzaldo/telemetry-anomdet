@@ -18,6 +18,7 @@ Current features:
 - ``PCAAnomaly`` and ``KMeansAnomaly`` classical detectors (3D input, flatten internally)
 - ``AnomalyEnsemble``: stacking combinator with configurable normalization and combine strategy
 - Per-model score decomposition via ``score_components()`` (SHAP hook)
+- Point-adjusted evaluation (``point_adjust``, ``point_adjusted_f1``, ``best_point_adjusted_f1``) and a reproducible SMAP benchmark (``examples/smap_benchmark.py``)
 
 Coming in the next few months:
 
@@ -25,7 +26,6 @@ Coming in the next few months:
 - ``GDN``: graph deviation network for inter-sensor relational anomalies
 - ``TranAD``: transformer-based sequence reconstruction
 - ``SHAPExplainer``: per-channel attribution over ``score_components()``
-- SMAP benchmark evaluation pipeline (point-adjusted F1)
 
 Coming in by the end of 2026:
 
@@ -54,6 +54,7 @@ Contents
    api/ingest
    api/preprocessing
    api/feature_extraction
+   api/evaluation
    api/models/base
    api/models/ensemble
    api/models/unsupervised

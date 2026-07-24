@@ -3,6 +3,7 @@
 <p align="center">
   <a href="https://julioanzaldo.github.io/telemetry-anomdet/"><img alt="Documentation" src="https://img.shields.io/badge/docs-online-blue"></a>
   <a href="https://test.pypi.org/project/telemetry-anomdet/"><img alt="Test PyPI" src="https://img.shields.io/badge/Test-PyPI-yellow"></a>
+  <a href="https://pypi.org/project/telemetry-anomdet/"><img alt="PyPI" src="https://img.shields.io/pypi/v/telemetry-anomdet"></a>
   <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/JulioAnzaldo/telemetry-anomdet/actions/workflows/ci.yml/badge.svg?branch=main"></a>
   <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-blue"></a>
 </p>
