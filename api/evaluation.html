@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Evaluation Module &#8212; telemetry_anomdet 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=d209826e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6fb15465" />
+    <script src="../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/llm_copy.js?v=84bd2d31"></script>
+    <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/api/evaluation.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="BaseDetector" href="models/base.html" />
+    <link rel="prev" title="Feature Extraction Module" href="feature_extraction.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="evaluation-module">
+<h1>Evaluation Module<a class="headerlink" href="#evaluation-module" title="Link to this heading">¶</a></h1>
+<p>Point-adjusted evaluation metrics for time-series anomaly detection, the
+standard SMAP / MSL protocol used by telemanom and MEMTO.</p>
+<p id="module-telemetry_anomdet.evaluation">Point-adjusted evaluation metrics for time-series anomaly detection.</p>
+<p>Point adjustment is the standard SMAP / MSL protocol (Xu et al., 2018): if a
+detector flags any point inside a labeled anomaly segment, the whole segment
+counts as detected. It rewards catching an event even when not every point of
+it is flagged, and makes results comparable to the telemanom and MEMTO
+baselines that report point-adjusted F1.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.evaluation.point_adjust">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.evaluation.</span></span><span class="sig-name descname"><span class="pre">point_adjust</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/evaluation.html#point_adjust"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.evaluation.point_adjust" title="Link to this definition">¶</a></dt>
+<dd><p>Apply point adjustment to point-level predictions.</p>
+<p>For each contiguous anomaly segment in <code class="docutils literal notranslate"><span class="pre">truth</span></code>, if <code class="docutils literal notranslate"><span class="pre">pred</span></code> flags any point
+inside it, the entire segment is marked as predicted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pred</strong> – Point-level boolean predictions.</p></li>
+<li><p><strong>truth</strong> – Point-level boolean ground truth, same length as <code class="docutils literal notranslate"><span class="pre">pred</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The adjusted boolean prediction array.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.evaluation.prf">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.evaluation.</span></span><span class="sig-name descname"><span class="pre">prf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/evaluation.html#prf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.evaluation.prf" title="Link to this definition">¶</a></dt>
+<dd><p>Precision, recall, and F1 for point-level boolean arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>{‘precision’, ‘recall’, ‘f1’, ‘tp’, ‘fp’, ‘fn’}.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.evaluation.point_adjusted_f1">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.evaluation.</span></span><span class="sig-name descname"><span class="pre">point_adjusted_f1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/evaluation.html#point_adjusted_f1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.evaluation.point_adjusted_f1" title="Link to this definition">¶</a></dt>
+<dd><p>Point-adjusted precision, recall, and F1 (the standard SMAP metric).</p>
+<p>Equivalent to <a class="reference internal" href="#telemetry_anomdet.evaluation.prf" title="telemetry_anomdet.evaluation.prf"><code class="xref py py-func docutils literal notranslate"><span class="pre">prf()</span></code></a> computed on <a class="reference internal" href="#telemetry_anomdet.evaluation.point_adjust" title="telemetry_anomdet.evaluation.point_adjust"><code class="xref py py-func docutils literal notranslate"><span class="pre">point_adjust()</span></code></a> output.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.evaluation.windows_to_points">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.evaluation.</span></span><span class="sig-name descname"><span class="pre">windows_to_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_flags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/evaluation.html#windows_to_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.evaluation.windows_to_points" title="Link to this definition">¶</a></dt>
+<dd><p>Expand window-level flags to a point-level mask.</p>
+<p>Point <code class="docutils literal notranslate"><span class="pre">t</span></code> is flagged if it falls inside any flagged window. Window <code class="docutils literal notranslate"><span class="pre">i</span></code>
+spans <code class="docutils literal notranslate"><span class="pre">[i*step,</span> <span class="pre">i*step</span> <span class="pre">+</span> <span class="pre">window_size)</span></code>, matching <code class="docutils literal notranslate"><span class="pre">windowify</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>window_flags</strong> – Boolean flag per window.</p></li>
+<li><p><strong>n_points</strong> – Length of the point-level series the windows came from.</p></li>
+<li><p><strong>window_size</strong> – Samples per window.</p></li>
+<li><p><strong>step</strong> – Stride between windows.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Boolean mask of length <code class="docutils literal notranslate"><span class="pre">n_points</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.evaluation.windows_to_point_scores">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.evaluation.</span></span><span class="sig-name descname"><span class="pre">windows_to_point_scores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/evaluation.html#windows_to_point_scores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.evaluation.windows_to_point_scores" title="Link to this definition">¶</a></dt>
+<dd><p>Expand window-level scores to a point-level score array.</p>
+<p>Each point takes the maximum score among the windows covering it (window
+<code class="docutils literal notranslate"><span class="pre">i</span></code> spans <code class="docutils literal notranslate"><span class="pre">[i*step,</span> <span class="pre">i*step</span> <span class="pre">+</span> <span class="pre">window_size)</span></code>). Points not covered by any
+window fall back to the minimum window score.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>window_scores</strong> – Anomaly score per window (higher = more anomalous).</p></li>
+<li><p><strong>n_points</strong> – Length of the point-level series.</p></li>
+<li><p><strong>window_size</strong> – Samples per window.</p></li>
+<li><p><strong>step</strong> – Stride between windows.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Float score array of length <code class="docutils literal notranslate"><span class="pre">n_points</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.evaluation.best_point_adjusted_f1">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.evaluation.</span></span><span class="sig-name descname"><span class="pre">best_point_adjusted_f1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_thresholds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">200</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/evaluation.html#best_point_adjusted_f1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.evaluation.best_point_adjusted_f1" title="Link to this definition">¶</a></dt>
+<dd><p>Best point-adjusted F1 over a threshold sweep on point-level scores.</p>
+<p>Selects the threshold that maximizes point-adjusted F1. This is the standard
+SMAP / MSL “best F1” protocol used by telemanom and MEMTO, which makes those
+baselines comparable. Note that it selects the threshold using the labels, so
+it should be reported as an oracle-threshold upper bound, not a deployable
+operating point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scores</strong> – Point-level anomaly scores (higher = more anomalous).</p></li>
+<li><p><strong>truth</strong> – Point-level boolean ground truth.</p></li>
+<li><p><strong>n_thresholds</strong> – Number of candidate thresholds sampled across the score range.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The best {‘precision’, ‘recall’, ‘f1’, ‘tp’, ‘fp’, ‘fn’, ‘threshold’}.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">telemetry_anomdet</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/pipeline_overview.html">Pipeline Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/real_time_integration.html">Real-Time Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/real_time_example.html">Real-Time Anomaly Detection Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../applications/cubesat_ops.html">Applications in CubeSat Operations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ingest.html">Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing.html">Preprocessing Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feature_extraction.html">Feature Extraction Module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Evaluation Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.evaluation.point_adjust"><code class="docutils literal notranslate"><span class="pre">point_adjust()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.evaluation.prf"><code class="docutils literal notranslate"><span class="pre">prf()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.evaluation.point_adjusted_f1"><code class="docutils literal notranslate"><span class="pre">point_adjusted_f1()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.evaluation.windows_to_points"><code class="docutils literal notranslate"><span class="pre">windows_to_points()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.evaluation.windows_to_point_scores"><code class="docutils literal notranslate"><span class="pre">windows_to_point_scores()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#telemetry_anomdet.evaluation.best_point_adjusted_f1"><code class="docutils literal notranslate"><span class="pre">best_point_adjusted_f1()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="models/base.html">BaseDetector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models/ensemble.html">Ensemble Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models/unsupervised.html">Unsupervised Models</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="feature_extraction.html" title="previous chapter">Feature Extraction Module</a></li>
+      <li>Next: <a href="models/base.html" title="next chapter">BaseDetector</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Julio Anzaldo.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/api/evaluation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
