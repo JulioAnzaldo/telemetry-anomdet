@@ -12,7 +12,7 @@ authors:
     family-names: Aiad
   - given-names: Evan
     family-names: Booth
-version: 0.0.6
+version: 0.1.0
 license: Apache-2.0
 repository-code: https://github.com/JulioAnzaldo/telemetry-anomdet
 url: https://julioanzaldo.github.io/telemetry-anomdet/
