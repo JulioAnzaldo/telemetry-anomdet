@@ -36,6 +36,11 @@ classifiers = [
 ccsds = [
   "ccsdspy>=2.0.0,<3.0",
 ]
+# Phase 2 deep detectors (GDN, TranAD). Optional so the base install stays
+# torch-free; torch is imported lazily at fit time.
+deep = [
+  "torch>=2.0",
+]
 
 [dependency-groups]
 dev = [
@@ -51,11 +56,6 @@ docs = [
   "sphinx-autodoc-typehints>=2.0",
   "numpydoc>=1.7",
 ]
-# Phase 2 -- uncomment when GDN/TranAD training starts
-# deep = [
-#   "torch>=2.0",
-#   "torch-geometric",
-# ]
 # Phase 3
 # xai = [
 #   "shap",
