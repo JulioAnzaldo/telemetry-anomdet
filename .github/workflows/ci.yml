@@ -61,6 +61,32 @@ jobs:
       - name: Run tests
         run: uv run pytest -q --cov --cov-report=term-missing
 
+  deep-tests:
+    name: Deep Detector Tests
+    needs: lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      # The deep extra pulls torch. Install it on a single Python version so the
+      # torch-backed detectors (GDN, ...) are actually exercised rather than
+      # skipped via importorskip, without adding torch to the 4-version matrix.
+      - name: Install dependencies (with deep extra)
+        run: uv sync --group dev --extra deep
+
+      - name: Run deep detector tests
+        run: uv run pytest -q tests/test_deep_gdn.py
+
   docs:
     name: Docs Build
     runs-on: ubuntu-latest
