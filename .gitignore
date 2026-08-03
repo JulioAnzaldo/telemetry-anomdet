@@ -51,3 +51,8 @@ Thumbs.db
 CLAUDE.local.md
 .claude/settings.local.json
 memory/
+
+# Private experiment tracking / eval (Weights & Biases). Not part of the
+# published library; lives locally or in a separate private repo.
+eval/
+wandb/
