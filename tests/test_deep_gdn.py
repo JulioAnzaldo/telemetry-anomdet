@@ -161,3 +161,68 @@ def test_gdn_repr():
     assert "fitted=False" in repr(det)
     det.fit(make_series(np.random.default_rng(0), 40))
     assert "fitted=True" in repr(det)
+
+
+# ---------------------------------------------------------------------------
+# Internal scaler
+# ---------------------------------------------------------------------------
+
+
+def test_gdn_scale_default_fits_scaler():
+    rng = np.random.default_rng(10)
+    det = fast_gdn().fit(make_series(rng, 60))
+    assert det.scale is True
+    assert det.scaler is not None
+    # Per-channel scaler: one mean/scale per feature (node).
+    assert det.scaler.mean_.shape == (4,)
+
+
+def test_gdn_scale_false_skips_scaler():
+    rng = np.random.default_rng(11)
+    det = fast_gdn(scale=False).fit(make_series(rng, 60))
+    assert det.scaler is None
+    scores = det.decision_function(make_series(rng, 15))
+    assert scores.shape == (15,)
+    assert np.isfinite(scores).all()
+
+
+def test_gdn_scale_handles_constant_channel():
+    # One channel is a constant (e.g. an inactive command one-hot): zero
+    # variance must not produce NaNs/Infs via divide-by-zero in the scaler.
+    rng = np.random.default_rng(12)
+    X = make_series(rng, 80, n_features=4)
+    X[:, :, 3] = 1.0  # channel 3 is constant across every window and timestep
+
+    det = fast_gdn().fit(X)
+    scores = det.decision_function(X)
+    assert np.isfinite(scores).all()
+
+
+def test_gdn_scale_makes_detector_scale_invariant():
+    # With scaling on, multiplying one channel by a large constant should not
+    # blow up the scores (the whole point of standardising inputs).
+    rng = np.random.default_rng(13)
+    X = make_series(rng, 120, n_features=4)
+
+    base = fast_gdn(random_state=7).fit(X).decision_scores_
+
+    X_scaled = X.copy()
+    X_scaled[:, :, 0] *= 1000.0
+    blown = fast_gdn(random_state=7).fit(X_scaled).decision_scores_
+
+    assert np.isfinite(blown).all()
+    # Scores stay in the same ballpark rather than being dominated by channel 0.
+    assert blown.max() < base.max() * 10
+
+
+def test_gdn_scale_reproducible_with_seed():
+    rng = np.random.default_rng(14)
+    X = make_series(rng, 80)
+    a = fast_gdn(random_state=99).fit(X).decision_scores_
+    b = fast_gdn(random_state=99).fit(X).decision_scores_
+    np.testing.assert_allclose(a, b)
+
+
+def test_gdn_scale_shows_in_repr():
+    assert "scale=False" in repr(fast_gdn(scale=False))
+    assert "scale=True" in repr(fast_gdn(scale=True))
