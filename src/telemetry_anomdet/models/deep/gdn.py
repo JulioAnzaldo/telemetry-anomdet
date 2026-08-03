@@ -24,6 +24,7 @@ torch is an optional dependency. Install the deep extra to use this detector::
 from __future__ import annotations
 
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 
 from ..base import BaseDetector
 
@@ -60,6 +61,12 @@ class GDN(BaseDetector):
         Minibatch size for training.
     lr : float, default=1e-3
         Adam learning rate.
+    scale : bool, default=True
+        Standardise each channel (per-feature z-score) before training and
+        scoring. Recommended: unlike the classical detectors, the network has
+        no implicit scale invariance, so unscaled telemetry lets large-magnitude
+        channels dominate the forecast. The scaler is fitted on the training
+        windows only and reused at inference, so no test statistics leak in.
     device : str or None, default=None
         Torch device string (e.g. "cuda", "cpu"). If None, uses CUDA when
         available, otherwise CPU.
@@ -82,6 +89,8 @@ class GDN(BaseDetector):
         Number of sensor channels seen during fit.
     window_ : int
         Forecasting context length (window_size - 1).
+    scaler : sklearn.preprocessing.StandardScaler or None
+        Fitted per-channel scaler when ``scale = True``, otherwise None.
 
     Notes
     -----
@@ -97,6 +106,7 @@ class GDN(BaseDetector):
         epochs: int = 30,
         batch_size: int = 64,
         lr: float = 1e-3,
+        scale: bool = True,
         device: str | None = None,
         random_state: int | None = None,
         percentile: float = 95.0,
@@ -107,11 +117,13 @@ class GDN(BaseDetector):
         self.epochs = epochs
         self.batch_size = batch_size
         self.lr = lr
+        self.scale = scale
         self.device = device
         self.random_state = random_state
 
         # Fit artifacts: set in fit()
         self.net = None
+        self.scaler: StandardScaler | None = None
         self.n_nodes_: int | None = None
         self.window_: int | None = None
         self._err_median_: np.ndarray | None = None
@@ -122,6 +134,34 @@ class GDN(BaseDetector):
         if self.device is not None:
             return torch.device(self.device)
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    def _scale_fit(self, X: np.ndarray) -> np.ndarray:
+        """
+        Fit a per-channel standardiser on the training windows and apply it.
+
+        Channels (features) are the graph nodes, so standardisation is per
+        feature across every window and timestep. The 3D tensor is reshaped to
+        ``(n_windows * window_size, n_features)`` for the fit, then restored.
+        Constant channels (e.g. inactive command one-hots) are safe: sklearn's
+        StandardScaler maps zero variance to a scale of 1.0.
+        """
+        if not self.scale:
+            self.scaler = None
+            return X
+        n, w, f = X.shape
+        self.scaler = StandardScaler()
+        flat = self.scaler.fit_transform(X.reshape(n * w, f))
+        return flat.reshape(n, w, f)
+
+    def _scale_transform(self, X: np.ndarray) -> np.ndarray:
+        """Apply the fitted per-channel standardiser (identity when scale=False)."""
+        if not self.scale:
+            return X
+        if self.scaler is None:
+            raise RuntimeError("Scaler is not fitted. Was the model fitted with scale = True?")
+        n, w, f = X.shape
+        flat = self.scaler.transform(X.reshape(n * w, f))
+        return flat.reshape(n, w, f)
 
     @staticmethod
     def _split_context_target(X: np.ndarray):
@@ -207,6 +247,9 @@ class GDN(BaseDetector):
         self.window_ = X.shape[1] - 1
         device = self._resolve_device(torch)
 
+        # Standardise inputs before the network sees them (fit on train only).
+        X = self._scale_fit(X)
+
         context, target = self._split_context_target(X)
         ctx_t = torch.as_tensor(context, dtype=torch.float32)
         tgt_t = torch.as_tensor(target, dtype=torch.float32)
@@ -266,6 +309,7 @@ class GDN(BaseDetector):
                 f"X has window_size {X.shape[1]} but GDN was fitted on "
                 f"window_size {self.window_ + 1}."
             )
+        X = self._scale_transform(X)
         errors = self._forecast_errors(X)
         return self._deviation_score(errors)
 
@@ -276,5 +320,6 @@ class GDN(BaseDetector):
             "epochs": self.epochs,
             "batch_size": self.batch_size,
             "lr": self.lr,
+            "scale": self.scale,
             "percentile": self.percentile,
         }
