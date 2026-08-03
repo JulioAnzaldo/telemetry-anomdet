@@ -214,6 +214,22 @@ class GDN(BaseDetector):
         normed = np.abs(errors - self._err_median_) / (self._err_iqr_ + 1e-9)
         return normed.max(axis=1)
 
+    def _build_net(self):
+        """
+        Construct the forecasting network. Subclasses override this to swap in a
+        different architecture (e.g. KAN-GAT) while reusing the whole fit /
+        scaling / deviation-scoring pipeline. Requires ``n_nodes_`` and
+        ``window_`` to be set (done at the top of ``fit``).
+        """
+        from ._net import GDNNet
+
+        return GDNNet(
+            n_nodes=self.n_nodes_,
+            window=self.window_,
+            embed_dim=self.embed_dim,
+            topk=self.topk,
+        )
+
     def fit(self, X: np.ndarray, y: np.ndarray | None = None) -> GDN:
         """
         Fit the GDN forecasting network on nominal telemetry windows.
@@ -231,7 +247,6 @@ class GDN(BaseDetector):
         self : GDN
         """
         torch = _import_torch()
-        from ._net import GDNNet
 
         X = self._validate_X(X)
         if X.shape[1] < 2:
@@ -256,12 +271,7 @@ class GDN(BaseDetector):
         dataset = torch.utils.data.TensorDataset(ctx_t, tgt_t)
         loader = torch.utils.data.DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
 
-        self.net = GDNNet(
-            n_nodes=self.n_nodes_,
-            window=self.window_,
-            embed_dim=self.embed_dim,
-            topk=self.topk,
-        ).to(device)
+        self.net = self._build_net().to(device)
 
         optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
         loss_fn = torch.nn.MSELoss()
