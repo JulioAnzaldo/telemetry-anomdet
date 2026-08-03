@@ -13,7 +13,7 @@ still import the models package. Install the deep extra to use it::
 Two pieces live here:
 
 ``GATEncoder``
-    The shared graph attention spatial encoder. Each feature channel gets a 
+    The shared graph attention spatial encoder. Each feature channel gets a
     learned embedding ``v_i``; a directed graph is built from the top-k
     cosine similarities between embeddings (learned structure, recomputed each
     forward pass); a graph attention layer aggregates each node's neighbours with
