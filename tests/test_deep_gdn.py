@@ -226,3 +226,43 @@ def test_gdn_scale_reproducible_with_seed():
 def test_gdn_scale_shows_in_repr():
     assert "scale=False" in repr(fast_gdn(scale=False))
     assert "scale=True" in repr(fast_gdn(scale=True))
+
+
+# ---------------------------------------------------------------------------
+# GATEncoder (shared spatial encoder)
+# ---------------------------------------------------------------------------
+
+
+def test_gat_encoder_output_shape():
+    import torch
+
+    from telemetry_anomdet.models.deep._net import GATEncoder
+
+    n_nodes, window, embed_dim = 5, 9, 16
+    enc = GATEncoder(n_nodes=n_nodes, window=window, embed_dim=embed_dim, topk=3)
+    x = torch.randn(8, n_nodes, window)
+    z = enc(x)
+    assert z.shape == (8, n_nodes, embed_dim)
+    assert torch.isfinite(z).all()
+
+
+def test_gat_encoder_accepts_injected_activation():
+    # The post-aggregation activation is swappable.
+    import torch
+    from torch import nn
+
+    from telemetry_anomdet.models.deep._net import GATEncoder
+
+    act = nn.Tanh()
+    enc = GATEncoder(n_nodes=4, window=6, embed_dim=8, topk=2, activation=act)
+    assert enc.activation is act
+    z = enc(torch.randn(3, 4, 6))
+    assert z.shape == (3, 4, 8)
+
+
+def test_gdn_uses_gat_encoder():
+    # GDNNet composes the shared encoder rather than reimplementing attention.
+    from telemetry_anomdet.models.deep._net import GATEncoder, GDNNet
+
+    net = GDNNet(n_nodes=4, window=6, embed_dim=8, topk=2)
+    assert isinstance(net.encoder, GATEncoder)

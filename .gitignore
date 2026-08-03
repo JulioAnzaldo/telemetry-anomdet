@@ -53,6 +53,6 @@ CLAUDE.local.md
 memory/
 
 # Private experiment tracking / eval (Weights & Biases). Not part of the
-# published library; lives locally or in a separate private repo.
+# published library. It lives locally / in a separate private repo.
 eval/
 wandb/
