@@ -1,29 +1,37 @@
 # src/telemetry_anomdet/models/deep/_net.py
 
 """
-Torch network internals for GDN (Graph Deviation Network).
+Torch network internals for graph based detectors.
 
 This module imports ``torch`` at the top level and will raise ``ImportError``
-if torch is not installed. It is imported lazily by ``gdn.py`` so that the base
-``telemetry_anomdet`` install (which does not depend on torch) can still import
-the models package. Install the deep extra to use it::
+if torch is not installed. It is imported lazily by the detector wrappers so
+that the base ``telemetry_anomdet`` install (which does not depend on torch) can
+still import the models package. Install the deep extra to use it::
 
     uv sync --extra deep
 
-The network follows Deng & Hooi (AAAI 2021), "Graph Neural Network-Based
-Anomaly Detection in Multivariate Time Series":
+Two pieces live here:
 
-- Each sensor (feature channel) gets a learned embedding ``v_i``.
-- A directed graph is built from the top-k cosine similarities between
-  embeddings (learned structure, recomputed each forward pass).
-- A graph-attention layer aggregates each node's neighbours, with attention
-  conditioned on the node embeddings.
-- A per-node output head forecasts the next value of each sensor.
+``GATEncoder``
+    The shared graph attention spatial encoder. Each feature channel gets a 
+    learned embedding ``v_i``; a directed graph is built from the top-k
+    cosine similarities between embeddings (learned structure, recomputed each
+    forward pass); a graph attention layer aggregates each node's neighbours with
+    attention conditioned on both the node features and embeddings; a
+    (swappable) nonlinearity and an embedding gate produce a per-node
+    representation. Follows Deng & Hooi (AAAI 2021) for GDN, and the attention +
+    post aggregation activation structure of Wang et al.'s KGL (KAN-GAT). The
+    activation is injectable so a KAN variant can replace the default ReLU
+    (KGL eq. 3) without touching the graph/attention machinery.
 
-The detector wrapper (``gdn.py``) turns per-sensor forecast errors into the
-graph deviation anomaly score. This network is intentionally decoupled from the
-``BaseDetector`` API so it can later be consumed on its own (e.g. by a symbolic
-distillation or explainability pass) without dragging in the detector plumbing.
+``GDNNet``
+    ``GATEncoder`` plus a per-node MLP head that forecasts each sensor's next
+    value. The detector wrapper (``gdn.py``) turns per-sensor forecast errors
+    into the graph deviation anomaly score.
+
+These networks are intentionally decoupled from the ``BaseDetector`` API so they
+can be consumed on their own (e.g. by a symbolic distillation or explainability
+pass) without dragging in the detector plumbing.
 """
 
 from __future__ import annotations
@@ -64,9 +72,15 @@ def topk_graph(embeddings: torch.Tensor, k: int) -> torch.Tensor:
     return adj
 
 
-class GDNNet(nn.Module):
+class GATEncoder(nn.Module):
     """
-    GDN forecasting network.
+    Graph attention spatial encoder shared by the deep detectors.
+
+    Learns per-sensor embeddings, builds a top-k similarity graph, computes
+    features and embedding conditioned attention over neighbours, aggregates,
+    applies a (swappable) nonlinearity, and gates the result by the node
+    embedding. The output is a per-node representation ready for a forecasting
+    head.
 
     Parameters
     ----------
@@ -81,14 +95,25 @@ class GDNNet(nn.Module):
         embedding can gate the aggregated representation element-wise.
     topk : int, default=15
         Number of graph neighbours per node.
+    activation : nn.Module or None, default=None
+        Nonlinearity applied to the aggregated neighbour features (KGL eq. 3).
+        Defaults to ``nn.ReLU()``. A KAN-based variant injects a KAN layer here
+        without changing the graph/attention machinery.
 
     Notes
     -----
     Forward input is ``x`` of shape ``(batch, n_nodes, window)`` and the output
-    is the one-step forecast of shape ``(batch, n_nodes)``.
+    is the per-node representation of shape ``(batch, n_nodes, embed_dim)``.
     """
 
-    def __init__(self, n_nodes: int, window: int, embed_dim: int = 64, topk: int = 15):
+    def __init__(
+        self,
+        n_nodes: int,
+        window: int,
+        embed_dim: int = 64,
+        topk: int = 15,
+        activation: nn.Module | None = None,
+    ):
         super().__init__()
         self.n_nodes = n_nodes
         self.window = window
@@ -104,18 +129,15 @@ class GDNNet(nn.Module):
         # 2 * (embed_dim + embed_dim) = 4 * embed_dim.
         self.attn = nn.Linear(4 * embed_dim, 1, bias=False)
         self.leaky = nn.LeakyReLU(0.2)
-        # Per-node output head: gated hidden features -> scalar forecast.
-        self.out = nn.Sequential(
-            nn.Linear(embed_dim, embed_dim),
-            nn.ReLU(),
-            nn.Linear(embed_dim, 1),
-        )
+        # Post aggregation activation (swappable: ReLU by default, KAN in the
+        # KAN-GAT variant).
+        self.activation = activation if activation is not None else nn.ReLU()
 
         nn.init.xavier_uniform_(self.embedding.weight)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Forecast the next value for every sensor.
+        Encode per-sensor windows into graph attention node representations.
 
         Parameters
         ----------
@@ -123,7 +145,7 @@ class GDNNet(nn.Module):
 
         Returns
         -------
-        pred : torch.Tensor, shape (batch, n_nodes)
+        z : torch.Tensor, shape (batch, n_nodes, embed_dim)
         """
         batch, n_nodes, _ = x.shape
 
@@ -149,11 +171,63 @@ class GDNNet(nn.Module):
         scores = scores.masked_fill(~mask, float("-inf"))
         weights = torch.softmax(scores, dim=2)  # (batch, n_nodes, n_nodes)
 
-        # Aggregate neighbour features: z_i = sum_j alpha_ij (W x_j).
+        # Aggregate neighbour features, activate, then gate by the node
+        # embedding: z_i = activation(sum_j alpha_ij W x_j) * v_i.
         z = torch.einsum("bij,bjd->bid", weights, h)  # (batch, n_nodes, embed_dim)
-        z = torch.relu(z)
-
-        # Gate aggregated features with the node's own embedding, then forecast.
+        z = self.activation(z)
         z = z * v.unsqueeze(0)  # broadcast (1, n_nodes, embed_dim)
+        return z
+
+
+class GDNNet(nn.Module):
+    """
+    GDN forecasting network: a ``GATEncoder`` plus a per-node forecast head.
+
+    Parameters
+    ----------
+    n_nodes : int
+        Number of sensors / feature channels.
+    window : int
+        Length of the input context per node (window_size - 1 timesteps used
+        to forecast the final timestep).
+    embed_dim : int, default=64
+        Dimensionality of the learned sensor embeddings and hidden features.
+    topk : int, default=15
+        Number of graph neighbours per node.
+
+    Notes
+    -----
+    Forward input is ``x`` of shape ``(batch, n_nodes, window)`` and the output
+    is the one-step forecast of shape ``(batch, n_nodes)``.
+    """
+
+    def __init__(self, n_nodes: int, window: int, embed_dim: int = 64, topk: int = 15):
+        super().__init__()
+        self.n_nodes = n_nodes
+        self.window = window
+        self.embed_dim = embed_dim
+        self.topk = topk
+
+        self.encoder = GATEncoder(n_nodes, window, embed_dim=embed_dim, topk=topk)
+        # Per-node output head: gated hidden features -> scalar forecast.
+        self.out = nn.Sequential(
+            nn.Linear(embed_dim, embed_dim),
+            nn.ReLU(),
+            nn.Linear(embed_dim, 1),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forecast the next value for every sensor.
+
+        Parameters
+        ----------
+        x : torch.Tensor, shape (batch, n_nodes, window)
+
+        Returns
+        -------
+        pred : torch.Tensor, shape (batch, n_nodes)
+        """
+        z = self.encoder(x)  # (batch, n_nodes, embed_dim)
         pred = self.out(z).squeeze(-1)  # (batch, n_nodes)
         return pred
