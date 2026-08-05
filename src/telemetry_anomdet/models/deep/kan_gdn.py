@@ -12,7 +12,7 @@ KGL (KAN-GAT, eq. 3 and the KAN output layer).
 The point of the swap is deployability: a KAN is a sum of learnable 1D spline
 functions, so a fitted ``KANGDN`` distils cleanly to closed-form symbolic
 equations (via SymTorch / symbolic regression) that can run on a microcontroller
-and be audited -- unlike GDN's dense MLP head. GDN remains the fast, standard
+and be audited, unlike GDN's dense MLP head. GDN remains the fast, standard
 detector and the ablation baseline; KANGDN is the distillable variant.
 
 torch is an optional dependency; install the deep extra to use this detector::

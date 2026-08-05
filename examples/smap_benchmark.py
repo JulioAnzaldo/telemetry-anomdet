@@ -1,22 +1,37 @@
 """
-SMAP detector benchmark: classical baselines vs GDN.
+SMAP detector benchmark: classical baselines vs the graph detectors.
 
-Reports point adjusted F1. For each channel it trains on the nominal train split 
+Reports point adjusted F1. For each channel it trains on the nominal train split
 and scores the test split, sweeps thresholds, and reports the best point-adjusted
-F1. Because the threshold is selected against the labels, treat every number as 
+F1. Because the threshold is selected against the labels, treat every number as
 an oracle threshold upper bound, not a deployable operating point.
 
-Three configurations are run so the comparison is honest (see the ``dims`` note):
+Four configurations are run so the comparison is honest (see the ``dims`` note):
 
     classical@telemetry  PCA + KMeans ensemble on the telemetry column only.
                          This is the original classical baseline; its numbers are
                          unchanged from prior releases.
     classical@all        Same ensemble, but on telemetry + all command one-hots
-                         (the same multivariate input GDN sees). A same-input
-                         control so the GDN comparison is apples to apples.
+                         (the same multivariate input the graph detectors see). A
+                         same-input control so the comparison is apples to apples.
     gdn@all              The Graph Deviation Network on the multivariate input.
                          GDN needs multiple channels to build its sensor graph, so
                          the telemetry-only column would defeat its purpose.
+    kangdn@all           Same graph and scoring as gdn@all, with KAN layers in
+                         place of the ReLU activation and MLP head. Run this to
+                         size the KAN configuration: its spline coefficients
+                         dominate the distilled artifact, and the count grows as
+                         ``embed_dim**2 * (grid_size + spline_order)``, so the
+                         smallest configuration that holds its F1 is the one worth
+                         exporting.
+
+Running one row at a time: set ``TAD_BENCH_CONFIGS`` to a comma-separated list of
+configuration names. A sizing sweep over the KAN layers therefore looks like::
+
+    TAD_BENCH_CONFIGS=kangdn@all TAD_KANGDN_EMBED_DIM=16 python examples/smap_benchmark.py
+
+Names are matched exactly against the ``CONFIGS`` table below; an unknown name is
+an error rather than a silent empty run.
 
 Why ``all`` and not ``nonzero``? ``nonzero`` drops all-zero columns per split, so
 train and test can end up with different feature counts (a command inactive in
@@ -34,11 +49,14 @@ examples/smap_demo.py:
     TAD_SMAP_LABELS       -> labeled_anomalies.csv (optional; searched from DATA_DIR)
     TAD_SMAP_MAX_CHANNELS -> limit the run (default: all SMAP channels)
     TAD_GDN_EPOCHS        -> GDN training epochs per channel (default: 30)
-    TAD_GDN_DEVICE        -> torch device for GDN, e.g. "cuda" (default: auto)
+    TAD_GDN_DEVICE        -> torch device for GDN and KANGDN (default: auto)
+    TAD_KANGDN_EMBED_DIM  -> KANGDN embedding width (default: 64)
+    TAD_KANGDN_GRID_SIZE  -> KANGDN spline grid intervals (default: 5)
+    TAD_BENCH_CONFIGS     -> comma-separated configuration names (default: all)
     TAD_BENCH_VERBOSE     -> set to 1 to print per-channel rows (default: summary only)
 
-GDN requires the optional deep extra (torch). If torch is not installed the
-gdn@nonzero configuration is skipped with a note; the classical rows still run.
+GDN and KANGDN require the optional deep extra (torch). If torch is not installed
+those configurations are skipped with a note; the classical rows still run.
 """
 
 from __future__ import annotations
@@ -61,8 +79,8 @@ from telemetry_anomdet.preprocessing import pipeline
 # A single telemetry channel is a small, uniform feature space, so PCA and
 # KMeans emit benign warnings (near zero variance, fewer clusters than asked).
 # Detection is unaffected; quiet them for readable benchmark output.
-warnings.filterwarnings("ignore", category = RuntimeWarning)
-warnings.filterwarnings("ignore", category = ConvergenceWarning)
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 DATA_DIR = Path(os.environ.get("TAD_SMAP_DIR", "")).expanduser()
 LABELS_ENV = os.environ.get("TAD_SMAP_LABELS", "")
@@ -81,6 +99,16 @@ GDN_EMBED_DIM = int(os.environ.get("TAD_GDN_EMBED_DIM", "64"))
 GDN_TOPK = int(os.environ.get("TAD_GDN_TOPK", "15"))
 GDN_LR = float(os.environ.get("TAD_GDN_LR", "0.001"))
 GDN_WINDOW = int(os.environ.get("TAD_GDN_WINDOW", str(WINDOW_SIZE)))
+
+# KANGDN hyperparameters. The training ones default to GDN's so the two rows stay
+# comparable and only the architecture differs; embed_dim and grid_size are split
+# out because they set the size of the distilled artifact.
+KANGDN_EMBED_DIM = int(os.environ.get("TAD_KANGDN_EMBED_DIM", str(GDN_EMBED_DIM)))
+KANGDN_GRID_SIZE = int(os.environ.get("TAD_KANGDN_GRID_SIZE", "5"))
+KANGDN_SPLINE_ORDER = int(os.environ.get("TAD_KANGDN_SPLINE_ORDER", "3"))
+
+# Configuration names to run; empty means all of them.
+SELECTED = [n.strip() for n in os.environ.get("TAD_BENCH_CONFIGS", "").split(",") if n.strip()]
 
 TORCH_AVAILABLE = importlib.util.find_spec("torch") is not None
 
@@ -123,6 +151,28 @@ def make_gdn():
     )
 
 
+def make_kangdn():
+    """
+    KANGDN detector: GDN's graph and scoring with KAN layers as the nonlinearities.
+
+    Shares GDN's training hyperparameters so the two rows differ only in
+    architecture. ``embed_dim`` and ``grid_size`` are the two knobs that set the
+    distilled artifact's size.
+    """
+    from telemetry_anomdet.models.deep import KANGDN
+
+    return KANGDN(
+        embed_dim=KANGDN_EMBED_DIM,
+        topk=GDN_TOPK,
+        lr=GDN_LR,
+        epochs=GDN_EPOCHS,
+        device=GDN_DEVICE,
+        random_state=0,
+        grid_size=KANGDN_GRID_SIZE,
+        spline_order=KANGDN_SPLINE_ORDER,
+    )
+
+
 # name -> (dims, detector factory, window_size). Kept as data so main() iterates.
 # window_size is per-config so a sweep can tune it for GDN (via TAD_GDN_WINDOW)
 # without disturbing the classical baselines' fixed window.
@@ -136,7 +186,31 @@ CONFIGS: list[tuple[str, str, object, int]] = [
     ("classical@telemetry", "telemetry", make_classical, WINDOW_SIZE),
     ("classical@all", "all", make_classical, WINDOW_SIZE),
     ("gdn@all", "all", make_gdn, GDN_WINDOW),
+    ("kangdn@all", "all", make_kangdn, GDN_WINDOW),
 ]
+
+# Configurations that need torch, so a missing deep extra skips them by name
+# rather than by prefix matching.
+NEEDS_TORCH = frozenset({"gdn@all", "kangdn@all"})
+
+
+def select_configs() -> list[tuple[str, str, object, int]]:
+    """
+    Resolve TAD_BENCH_CONFIGS to the subset of CONFIGS to run.
+
+    Returns every configuration when the variable is unset. Raises on an unknown
+    name so that a typo fails loudly instead of silently benchmarking nothing.
+    """
+    if not SELECTED:
+        return CONFIGS
+    known = {name for name, *_ in CONFIGS}
+    unknown = [name for name in SELECTED if name not in known]
+    if unknown:
+        raise SystemExit(
+            f"Unknown configuration(s) in TAD_BENCH_CONFIGS: {', '.join(unknown)}\n"
+            f"Available: {', '.join(sorted(known))}"
+        )
+    return [config for config in CONFIGS if config[0] in SELECTED]
 
 
 def build_windows(chan_id: str, dims: str, window_size: int):
@@ -224,17 +298,20 @@ def main() -> None:
     if MAX_CHANNELS > 0:
         labels = labels.head(MAX_CHANNELS)
 
+    configs = select_configs()
+
     print(f"Benchmarking {len(labels)} SMAP channels (step={STEP})")
     print("Metric: best-threshold point-adjusted F1 (standard SMAP protocol)")
-    if not TORCH_AVAILABLE:
+    print(f"Configurations: {', '.join(name for name, *_ in configs)}")
+    if not TORCH_AVAILABLE and any(name in NEEDS_TORCH for name, *_ in configs):
         print(
-            "Note: torch not installed -> gdn@all will be skipped. "
-            "Install the deep extra to include GDN: uv sync --extra deep"
+            "Note: torch not installed -> the graph detector rows will be skipped. "
+            "Install the deep extra to include them: uv sync --extra deep"
         )
 
     results: dict[str, dict] = {}
-    for name, dims, make_detector, window_size in CONFIGS:
-        if name.startswith("gdn") and not TORCH_AVAILABLE:
+    for name, dims, make_detector, window_size in configs:
+        if name in NEEDS_TORCH and not TORCH_AVAILABLE:
             continue
         outcome = run_config(name, dims, make_detector, window_size, labels)
         if outcome is not None:
