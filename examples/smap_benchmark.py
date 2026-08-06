@@ -53,7 +53,19 @@ examples/smap_demo.py:
     TAD_KANGDN_EMBED_DIM  -> KANGDN embedding width (default: 64)
     TAD_KANGDN_GRID_SIZE  -> KANGDN spline grid intervals (default: 5)
     TAD_BENCH_CONFIGS     -> comma-separated configuration names (default: all)
+    TAD_BENCH_SCORES_DIR  -> directory to cache per-channel point scores into
+    TAD_BENCH_FROM_CACHE  -> set to 1 to re-score from the cache without training
     TAD_BENCH_VERBOSE     -> set to 1 to print per-channel rows (default: summary only)
+
+Training and measurement are separable. Point the run at a cache directory once,
+and every later metric change is a pass over saved arrays instead of a full
+retrain of every channel::
+
+    TAD_BENCH_SCORES_DIR=eval/scores python examples/smap_benchmark.py
+    TAD_BENCH_SCORES_DIR=eval/scores TAD_BENCH_FROM_CACHE=1 python examples/smap_benchmark.py
+
+The second form needs neither the .npy dataset nor torch, since a cache entry
+holds the point scores and the ground truth for one channel.
 
 GDN and KANGDN require the optional deep extra (torch). If torch is not installed
 those configurations are skipped with a note; the classical rows still run.
@@ -61,6 +73,7 @@ those configurations are skipped with a note; the classical rows still run.
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import os
 import warnings
@@ -109,6 +122,13 @@ KANGDN_SPLINE_ORDER = int(os.environ.get("TAD_KANGDN_SPLINE_ORDER", "3"))
 
 # Configuration names to run; empty means all of them.
 SELECTED = [n.strip() for n in os.environ.get("TAD_BENCH_CONFIGS", "").split(",") if n.strip()]
+
+# Score cache. Training a configuration and measuring it are separate concerns:
+# with a cache, adding or changing a metric costs a pass over saved arrays rather
+# than a full retrain of every channel.
+_SCORES_ENV = os.environ.get("TAD_BENCH_SCORES_DIR", "").strip()
+SCORES_DIR = Path(_SCORES_ENV).expanduser() if _SCORES_ENV else None
+FROM_CACHE = os.environ.get("TAD_BENCH_FROM_CACHE", "") == "1"
 
 TORCH_AVAILABLE = importlib.util.find_spec("torch") is not None
 
@@ -243,9 +263,73 @@ def score_channel(chan_id, sequences, dims, make_detector, window_size):
     return scores, truth
 
 
+def config_params(name: str, window_size: int) -> dict:
+    """
+    The settings that determine a configuration's scores.
+
+    Two runs sharing a configuration name but differing here (a sizing sweep
+    varying embed_dim, say) are different experiments and must not share a cache
+    entry.
+    """
+    params = {"config": name, "window_size": window_size, "step": STEP}
+    if name == "gdn@all":
+        params.update(embed_dim=GDN_EMBED_DIM, topk=GDN_TOPK, lr=GDN_LR, epochs=GDN_EPOCHS)
+    elif name == "kangdn@all":
+        params.update(
+            embed_dim=KANGDN_EMBED_DIM,
+            grid_size=KANGDN_GRID_SIZE,
+            spline_order=KANGDN_SPLINE_ORDER,
+            topk=GDN_TOPK,
+            lr=GDN_LR,
+            epochs=GDN_EPOCHS,
+        )
+    return params
+
+
+def config_fingerprint(name: str, window_size: int) -> str:
+    """Short stable digest of config_params, used to key the cache directory."""
+    blob = repr(sorted(config_params(name, window_size).items())).encode()
+    return hashlib.sha256(blob).hexdigest()[:10]
+
+
+def cache_path(name: str, chan_id: str, window_size: int) -> Path:
+    """Location of one channel's cached scores for a configuration."""
+    tag = f"{name.replace('@', '_at_')}-{config_fingerprint(name, window_size)}"
+    return SCORES_DIR / tag / f"{chan_id}.npz"
+
+
+def save_scores(name, chan_id, window_size, scores, truth) -> None:
+    """Persist a channel's point scores, ground truth, and the settings used."""
+    path = cache_path(name, chan_id, window_size)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(
+        path, scores=scores, truth=truth, params=repr(config_params(name, window_size))
+    )
+    params_file = path.parent / "params.txt"
+    if not params_file.exists():
+        params_file.write_text(repr(config_params(name, window_size)), encoding="utf-8")
+
+
+def load_scores(name: str, chan_id: str, window_size: int):
+    """Read a channel's cached scores, or None when it was never written."""
+    path = cache_path(name, chan_id, window_size)
+    if not path.exists():
+        return None
+    with np.load(path) as data:
+        return data["scores"], data["truth"]
+
+
 def run_config(name: str, dims: str, make_detector, window_size: int, labels) -> dict | None:
-    """Run one configuration across all channels; return its aggregate metrics."""
-    print(f"\n=== {name}  (dims={dims}, window={window_size}) ===")
+    """
+    Run one configuration across all channels; return its aggregate metrics.
+
+    Scores come from training a detector, or from the cache when
+    TAD_BENCH_FROM_CACHE is set. Re-scoring from cache needs neither the dataset
+    nor torch, so a metric change is seconds rather than a full retrain.
+    """
+    source = "cache" if FROM_CACHE else "training"
+    tag = f", id={config_fingerprint(name, window_size)}" if SCORES_DIR is not None else ""
+    print(f"\n=== {name}  (dims={dims}, window={window_size}, from {source}{tag}) ===")
     if VERBOSE:
         print(f"{'channel':>8}  {'precision':>9}  {'recall':>6}  {'F1':>6}")
         print("-" * 36)
@@ -254,7 +338,14 @@ def run_config(name: str, dims: str, make_detector, window_size: int, labels) ->
     all_truth: list[np.ndarray] = []
     per_channel_f1: list[float] = []
     for _, row in labels.iterrows():
-        result = score_channel(row["chan_id"], row["sequences"], dims, make_detector, window_size)
+        if FROM_CACHE:
+            result = load_scores(name, row["chan_id"], window_size)
+        else:
+            result = score_channel(
+                row["chan_id"], row["sequences"], dims, make_detector, window_size
+            )
+            if result is not None and SCORES_DIR is not None:
+                save_scores(name, row["chan_id"], window_size, *result)
         if result is None:
             continue
         scores, truth = result
@@ -266,7 +357,13 @@ def run_config(name: str, dims: str, make_detector, window_size: int, labels) ->
             print(f"{row['chan_id']:>8}  {b['precision']:9.3f}  {b['recall']:6.3f}  {b['f1']:6.3f}")
 
     if not all_scores:
-        print("  (no channels produced results)")
+        if FROM_CACHE:
+            # An empty cache read almost always means the settings differ from
+            # the run that populated it, which changes the fingerprint.
+            print(f"  (nothing cached under {cache_path(name, '<channel>', window_size).parent})")
+            print("   check that the hyperparameters match the run that wrote the cache")
+        else:
+            print("  (no channels produced results)")
         return None
 
     scores = np.concatenate(all_scores)
@@ -285,8 +382,15 @@ def run_config(name: str, dims: str, make_detector, window_size: int, labels) ->
 
 
 def main() -> None:
+    if FROM_CACHE and SCORES_DIR is None:
+        raise SystemExit("TAD_BENCH_FROM_CACHE=1 requires TAD_BENCH_SCORES_DIR.")
+
     labels_csv = find_labels_csv()
-    if not DATA_DIR or not (DATA_DIR / "test").exists() or labels_csv is None:
+    # Re-scoring from cache needs the labels file for the channel list, but not
+    # the .npy dataset: the point scores and ground truth are already saved.
+    if labels_csv is None or (
+        not FROM_CACHE and (not DATA_DIR or not (DATA_DIR / "test").exists())
+    ):
         raise SystemExit(
             "SMAP dataset not found. Set TAD_SMAP_DIR (and optionally "
             "TAD_SMAP_LABELS). See examples/smap_demo.py for the layout.\n"
@@ -303,7 +407,10 @@ def main() -> None:
     print(f"Benchmarking {len(labels)} SMAP channels (step={STEP})")
     print("Metric: best-threshold point-adjusted F1 (standard SMAP protocol)")
     print(f"Configurations: {', '.join(name for name, *_ in configs)}")
-    if not TORCH_AVAILABLE and any(name in NEEDS_TORCH for name, *_ in configs):
+    if SCORES_DIR is not None:
+        print(f"Score cache: {SCORES_DIR}" + ("  (reading)" if FROM_CACHE else "  (writing)"))
+    # Cached scores are plain arrays, so re-scoring never needs torch.
+    if not TORCH_AVAILABLE and not FROM_CACHE and any(name in NEEDS_TORCH for name, *_ in configs):
         print(
             "Note: torch not installed -> the graph detector rows will be skipped. "
             "Install the deep extra to include them: uv sync --extra deep"
@@ -311,7 +418,7 @@ def main() -> None:
 
     results: dict[str, dict] = {}
     for name, dims, make_detector, window_size in configs:
-        if name in NEEDS_TORCH and not TORCH_AVAILABLE:
+        if name in NEEDS_TORCH and not TORCH_AVAILABLE and not FROM_CACHE:
             continue
         outcome = run_config(name, dims, make_detector, window_size, labels)
         if outcome is not None:
