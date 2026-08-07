@@ -577,3 +577,89 @@ def test_caller_can_pass_a_mutable_buffer(tmp_path):
     )
     out = subprocess.run([str(exe)], check=True, capture_output=True, text=True, env=_cc_env())
     assert int(out.stdout.strip()) == 0  # KANGDN_OK
+
+
+# ---------------------------------------------------------------------------
+# Golden vectors and the shipped target harness
+# ---------------------------------------------------------------------------
+
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
+HOST_MAIN = REPO_ROOT / "targets" / "host" / "main.c"
+
+
+def test_emits_golden_vectors():
+    det, X = _fitted()
+    spec = extract_kan_gdn(det)
+    files = generate_c(spec, test_windows=X[:4])
+
+    assert set(files) == {"kangdn.h", "kangdn.c", "kangdn_vectors.h"}
+    vectors = files["kangdn_vectors.h"]
+    assert "KANGDN_N_VECTORS = 4" in vectors
+    assert "KANGDN_TEST_WINDOWS" in vectors
+    assert "KANGDN_TEST_SCORES" in vectors
+    # The flag is the decisive check for a port, so it ships with the vectors.
+    assert "KANGDN_TEST_FLAGS" in vectors
+    assert "KANGDN_TEST_RTOL" in vectors and "KANGDN_TEST_ATOL" in vectors
+
+
+def test_golden_scores_and_flags_agree_with_the_reference():
+    det, X = _fitted()
+    spec = extract_kan_gdn(det)
+    windows = X[:4]
+    vectors = generate_c(spec, test_windows=windows)["kangdn_vectors.h"]
+
+    expected = KANGDNNumpy(spec).decision_function(windows)
+    body = vectors.split("KANGDN_TEST_SCORES")[1]
+    emitted = [float(t.strip().rstrip(",")) for t in body.split("{")[1].split("}")[0].split(",")]
+    np.testing.assert_allclose(emitted, expected, rtol=1e-12)
+
+    flag_body = vectors.split("KANGDN_TEST_FLAGS")[1].split("{")[1].split("}")[0]
+    flags = [int(t.strip().rstrip(",")) for t in flag_body.split(",")]
+    np.testing.assert_array_equal(flags, (expected > spec["threshold"]).astype(int))
+
+
+def test_rejects_badly_shaped_test_windows():
+    det, X = _fitted()
+    spec = extract_kan_gdn(det)
+    with pytest.raises(ValueError, match="3-D"):
+        generate_c(spec, test_windows=X[0])
+
+
+def test_no_vectors_file_without_test_windows():
+    det, _ = _fitted()
+    assert "kangdn_vectors.h" not in generate_c(extract_kan_gdn(det))
+
+
+@needs_cc
+@pytest.mark.skipif(not HOST_MAIN.exists(), reason="host target harness not present")
+def test_shipped_host_harness_passes(tmp_path):
+    """
+    Build the harness that targets/host actually ships, not a test-local copy.
+
+    This is the reference implementation every other port is derived from, so a
+    regression in it would mislead anyone bringing up new hardware.
+    """
+    det, X = _fitted()
+    write_c(extract_kan_gdn(det), tmp_path, dtype="float", test_windows=X[:8])
+
+    exe = tmp_path / "conformance.exe"
+    subprocess.run(
+        [
+            CC,
+            *CFLAGS,
+            "-I",
+            str(tmp_path),
+            str(tmp_path / "kangdn.c"),
+            str(HOST_MAIN),
+            "-o",
+            str(exe),
+            "-lm",
+        ],
+        check=True,
+        capture_output=True,
+        env=_cc_env(),
+    )
+    out = subprocess.run([str(exe)], capture_output=True, text=True, env=_cc_env())
+    assert out.returncode == 0, out.stdout
+    assert "flag mismatches: 0 of 8" in out.stdout
+    assert out.stdout.strip().endswith("PASS")

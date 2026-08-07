@@ -56,3 +56,12 @@ memory/
 # published library. It lives locally / in a separate private repo.
 eval/
 wandb/
+
+# Generated C sources and target build artifacts
+targets/*/generated/
+targets/*/*/generated/
+targets/host/conformance
+targets/host/conformance.exe
+targets/*/build/
+targets/*/sdkconfig
+targets/*/sdkconfig.old

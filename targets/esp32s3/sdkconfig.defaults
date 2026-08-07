@@ -1,0 +1,11 @@
+# Conformance harness defaults.
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y
+
+# The scoring path keeps its scratch in static storage, but the harness itself
+# prints from the main task; the default stack is ample, raised only for margin.
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
+
+# Compile the detector at the same strictness the host build uses.
+CONFIG_COMPILER_WARN_WRITE_STRINGS=y

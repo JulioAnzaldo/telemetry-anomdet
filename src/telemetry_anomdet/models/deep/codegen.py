@@ -100,11 +100,21 @@ _HEADER = Template("""\
 
 typedef ${real} ${prefix}_real_t;
 
+/* The detector is C, but embedded projects are frequently C++ (Arduino among
+   them), so give it C linkage when included from a C++ translation unit. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Graph deviation score for one window; higher means more anomalous. */
 int ${prefix}_score(const ${prefix}_real_t *window, ${prefix}_real_t *out_score);
 
 /* Sets *out_flag to 1 when the score exceeds the distilled threshold. */
 int ${prefix}_is_anomaly(const ${prefix}_real_t *window, int *out_flag);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ${guard} */
 """)
@@ -497,6 +507,51 @@ int ${prefix}_is_anomaly(const ${prefix}_real_t *window, int *out_flag)
 """)
 
 
+_VECTORS = Template("""\
+/* ${prefix}_vectors.h : golden vectors for the distilled detector.
+ *
+ * Do not edit. Regenerate from the fitted detector instead.
+ *
+ * Each row is one window, flattened row major to match the layout
+ * ${prefix}_score expects. The expected scores are the reference evaluator's
+ * output in double precision, so a port is validated by scoring each window and
+ * comparing, with no host tooling required on the target.
+ *
+ * Compare as |got - want| <= ATOL + RTOL * |want|. The absolute term matters:
+ * the score is a difference of differences, so a score far below the threshold
+ * carries large relative error while its absolute error stays negligible. The
+ * expected flags are the decisive check, since they are what a port must
+ * reproduce for the detector to behave identically.
+ */
+#ifndef ${guard}
+#define ${guard}
+
+#include "${prefix}.h"
+
+enum { ${up}_N_VECTORS = ${n_vectors} };
+
+/* Tolerances appropriate to the generated numeric type. */
+static const double ${up}_TEST_RTOL = ${rtol};
+static const double ${up}_TEST_ATOL = ${atol};
+
+static const ${prefix}_real_t ${up}_TEST_WINDOWS[${up}_N_VECTORS]
+                                                [${up}_WINDOW_SIZE * ${up}_N_FEATURES] = {
+${windows}
+};
+
+static const double ${up}_TEST_SCORES[${up}_N_VECTORS] = {
+${scores}
+};
+
+/* 1 where the reference evaluator flags the window as anomalous. */
+static const int ${up}_TEST_FLAGS[${up}_N_VECTORS] = {
+${flags}
+};
+
+#endif /* ${guard} */
+""")
+
+
 def _fmt(value: float, digits: int, suffix: str) -> str:
     """Format one scalar as a C floating point literal."""
     if not np.isfinite(value):
@@ -588,7 +643,54 @@ def _emit_layer(layer: dict, name: str, prefix: str, real: str, digits: int, suf
     )
 
 
-def generate_c(extracted: dict, prefix: str = "kangdn", dtype: str = "float") -> dict[str, str]:
+def _emit_vectors(extracted, test_windows, prefix, dtype, digits, suffix) -> str:
+    """
+    Emit golden vectors: input windows beside the reference evaluator's scores.
+
+    Scores are always written in double precision, whatever type the detector is
+    generated in, so the same expectations serve a float build and a double one.
+    The tolerance is chosen to suit the generated type, leaving each target's
+    harness to do nothing but compare.
+    """
+    from .distill import KANGDNNumpy
+
+    windows = np.asarray(test_windows, dtype=float)
+    if windows.ndim != 3:
+        raise ValueError(
+            f"test_windows must be 3-D (n, window_size, n_features), got {windows.shape}"
+        )
+
+    expected = KANGDNNumpy(extracted).decision_function(windows)
+    flat = windows.reshape(windows.shape[0], -1)
+
+    rows = []
+    for row in flat:
+        literals = [_fmt(v, digits, suffix) for v in row]
+        chunks = ["        " + ", ".join(literals[i : i + 6]) for i in range(0, len(literals), 6)]
+        rows.append("    {\n" + ",\n".join(chunks) + "\n    }")
+
+    return _VECTORS.substitute(
+        prefix=prefix,
+        up=prefix.upper(),
+        guard=f"{prefix.upper()}_VECTORS_H",
+        n_vectors=windows.shape[0],
+        # Single precision loses relative accuracy on scores that are small
+        # compared with the intermediate magnitudes, so an absolute term is
+        # needed alongside the relative one.
+        rtol="1e-4" if dtype == "float" else "1e-9",
+        atol="1e-5" if dtype == "float" else "1e-12",
+        windows=",\n".join(rows),
+        scores=",\n".join(f"    {v:.17g}" for v in expected),
+        flags=",\n".join(f"    {int(v > extracted['threshold'])}" for v in expected),
+    )
+
+
+def generate_c(
+    extracted: dict,
+    prefix: str = "kangdn",
+    dtype: str = "float",
+    test_windows=None,
+) -> dict[str, str]:
     """
     Generate a self-contained C implementation of a distilled KANGDN.
 
@@ -601,11 +703,18 @@ def generate_c(extracted: dict, prefix: str = "kangdn", dtype: str = "float") ->
     dtype : {"float", "double"}, default="float"
         C type for parameters and arithmetic. ``float`` is the deployment mode;
         ``double`` reproduces the NumPy evaluator to near machine precision.
+    test_windows : np.ndarray, optional
+        Windows of shape ``(n, window_size, n_features)``. When given, a third
+        file of golden vectors is emitted: each window flattened as the entry
+        point expects, beside the reference evaluator's score for it. A port
+        is then validated on the target itself, by scoring each window and
+        comparing, with no host tooling in the loop.
 
     Returns
     -------
     dict
-        ``{f"{prefix}.h": ..., f"{prefix}.c": ...}``, source text ready to write.
+        ``{f"{prefix}.h": ..., f"{prefix}.c": ...}``, source text ready to
+        write, plus ``{prefix}_vectors.h`` when ``test_windows`` is given.
 
     Raises
     ------
@@ -619,6 +728,7 @@ def generate_c(extracted: dict, prefix: str = "kangdn", dtype: str = "float") ->
     if dtype not in ("float", "double"):
         raise ValueError(f"dtype must be 'float' or 'double', got {dtype!r}")
     real = dtype
+    
     # 9 significant digits round-trips float32, 17 round-trips float64.
     digits = 9 if dtype == "float" else 17
     suffix = "f" if dtype == "float" else ""
@@ -712,10 +822,21 @@ def generate_c(extracted: dict, prefix: str = "kangdn", dtype: str = "float") ->
         n_features=n_nodes,
         threshold=_fmt(extracted["threshold"], digits, suffix),
     )
-    return {f"{prefix}.h": header, f"{prefix}.c": "".join(parts)}
+    files = {f"{prefix}.h": header, f"{prefix}.c": "".join(parts)}
+    if test_windows is not None:
+        files[f"{prefix}_vectors.h"] = _emit_vectors(
+            extracted, test_windows, prefix, dtype, digits, suffix
+        )
+    return files
 
 
-def write_c(extracted: dict, out_dir, prefix: str = "kangdn", dtype: str = "float") -> list:
+def write_c(
+    extracted: dict,
+    out_dir,
+    prefix: str = "kangdn",
+    dtype: str = "float",
+    test_windows=None,
+) -> list:
     """
     Generate the C sources and write them into ``out_dir``.
 
@@ -726,7 +847,8 @@ def write_c(extracted: dict, out_dir, prefix: str = "kangdn", dtype: str = "floa
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     written = []
-    for filename, source in generate_c(extracted, prefix=prefix, dtype=dtype).items():
+    generated = generate_c(extracted, prefix=prefix, dtype=dtype, test_windows=test_windows)
+    for filename, source in generated.items():
         path = out_dir / filename
         path.write_text(source, encoding="utf-8")
         written.append(path)
