@@ -165,3 +165,102 @@ def best_point_adjusted_f1(
             m["threshold"] = float(t)
             best = m
     return best
+
+
+# ---------------------------------------------------------------------------
+# Threshold-free and operating-point metrics
+# ---------------------------------------------------------------------------
+
+
+def pr_auc(scores: Sequence[float], truth: Sequence[bool]) -> float:
+    """
+    Area under the precision-recall curve, as average precision.
+
+    Computed on raw point scores with no point adjustment, so a detector is
+    credited for the points it actually flags. Two properties make this the
+    honest companion to :func:`best_point_adjusted_f1`:
+
+    * It integrates over every operating point instead of reporting the single
+      best one, so no threshold can be selected against the labels.
+    * Its value for an uninformative detector is the positive base rate. Any
+      score above that reflects real ranking ability, and the margin is
+      interpretable. ROC AUC instead sits at 0.5 for random regardless of class
+      balance, which flatters a detector when anomalies are rare.
+
+    Arguments:
+        scores: Point-level anomaly scores (higher = more anomalous).
+        truth: Point-level boolean ground truth, same length as ``scores``.
+    Returns:
+        float: Average precision in [0, 1]; the base rate for random scores.
+    """
+    scores = np.asarray(scores, dtype=float)
+    truth = np.asarray(truth, dtype=bool)
+    if scores.shape != truth.shape:
+        raise ValueError(f"scores and truth must match: {scores.shape} vs {truth.shape}")
+    n_pos = int(truth.sum())
+    if n_pos == 0 or n_pos == truth.size:
+        return float(n_pos) / float(truth.size) if truth.size else 0.0
+
+    order = np.argsort(-scores, kind="stable")
+    hits = truth[order]
+    tp = np.cumsum(hits)
+    precision = tp / np.arange(1, hits.size + 1)
+    # Average precision: the mean precision at each rank holding a true positive,
+    # which equals the sum of precision * (change in recall).
+    return float(precision[hits].sum() / n_pos)
+
+
+def false_alarm_rate_at_recall(
+    scores: Sequence[float], truth: Sequence[bool], target_recall: float = 0.8
+) -> dict:
+    """
+    Cost of reaching a recall target, as a false positive rate per point.
+
+    Answers the operational question a fixed threshold has to settle: to catch
+    this fraction of anomalous points, how often does the detector fire on
+    nominal data? Unlike a best-F1 figure this is reported at a stated recall,
+    so two detectors are compared at the same sensitivity.
+
+    Arguments:
+        scores: Point-level anomaly scores (higher = more anomalous).
+        truth: Point-level boolean ground truth, same length as ``scores``.
+        target_recall: Recall to reach, in (0, 1].
+    Returns:
+        dict: ``{'threshold', 'recall', 'false_alarm_rate', 'precision'}``. The
+        false alarm rate is false positives divided by the number of nominal
+        points. Returns a rate of 1.0 when the target recall is unreachable.
+    """
+    if not (0.0 < target_recall <= 1.0):
+        raise ValueError(f"target_recall must lie in (0, 1], got {target_recall}")
+    scores = np.asarray(scores, dtype=float)
+    truth = np.asarray(truth, dtype=bool)
+    if scores.shape != truth.shape:
+        raise ValueError(f"scores and truth must match: {scores.shape} vs {truth.shape}")
+
+    n_pos = int(truth.sum())
+    n_neg = int(truth.size - n_pos)
+    if n_pos == 0 or n_neg == 0:
+        return {"threshold": float("inf"), "recall": 0.0, "false_alarm_rate": 1.0, "precision": 0.0}
+
+    order = np.argsort(-scores, kind="stable")
+    hits = truth[order]
+    tp = np.cumsum(hits)
+    fp = np.cumsum(~hits)
+    recall = tp / n_pos
+
+    reached = np.flatnonzero(recall >= target_recall)
+    if reached.size == 0:
+        return {
+            "threshold": float(scores.min()),
+            "recall": float(recall[-1]),
+            "false_alarm_rate": 1.0,
+            "precision": float(n_pos) / truth.size,
+        }
+    k = int(reached[0])
+    denom = tp[k] + fp[k]
+    return {
+        "threshold": float(scores[order][k]),
+        "recall": float(recall[k]),
+        "false_alarm_rate": float(fp[k]) / float(n_neg),
+        "precision": float(tp[k]) / float(denom) if denom else 0.0,
+    }
