@@ -728,7 +728,14 @@ def generate_c(
     if dtype not in ("float", "double"):
         raise ValueError(f"dtype must be 'float' or 'double', got {dtype!r}")
     real = dtype
-    
+    if extracted.get("smoothing") is not None:
+        # EWMA carries one value of state per node between windows. The emitted
+        # entry points are pure functions of a single window, so supporting it
+        # requires a state block and a reset call in the interface.
+        raise NotImplementedError(
+            "C generation does not yet support a detector fitted with smoothing; "
+            "the EWMA recursion is stateful across windows."
+        )
     # 9 significant digits round-trips float32, 17 round-trips float64.
     digits = 9 if dtype == "float" else 17
     suffix = "f" if dtype == "float" else ""

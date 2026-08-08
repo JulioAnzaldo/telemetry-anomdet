@@ -356,6 +356,7 @@ def extract_kan_gdn(detector) -> dict:
         "err_median": np.asarray(detector._err_median_, dtype=float),
         "err_iqr": np.asarray(detector._err_iqr_, dtype=float),
         "threshold": float(detector.threshold_),
+        "smoothing": getattr(detector, "smoothing", None),
     }
 
 
@@ -388,6 +389,7 @@ class KANGDNNumpy:
         self.err_median = np.asarray(extracted["err_median"], dtype=float)
         self.err_iqr = np.asarray(extracted["err_iqr"], dtype=float)
         self.threshold = float(extracted["threshold"])
+        self.smoothing = extracted.get("smoothing")
 
     def _scale(self, X: np.ndarray) -> np.ndarray:
         """Apply the per-channel standardiser (identity when unscaled)."""
@@ -398,11 +400,24 @@ class KANGDNNumpy:
     def forecast_errors(self, X: np.ndarray) -> np.ndarray:
         """
         Per-window, per-node absolute forecast error, shape ``(n_windows, n_nodes)``.
+
+        Applies the detector's EWMA smoothing when it was fitted with any, so the
+        distilled scores match the torch detector's. Note that smoothing makes
+        the score path stateful: a window's score depends on the windows before
+        it, and scoring a batch is not the same as scoring its rows separately.
         """
         X = self._scale(np.asarray(X, dtype=float))
         context = np.transpose(X[:, :-1, :], (0, 2, 1))  # (n, n_nodes, window)
         target = X[:, -1, :]  # (n, n_nodes)
-        return np.abs(self.net.forward(context) - target)
+        errors = np.abs(self.net.forward(context) - target)
+        if self.smoothing is not None and self.smoothing < 1.0 and errors.shape[0] > 1:
+            alpha = float(self.smoothing)
+            smoothed = np.empty_like(errors)
+            smoothed[0] = errors[0]
+            for t in range(1, errors.shape[0]):
+                smoothed[t] = alpha * errors[t] + (1.0 - alpha) * smoothed[t - 1]
+            errors = smoothed
+        return errors
 
     def decision_function(self, X: np.ndarray) -> np.ndarray:
         """

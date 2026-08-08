@@ -61,6 +61,7 @@ class KANGDN(GDN):
         percentile: float = 95.0,
         grid_size: int = 5,
         spline_order: int = 3,
+        smoothing: float | None = None,
     ):
         super().__init__(
             embed_dim=embed_dim,
@@ -72,6 +73,7 @@ class KANGDN(GDN):
             device=device,
             random_state=random_state,
             percentile=percentile,
+            smoothing=smoothing,
         )
         self.grid_size = grid_size
         self.spline_order = spline_order
