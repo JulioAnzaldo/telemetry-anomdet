@@ -82,7 +82,12 @@ from pathlib import Path
 import numpy as np
 from sklearn.exceptions import ConvergenceWarning
 
-from telemetry_anomdet.evaluation import best_point_adjusted_f1, windows_to_point_scores
+from telemetry_anomdet.evaluation import (
+    best_point_adjusted_f1,
+    false_alarm_rate_at_recall,
+    pr_auc,
+    windows_to_point_scores,
+)
 from telemetry_anomdet.feature_extraction.features import make_feature_table
 from telemetry_anomdet.ingest import anomaly_point_mask, load_smap, load_smap_labels
 from telemetry_anomdet.models.ensemble import AnomalyEnsemble
@@ -119,6 +124,17 @@ GDN_WINDOW = int(os.environ.get("TAD_GDN_WINDOW", str(WINDOW_SIZE)))
 KANGDN_EMBED_DIM = int(os.environ.get("TAD_KANGDN_EMBED_DIM", str(GDN_EMBED_DIM)))
 KANGDN_GRID_SIZE = int(os.environ.get("TAD_KANGDN_GRID_SIZE", "5"))
 KANGDN_SPLINE_ORDER = int(os.environ.get("TAD_KANGDN_SPLINE_ORDER", "3"))
+
+# EWMA factor applied to the per-node forecast errors; empty disables smoothing.
+_SMOOTH_ENV = os.environ.get("TAD_SMOOTHING", "").strip()
+SMOOTHING = float(_SMOOTH_ENV) if _SMOOTH_ENV else None
+
+# Training seed. Results vary run to run, so a sizing comparison needs repeats
+# rather than a single draw per configuration.
+SEED = int(os.environ.get("TAD_SEED", "0"))
+
+# Recall at which the false alarm rate is reported.
+TARGET_RECALL = float(os.environ.get("TAD_TARGET_RECALL", "0.8"))
 
 # Configuration names to run; empty means all of them.
 SELECTED = [n.strip() for n in os.environ.get("TAD_BENCH_CONFIGS", "").split(",") if n.strip()]
@@ -167,8 +183,34 @@ def make_gdn():
         lr=GDN_LR,
         epochs=GDN_EPOCHS,
         device=GDN_DEVICE,
-        random_state=0,
+        random_state=SEED,
+        smoothing=SMOOTHING,
     )
+
+
+class RandomScorer:
+    """
+    Uniform random scores, as a floor for every other row.
+
+    Point-adjusted F1 rewards touching an anomaly segment anywhere inside it, and
+    SMAP's segments are long, so an uninformative detector scores far above zero.
+    Without this row there is no way to tell which reported numbers reflect
+    detection and which reflect the metric.
+    """
+
+    def __init__(self, seed: int = 0):
+        self.seed = seed
+
+    def fit(self, X):
+        return self
+
+    def decision_function(self, X):
+        return np.random.default_rng(self.seed).random(X.shape[0])
+
+
+def make_random():
+    """The uninformative baseline."""
+    return RandomScorer(seed=SEED)
 
 
 def make_kangdn():
@@ -187,9 +229,10 @@ def make_kangdn():
         lr=GDN_LR,
         epochs=GDN_EPOCHS,
         device=GDN_DEVICE,
-        random_state=0,
+        random_state=SEED,
         grid_size=KANGDN_GRID_SIZE,
         spline_order=KANGDN_SPLINE_ORDER,
+        smoothing=SMOOTHING,
     )
 
 
@@ -203,6 +246,7 @@ def make_kangdn():
 # scaler/graph no longer align. "all" pins a fixed 25-dim schema; constant
 # columns are harmless (zero variance -> scale 1.0; GDN just gets a self-loop).
 CONFIGS: list[tuple[str, str, object, int]] = [
+    ("random@all", "all", make_random, GDN_WINDOW),
     ("classical@telemetry", "telemetry", make_classical, WINDOW_SIZE),
     ("classical@all", "all", make_classical, WINDOW_SIZE),
     ("gdn@all", "all", make_gdn, GDN_WINDOW),
@@ -271,7 +315,13 @@ def config_params(name: str, window_size: int) -> dict:
     varying embed_dim, say) are different experiments and must not share a cache
     entry.
     """
-    params = {"config": name, "window_size": window_size, "step": STEP}
+    params = {
+        "config": name,
+        "window_size": window_size,
+        "step": STEP,
+        "seed": SEED,
+        "smoothing": SMOOTHING,
+    }
     if name == "gdn@all":
         params.update(embed_dim=GDN_EMBED_DIM, topk=GDN_TOPK, lr=GDN_LR, epochs=GDN_EPOCHS)
     elif name == "kangdn@all":
@@ -372,11 +422,23 @@ def run_config(name: str, dims: str, make_detector, window_size: int, labels) ->
     overall["per_channel_f1"] = float(np.mean(per_channel_f1))
     overall["n_channels"] = len(all_scores)
 
+    # Threshold-free and operating-point metrics. Point-adjusted F1 is retained
+    # for comparability with published SMAP results, but it is inflated by the
+    # adjustment, so it is reported beside metrics that are not.
+    overall["pr_auc"] = pr_auc(scores, truth)
+    overall["base_rate"] = float(truth.mean())
+    fa = false_alarm_rate_at_recall(scores, truth, target_recall=TARGET_RECALL)
+    overall["false_alarm_rate"] = fa["false_alarm_rate"]
+
     print(
         f"  global best-F1: {overall['f1']:.3f}  "
         f"(P={overall['precision']:.3f} R={overall['recall']:.3f})   "
         f"per-channel mean best-F1: {overall['per_channel_f1']:.3f}   "
         f"[{overall['n_channels']} channels]"
+    )
+    print(
+        f"  PR-AUC: {overall['pr_auc']:.3f} (random = {overall['base_rate']:.3f})   "
+        f"false alarms at R={TARGET_RECALL:.2f}: {overall['false_alarm_rate']:.3f}"
     )
     return overall
 
@@ -427,16 +489,27 @@ def main() -> None:
     # Final side-by-side comparison.
     print("\n" + "=" * 60)
     print("SUMMARY  (best-threshold point-adjusted F1, oracle upper bound)")
-    print(f"{'configuration':>20}  {'global F1':>9}  {'per-chan F1':>11}")
-    print("-" * 46)
+    print(
+        f"{'configuration':>20}  {'global F1':>9}  {'per-chan F1':>11}  {'PR-AUC':>7}  {'FA@R':>6}"
+    )
+    print("-" * 62)
     for name in results:
         r = results[name]
-        print(f"{name:>20}  {r['f1']:9.3f}  {r['per_channel_f1']:11.3f}")
+        print(
+            f"{name:>20}  {r['f1']:9.3f}  {r['per_channel_f1']:11.3f}  "
+            f"{r['pr_auc']:7.3f}  {r['false_alarm_rate']:6.3f}"
+        )
+    if results:
+        floor = next(iter(results.values()))["base_rate"]
+        print(f"{'PR-AUC floor (random)':>20}  {'':>9}  {'':>11}  {floor:7.3f}")
     print(
-        "\nNote: thresholds are chosen against the labels (standard SMAP 'best F1'"
-        "\nprotocol). Report as an oracle upper bound, not a deployed operating point."
-        "\nclassical@all is the same input control for a fair GDN comparison;"
-        "\nclassical@telemetry is the classical detectors' native best input."
+        "\nNote: point-adjusted F1 marks a whole anomaly segment as detected when any"
+        "\nsingle point inside it is flagged, and its threshold is chosen against the"
+        "\nlabels. On SMAP's long segments an uninformative detector therefore scores"
+        "\nhighly, which is what the random@all row demonstrates. PR-AUC is threshold"
+        "\nfree and equals the base rate for random scores, so read it as the honest"
+        "\nfigure and F1 only for comparability with published results. FA@R is the"
+        "\nfalse alarm rate at the target recall."
     )
 
 
