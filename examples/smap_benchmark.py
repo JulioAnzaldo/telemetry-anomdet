@@ -1,22 +1,37 @@
 """
-SMAP detector benchmark: classical baselines vs GDN.
+SMAP detector benchmark: classical baselines vs the graph detectors.
 
-Reports point adjusted F1. For each channel it trains on the nominal train split 
+Reports point adjusted F1. For each channel it trains on the nominal train split
 and scores the test split, sweeps thresholds, and reports the best point-adjusted
-F1. Because the threshold is selected against the labels, treat every number as 
+F1. Because the threshold is selected against the labels, treat every number as
 an oracle threshold upper bound, not a deployable operating point.
 
-Three configurations are run so the comparison is honest (see the ``dims`` note):
+Four configurations are run so the comparison is honest (see the ``dims`` note):
 
     classical@telemetry  PCA + KMeans ensemble on the telemetry column only.
                          This is the original classical baseline; its numbers are
                          unchanged from prior releases.
     classical@all        Same ensemble, but on telemetry + all command one-hots
-                         (the same multivariate input GDN sees). A same-input
-                         control so the GDN comparison is apples to apples.
+                         (the same multivariate input the graph detectors see). A
+                         same-input control so the comparison is apples to apples.
     gdn@all              The Graph Deviation Network on the multivariate input.
                          GDN needs multiple channels to build its sensor graph, so
                          the telemetry-only column would defeat its purpose.
+    kangdn@all           Same graph and scoring as gdn@all, with KAN layers in
+                         place of the ReLU activation and MLP head. Run this to
+                         size the KAN configuration: its spline coefficients
+                         dominate the distilled artifact, and the count grows as
+                         ``embed_dim**2 * (grid_size + spline_order)``, so the
+                         smallest configuration that holds its F1 is the one worth
+                         exporting.
+
+Running one row at a time: set ``TAD_BENCH_CONFIGS`` to a comma-separated list of
+configuration names. A sizing sweep over the KAN layers therefore looks like::
+
+    TAD_BENCH_CONFIGS=kangdn@all TAD_KANGDN_EMBED_DIM=16 python examples/smap_benchmark.py
+
+Names are matched exactly against the ``CONFIGS`` table below; an unknown name is
+an error rather than a silent empty run.
 
 Why ``all`` and not ``nonzero``? ``nonzero`` drops all-zero columns per split, so
 train and test can end up with different feature counts (a command inactive in
@@ -34,15 +49,31 @@ examples/smap_demo.py:
     TAD_SMAP_LABELS       -> labeled_anomalies.csv (optional; searched from DATA_DIR)
     TAD_SMAP_MAX_CHANNELS -> limit the run (default: all SMAP channels)
     TAD_GDN_EPOCHS        -> GDN training epochs per channel (default: 30)
-    TAD_GDN_DEVICE        -> torch device for GDN, e.g. "cuda" (default: auto)
+    TAD_GDN_DEVICE        -> torch device for GDN and KANGDN (default: auto)
+    TAD_KANGDN_EMBED_DIM  -> KANGDN embedding width (default: 64)
+    TAD_KANGDN_GRID_SIZE  -> KANGDN spline grid intervals (default: 5)
+    TAD_BENCH_CONFIGS     -> comma-separated configuration names (default: all)
+    TAD_BENCH_SCORES_DIR  -> directory to cache per-channel point scores into
+    TAD_BENCH_FROM_CACHE  -> set to 1 to re-score from the cache without training
     TAD_BENCH_VERBOSE     -> set to 1 to print per-channel rows (default: summary only)
 
-GDN requires the optional deep extra (torch). If torch is not installed the
-gdn@nonzero configuration is skipped with a note; the classical rows still run.
+Training and measurement are separable. Point the run at a cache directory once,
+and every later metric change is a pass over saved arrays instead of a full
+retrain of every channel::
+
+    TAD_BENCH_SCORES_DIR=eval/scores python examples/smap_benchmark.py
+    TAD_BENCH_SCORES_DIR=eval/scores TAD_BENCH_FROM_CACHE=1 python examples/smap_benchmark.py
+
+The second form needs neither the .npy dataset nor torch, since a cache entry
+holds the point scores and the ground truth for one channel.
+
+GDN and KANGDN require the optional deep extra (torch). If torch is not installed
+those configurations are skipped with a note; the classical rows still run.
 """
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import os
 import warnings
@@ -51,7 +82,12 @@ from pathlib import Path
 import numpy as np
 from sklearn.exceptions import ConvergenceWarning
 
-from telemetry_anomdet.evaluation import best_point_adjusted_f1, windows_to_point_scores
+from telemetry_anomdet.evaluation import (
+    best_point_adjusted_f1,
+    false_alarm_rate_at_recall,
+    pr_auc,
+    windows_to_point_scores,
+)
 from telemetry_anomdet.feature_extraction.features import make_feature_table
 from telemetry_anomdet.ingest import anomaly_point_mask, load_smap, load_smap_labels
 from telemetry_anomdet.models.ensemble import AnomalyEnsemble
@@ -61,8 +97,8 @@ from telemetry_anomdet.preprocessing import pipeline
 # A single telemetry channel is a small, uniform feature space, so PCA and
 # KMeans emit benign warnings (near zero variance, fewer clusters than asked).
 # Detection is unaffected; quiet them for readable benchmark output.
-warnings.filterwarnings("ignore", category = RuntimeWarning)
-warnings.filterwarnings("ignore", category = ConvergenceWarning)
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 DATA_DIR = Path(os.environ.get("TAD_SMAP_DIR", "")).expanduser()
 LABELS_ENV = os.environ.get("TAD_SMAP_LABELS", "")
@@ -81,6 +117,34 @@ GDN_EMBED_DIM = int(os.environ.get("TAD_GDN_EMBED_DIM", "64"))
 GDN_TOPK = int(os.environ.get("TAD_GDN_TOPK", "15"))
 GDN_LR = float(os.environ.get("TAD_GDN_LR", "0.001"))
 GDN_WINDOW = int(os.environ.get("TAD_GDN_WINDOW", str(WINDOW_SIZE)))
+
+# KANGDN hyperparameters. The training ones default to GDN's so the two rows stay
+# comparable and only the architecture differs; embed_dim and grid_size are split
+# out because they set the size of the distilled artifact.
+KANGDN_EMBED_DIM = int(os.environ.get("TAD_KANGDN_EMBED_DIM", str(GDN_EMBED_DIM)))
+KANGDN_GRID_SIZE = int(os.environ.get("TAD_KANGDN_GRID_SIZE", "5"))
+KANGDN_SPLINE_ORDER = int(os.environ.get("TAD_KANGDN_SPLINE_ORDER", "3"))
+
+# EWMA factor applied to the per-node forecast errors; empty disables smoothing.
+_SMOOTH_ENV = os.environ.get("TAD_SMOOTHING", "").strip()
+SMOOTHING = float(_SMOOTH_ENV) if _SMOOTH_ENV else None
+
+# Training seed. Results vary run to run, so a sizing comparison needs repeats
+# rather than a single draw per configuration.
+SEED = int(os.environ.get("TAD_SEED", "0"))
+
+# Recall at which the false alarm rate is reported.
+TARGET_RECALL = float(os.environ.get("TAD_TARGET_RECALL", "0.8"))
+
+# Configuration names to run; empty means all of them.
+SELECTED = [n.strip() for n in os.environ.get("TAD_BENCH_CONFIGS", "").split(",") if n.strip()]
+
+# Score cache. Training a configuration and measuring it are separate concerns:
+# with a cache, adding or changing a metric costs a pass over saved arrays rather
+# than a full retrain of every channel.
+_SCORES_ENV = os.environ.get("TAD_BENCH_SCORES_DIR", "").strip()
+SCORES_DIR = Path(_SCORES_ENV).expanduser() if _SCORES_ENV else None
+FROM_CACHE = os.environ.get("TAD_BENCH_FROM_CACHE", "") == "1"
 
 TORCH_AVAILABLE = importlib.util.find_spec("torch") is not None
 
@@ -119,7 +183,56 @@ def make_gdn():
         lr=GDN_LR,
         epochs=GDN_EPOCHS,
         device=GDN_DEVICE,
-        random_state=0,
+        random_state=SEED,
+        smoothing=SMOOTHING,
+    )
+
+
+class RandomScorer:
+    """
+    Uniform random scores, as a floor for every other row.
+
+    Point-adjusted F1 rewards touching an anomaly segment anywhere inside it, and
+    SMAP's segments are long, so an uninformative detector scores far above zero.
+    Without this row there is no way to tell which reported numbers reflect
+    detection and which reflect the metric.
+    """
+
+    def __init__(self, seed: int = 0):
+        self.seed = seed
+
+    def fit(self, X):
+        return self
+
+    def decision_function(self, X):
+        return np.random.default_rng(self.seed).random(X.shape[0])
+
+
+def make_random():
+    """The uninformative baseline."""
+    return RandomScorer(seed=SEED)
+
+
+def make_kangdn():
+    """
+    KANGDN detector: GDN's graph and scoring with KAN layers as the nonlinearities.
+
+    Shares GDN's training hyperparameters so the two rows differ only in
+    architecture. ``embed_dim`` and ``grid_size`` are the two knobs that set the
+    distilled artifact's size.
+    """
+    from telemetry_anomdet.models.deep import KANGDN
+
+    return KANGDN(
+        embed_dim=KANGDN_EMBED_DIM,
+        topk=GDN_TOPK,
+        lr=GDN_LR,
+        epochs=GDN_EPOCHS,
+        device=GDN_DEVICE,
+        random_state=SEED,
+        grid_size=KANGDN_GRID_SIZE,
+        spline_order=KANGDN_SPLINE_ORDER,
+        smoothing=SMOOTHING,
     )
 
 
@@ -133,10 +246,35 @@ def make_gdn():
 # scaler/graph no longer align. "all" pins a fixed 25-dim schema; constant
 # columns are harmless (zero variance -> scale 1.0; GDN just gets a self-loop).
 CONFIGS: list[tuple[str, str, object, int]] = [
+    ("random@all", "all", make_random, GDN_WINDOW),
     ("classical@telemetry", "telemetry", make_classical, WINDOW_SIZE),
     ("classical@all", "all", make_classical, WINDOW_SIZE),
     ("gdn@all", "all", make_gdn, GDN_WINDOW),
+    ("kangdn@all", "all", make_kangdn, GDN_WINDOW),
 ]
+
+# Configurations that need torch, so a missing deep extra skips them by name
+# rather than by prefix matching.
+NEEDS_TORCH = frozenset({"gdn@all", "kangdn@all"})
+
+
+def select_configs() -> list[tuple[str, str, object, int]]:
+    """
+    Resolve TAD_BENCH_CONFIGS to the subset of CONFIGS to run.
+
+    Returns every configuration when the variable is unset. Raises on an unknown
+    name so that a typo fails loudly instead of silently benchmarking nothing.
+    """
+    if not SELECTED:
+        return CONFIGS
+    known = {name for name, *_ in CONFIGS}
+    unknown = [name for name in SELECTED if name not in known]
+    if unknown:
+        raise SystemExit(
+            f"Unknown configuration(s) in TAD_BENCH_CONFIGS: {', '.join(unknown)}\n"
+            f"Available: {', '.join(sorted(known))}"
+        )
+    return [config for config in CONFIGS if config[0] in SELECTED]
 
 
 def build_windows(chan_id: str, dims: str, window_size: int):
@@ -169,9 +307,79 @@ def score_channel(chan_id, sequences, dims, make_detector, window_size):
     return scores, truth
 
 
+def config_params(name: str, window_size: int) -> dict:
+    """
+    The settings that determine a configuration's scores.
+
+    Two runs sharing a configuration name but differing here (a sizing sweep
+    varying embed_dim, say) are different experiments and must not share a cache
+    entry.
+    """
+    params = {
+        "config": name,
+        "window_size": window_size,
+        "step": STEP,
+        "seed": SEED,
+        "smoothing": SMOOTHING,
+    }
+    if name == "gdn@all":
+        params.update(embed_dim=GDN_EMBED_DIM, topk=GDN_TOPK, lr=GDN_LR, epochs=GDN_EPOCHS)
+    elif name == "kangdn@all":
+        params.update(
+            embed_dim=KANGDN_EMBED_DIM,
+            grid_size=KANGDN_GRID_SIZE,
+            spline_order=KANGDN_SPLINE_ORDER,
+            topk=GDN_TOPK,
+            lr=GDN_LR,
+            epochs=GDN_EPOCHS,
+        )
+    return params
+
+
+def config_fingerprint(name: str, window_size: int) -> str:
+    """Short stable digest of config_params, used to key the cache directory."""
+    blob = repr(sorted(config_params(name, window_size).items())).encode()
+    return hashlib.sha256(blob).hexdigest()[:10]
+
+
+def cache_path(name: str, chan_id: str, window_size: int) -> Path:
+    """Location of one channel's cached scores for a configuration."""
+    tag = f"{name.replace('@', '_at_')}-{config_fingerprint(name, window_size)}"
+    return SCORES_DIR / tag / f"{chan_id}.npz"
+
+
+def save_scores(name, chan_id, window_size, scores, truth) -> None:
+    """Persist a channel's point scores, ground truth, and the settings used."""
+    path = cache_path(name, chan_id, window_size)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(
+        path, scores=scores, truth=truth, params=repr(config_params(name, window_size))
+    )
+    params_file = path.parent / "params.txt"
+    if not params_file.exists():
+        params_file.write_text(repr(config_params(name, window_size)), encoding="utf-8")
+
+
+def load_scores(name: str, chan_id: str, window_size: int):
+    """Read a channel's cached scores, or None when it was never written."""
+    path = cache_path(name, chan_id, window_size)
+    if not path.exists():
+        return None
+    with np.load(path) as data:
+        return data["scores"], data["truth"]
+
+
 def run_config(name: str, dims: str, make_detector, window_size: int, labels) -> dict | None:
-    """Run one configuration across all channels; return its aggregate metrics."""
-    print(f"\n=== {name}  (dims={dims}, window={window_size}) ===")
+    """
+    Run one configuration across all channels; return its aggregate metrics.
+
+    Scores come from training a detector, or from the cache when
+    TAD_BENCH_FROM_CACHE is set. Re-scoring from cache needs neither the dataset
+    nor torch, so a metric change is seconds rather than a full retrain.
+    """
+    source = "cache" if FROM_CACHE else "training"
+    tag = f", id={config_fingerprint(name, window_size)}" if SCORES_DIR is not None else ""
+    print(f"\n=== {name}  (dims={dims}, window={window_size}, from {source}{tag}) ===")
     if VERBOSE:
         print(f"{'channel':>8}  {'precision':>9}  {'recall':>6}  {'F1':>6}")
         print("-" * 36)
@@ -180,7 +388,14 @@ def run_config(name: str, dims: str, make_detector, window_size: int, labels) ->
     all_truth: list[np.ndarray] = []
     per_channel_f1: list[float] = []
     for _, row in labels.iterrows():
-        result = score_channel(row["chan_id"], row["sequences"], dims, make_detector, window_size)
+        if FROM_CACHE:
+            result = load_scores(name, row["chan_id"], window_size)
+        else:
+            result = score_channel(
+                row["chan_id"], row["sequences"], dims, make_detector, window_size
+            )
+            if result is not None and SCORES_DIR is not None:
+                save_scores(name, row["chan_id"], window_size, *result)
         if result is None:
             continue
         scores, truth = result
@@ -192,7 +407,13 @@ def run_config(name: str, dims: str, make_detector, window_size: int, labels) ->
             print(f"{row['chan_id']:>8}  {b['precision']:9.3f}  {b['recall']:6.3f}  {b['f1']:6.3f}")
 
     if not all_scores:
-        print("  (no channels produced results)")
+        if FROM_CACHE:
+            # An empty cache read almost always means the settings differ from
+            # the run that populated it, which changes the fingerprint.
+            print(f"  (nothing cached under {cache_path(name, '<channel>', window_size).parent})")
+            print("   check that the hyperparameters match the run that wrote the cache")
+        else:
+            print("  (no channels produced results)")
         return None
 
     scores = np.concatenate(all_scores)
@@ -201,18 +422,37 @@ def run_config(name: str, dims: str, make_detector, window_size: int, labels) ->
     overall["per_channel_f1"] = float(np.mean(per_channel_f1))
     overall["n_channels"] = len(all_scores)
 
+    # Threshold-free and operating-point metrics. Point-adjusted F1 is retained
+    # for comparability with published SMAP results, but it is inflated by the
+    # adjustment, so it is reported beside metrics that are not.
+    overall["pr_auc"] = pr_auc(scores, truth)
+    overall["base_rate"] = float(truth.mean())
+    fa = false_alarm_rate_at_recall(scores, truth, target_recall=TARGET_RECALL)
+    overall["false_alarm_rate"] = fa["false_alarm_rate"]
+
     print(
         f"  global best-F1: {overall['f1']:.3f}  "
         f"(P={overall['precision']:.3f} R={overall['recall']:.3f})   "
         f"per-channel mean best-F1: {overall['per_channel_f1']:.3f}   "
         f"[{overall['n_channels']} channels]"
     )
+    print(
+        f"  PR-AUC: {overall['pr_auc']:.3f} (random = {overall['base_rate']:.3f})   "
+        f"false alarms at R={TARGET_RECALL:.2f}: {overall['false_alarm_rate']:.3f}"
+    )
     return overall
 
 
 def main() -> None:
+    if FROM_CACHE and SCORES_DIR is None:
+        raise SystemExit("TAD_BENCH_FROM_CACHE=1 requires TAD_BENCH_SCORES_DIR.")
+
     labels_csv = find_labels_csv()
-    if not DATA_DIR or not (DATA_DIR / "test").exists() or labels_csv is None:
+    # Re-scoring from cache needs the labels file for the channel list, but not
+    # the .npy dataset: the point scores and ground truth are already saved.
+    if labels_csv is None or (
+        not FROM_CACHE and (not DATA_DIR or not (DATA_DIR / "test").exists())
+    ):
         raise SystemExit(
             "SMAP dataset not found. Set TAD_SMAP_DIR (and optionally "
             "TAD_SMAP_LABELS). See examples/smap_demo.py for the layout.\n"
@@ -224,17 +464,23 @@ def main() -> None:
     if MAX_CHANNELS > 0:
         labels = labels.head(MAX_CHANNELS)
 
+    configs = select_configs()
+
     print(f"Benchmarking {len(labels)} SMAP channels (step={STEP})")
     print("Metric: best-threshold point-adjusted F1 (standard SMAP protocol)")
-    if not TORCH_AVAILABLE:
+    print(f"Configurations: {', '.join(name for name, *_ in configs)}")
+    if SCORES_DIR is not None:
+        print(f"Score cache: {SCORES_DIR}" + ("  (reading)" if FROM_CACHE else "  (writing)"))
+    # Cached scores are plain arrays, so re-scoring never needs torch.
+    if not TORCH_AVAILABLE and not FROM_CACHE and any(name in NEEDS_TORCH for name, *_ in configs):
         print(
-            "Note: torch not installed -> gdn@all will be skipped. "
-            "Install the deep extra to include GDN: uv sync --extra deep"
+            "Note: torch not installed -> the graph detector rows will be skipped. "
+            "Install the deep extra to include them: uv sync --extra deep"
         )
 
     results: dict[str, dict] = {}
-    for name, dims, make_detector, window_size in CONFIGS:
-        if name.startswith("gdn") and not TORCH_AVAILABLE:
+    for name, dims, make_detector, window_size in configs:
+        if name in NEEDS_TORCH and not TORCH_AVAILABLE and not FROM_CACHE:
             continue
         outcome = run_config(name, dims, make_detector, window_size, labels)
         if outcome is not None:
@@ -243,16 +489,27 @@ def main() -> None:
     # Final side-by-side comparison.
     print("\n" + "=" * 60)
     print("SUMMARY  (best-threshold point-adjusted F1, oracle upper bound)")
-    print(f"{'configuration':>20}  {'global F1':>9}  {'per-chan F1':>11}")
-    print("-" * 46)
+    print(
+        f"{'configuration':>20}  {'global F1':>9}  {'per-chan F1':>11}  {'PR-AUC':>7}  {'FA@R':>6}"
+    )
+    print("-" * 62)
     for name in results:
         r = results[name]
-        print(f"{name:>20}  {r['f1']:9.3f}  {r['per_channel_f1']:11.3f}")
+        print(
+            f"{name:>20}  {r['f1']:9.3f}  {r['per_channel_f1']:11.3f}  "
+            f"{r['pr_auc']:7.3f}  {r['false_alarm_rate']:6.3f}"
+        )
+    if results:
+        floor = next(iter(results.values()))["base_rate"]
+        print(f"{'PR-AUC floor (random)':>20}  {'':>9}  {'':>11}  {floor:7.3f}")
     print(
-        "\nNote: thresholds are chosen against the labels (standard SMAP 'best F1'"
-        "\nprotocol). Report as an oracle upper bound, not a deployed operating point."
-        "\nclassical@all is the same input control for a fair GDN comparison;"
-        "\nclassical@telemetry is the classical detectors' native best input."
+        "\nNote: point-adjusted F1 marks a whole anomaly segment as detected when any"
+        "\nsingle point inside it is flagged, and its threshold is chosen against the"
+        "\nlabels. On SMAP's long segments an uninformative detector therefore scores"
+        "\nhighly, which is what the random@all row demonstrates. PR-AUC is threshold"
+        "\nfree and equals the base rate for random scores, so read it as the honest"
+        "\nfigure and F1 only for comparability with published results. FA@R is the"
+        "\nfalse alarm rate at the target recall."
     )
 
 

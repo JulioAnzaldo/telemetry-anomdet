@@ -13,5 +13,6 @@ detector is fitted, so the base install can still import the models package.
 """
 
 from .gdn import GDN
+from .kan_gdn import KANGDN
 
-__all__ = ["GDN"]
+__all__ = ["GDN", "KANGDN"]

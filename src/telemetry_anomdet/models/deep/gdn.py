@@ -110,6 +110,7 @@ class GDN(BaseDetector):
         device: str | None = None,
         random_state: int | None = None,
         percentile: float = 95.0,
+        smoothing: float | None = None,
     ):
         super().__init__(percentile=percentile)
         self.embed_dim = embed_dim
@@ -120,6 +121,9 @@ class GDN(BaseDetector):
         self.scale = scale
         self.device = device
         self.random_state = random_state
+        if smoothing is not None and not (0.0 < smoothing <= 1.0):
+            raise ValueError(f"smoothing must lie in (0, 1], got {smoothing}")
+        self.smoothing = smoothing
 
         # Fit artifacts: set in fit()
         self.net = None
@@ -201,7 +205,47 @@ class GDN(BaseDetector):
                 pred = self.net(xb).cpu().numpy()
                 tb = target[start : start + self.batch_size]
                 errors.append(np.abs(pred - tb))
-        return np.concatenate(errors, axis=0)
+        stacked = np.concatenate(errors, axis=0)
+        # Smoothing lives here so that the training statistics in fit() and the
+        # scores at inference are derived from the same signal.
+        if self.smoothing is not None:
+            stacked = self.ewma(stacked, self.smoothing)
+        return stacked
+
+    @staticmethod
+    def ewma(errors: np.ndarray, alpha: float) -> np.ndarray:
+        """
+        Exponentially weighted moving average down the window (time) axis.
+
+        ``s_t = alpha * e_t + (1 - alpha) * s_{t-1}``, seeded with ``s_0 = e_0``
+        and applied independently per node. Smaller ``alpha`` means heavier
+        smoothing.
+
+        The recursion only looks backwards, so no future information reaches a
+        window's score and the training statistics stay leakage free. Smoothing
+        suppresses single-window spikes, which are the dominant source of
+        isolated false alarms in a forecasting detector.
+
+        Parameters
+        ----------
+        errors : np.ndarray, shape (n_windows, n_nodes)
+            Per-window, per-node errors, ordered in time.
+        alpha : float
+            Smoothing factor in (0, 1]. A value of 1.0 is the identity.
+
+        Returns
+        -------
+        np.ndarray
+            Smoothed errors, same shape as the input.
+        """
+        errors = np.asarray(errors, dtype=float)
+        if alpha >= 1.0 or errors.shape[0] < 2:
+            return errors
+        out = np.empty_like(errors)
+        out[0] = errors[0]
+        for t in range(1, errors.shape[0]):
+            out[t] = alpha * errors[t] + (1.0 - alpha) * out[t - 1]
+        return out
 
     def _deviation_score(self, errors: np.ndarray) -> np.ndarray:
         """
@@ -213,6 +257,22 @@ class GDN(BaseDetector):
         """
         normed = np.abs(errors - self._err_median_) / (self._err_iqr_ + 1e-9)
         return normed.max(axis=1)
+
+    def _build_net(self):
+        """
+        Construct the forecasting network. Subclasses override this to swap in a
+        different architecture (e.g. KAN-GAT) while reusing the whole fit /
+        scaling / deviation-scoring pipeline. Requires ``n_nodes_`` and
+        ``window_`` to be set (done at the top of ``fit``).
+        """
+        from ._net import GDNNet
+
+        return GDNNet(
+            n_nodes=self.n_nodes_,
+            window=self.window_,
+            embed_dim=self.embed_dim,
+            topk=self.topk,
+        )
 
     def fit(self, X: np.ndarray, y: np.ndarray | None = None) -> GDN:
         """
@@ -231,7 +291,6 @@ class GDN(BaseDetector):
         self : GDN
         """
         torch = _import_torch()
-        from ._net import GDNNet
 
         X = self._validate_X(X)
         if X.shape[1] < 2:
@@ -256,12 +315,7 @@ class GDN(BaseDetector):
         dataset = torch.utils.data.TensorDataset(ctx_t, tgt_t)
         loader = torch.utils.data.DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
 
-        self.net = GDNNet(
-            n_nodes=self.n_nodes_,
-            window=self.window_,
-            embed_dim=self.embed_dim,
-            topk=self.topk,
-        ).to(device)
+        self.net = self._build_net().to(device)
 
         optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
         loss_fn = torch.nn.MSELoss()
@@ -322,4 +376,5 @@ class GDN(BaseDetector):
             "lr": self.lr,
             "scale": self.scale,
             "percentile": self.percentile,
+            "smoothing": self.smoothing,
         }

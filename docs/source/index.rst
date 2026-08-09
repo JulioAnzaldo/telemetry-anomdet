@@ -46,6 +46,7 @@ Contents
    user_guide/glossary
    tutorials/real_time_example
    applications/cubesat_ops
+   applications/onboard_deployment
 
 .. toctree::
    :maxdepth: 2
