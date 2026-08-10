@@ -294,8 +294,8 @@ def evaluate_sequences(
 
     Contrast :func:`point_adjusted_f1`, which counts points and credits an
     entire labelled segment to a single flagged sample. That inflates a detector
-    that raises many short false alarms beside a few long true ones: the same
-    detector can read 0.71 point-adjusted and 0.13 here.
+    raising many short false alarms beside a few long true ones, sometimes by a
+    wide margin, so the two metrics can rank detectors differently.
 
     Arguments:
         predicted: Predicted ``(start, end)`` ranges, inclusive of both ends.
@@ -331,6 +331,29 @@ def evaluate_sequences(
     }
 
 
+def f_beta(precision: float, recall: float, beta: float = 1.0) -> float:
+    """
+    Weighted harmonic mean of precision and recall.
+
+    ``beta`` sets how much recall counts relative to precision: below 1 favours
+    precision, above 1 favours recall. ``beta = 0.5`` is what the telemanom
+    results report, and it suits a trigger whose false alarms are expensive.
+
+    Note that when precision and recall are equal, every ``beta`` returns that
+    same value, which is a useful check when reading published tables.
+
+    Arguments:
+        precision: Precision in [0, 1].
+        recall: Recall in [0, 1].
+        beta: Relative weight on recall.
+    Returns:
+        float: The F-beta score, or 0.0 when precision and recall are both zero.
+    """
+    b2 = beta * beta
+    denominator = (b2 * precision) + recall
+    return ((1 + b2) * precision * recall / denominator) if denominator else 0.0
+
+
 def sequence_prf(rows: Sequence[dict]) -> dict:
     """
     Aggregate per-channel :func:`evaluate_sequences` results, as telemanom does.
@@ -339,23 +362,27 @@ def sequence_prf(rows: Sequence[dict]) -> dict:
     rather than averaging per-channel rates. Channels that detect nothing then
     contribute their misses without also contributing a precision of zero.
 
+    Both ``f1`` and ``f_0.5`` are returned. The latter weights precision more
+    heavily and is the statistic the telemanom results headline.
+
     Arguments:
         rows: Per-channel dicts from :func:`evaluate_sequences`.
     Returns:
         dict: pooled ``true_positives``, ``false_positives``,
-        ``false_negatives``, and the derived ``precision``, ``recall``, ``f1``.
+        ``false_negatives``, and the derived ``precision``, ``recall``, ``f1``
+        and ``f_half``.
     """
     tp = sum(int(r["true_positives"]) for r in rows)
     fp = sum(int(r["false_positives"]) for r in rows)
     fn = sum(int(r["false_negatives"]) for r in rows)
     precision = tp / (tp + fp) if (tp + fp) else 0.0
     recall = tp / (tp + fn) if (tp + fn) else 0.0
-    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) else 0.0
     return {
         "true_positives": tp,
         "false_positives": fp,
         "false_negatives": fn,
         "precision": precision,
         "recall": recall,
-        "f1": f1,
+        "f1": f_beta(precision, recall, 1.0),
+        "f_half": f_beta(precision, recall, 0.5),
     }

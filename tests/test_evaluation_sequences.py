@@ -2,7 +2,7 @@
 
 import pytest
 
-from telemetry_anomdet.evaluation import evaluate_sequences, sequence_prf
+from telemetry_anomdet.evaluation import evaluate_sequences, f_beta, sequence_prf
 
 
 def test_exact_match():
@@ -84,3 +84,38 @@ def test_aggregate_reproduces_the_published_smap_totals():
 def test_aggregate_of_nothing_is_zero_not_an_error():
     got = sequence_prf([])
     assert got["precision"] == 0.0 and got["recall"] == 0.0 and got["f1"] == 0.0
+
+
+# ---------------------------------------------------------------------------
+# F-beta
+# ---------------------------------------------------------------------------
+
+
+def test_f_beta_equals_both_when_precision_matches_recall():
+    """
+    A published table showing P = R alongside a different F-beta is inconsistent.
+
+    Worth pinning: it is the check that caught an error in a reference table.
+    """
+    for beta in (0.5, 1.0, 2.0):
+        assert f_beta(0.855, 0.855, beta) == pytest.approx(0.855)
+
+
+def test_f_half_favours_precision():
+    high_precision = f_beta(0.9, 0.5, 0.5)
+    high_recall = f_beta(0.5, 0.9, 0.5)
+    assert high_precision > high_recall
+
+
+def test_f_one_is_symmetric():
+    assert f_beta(0.9, 0.5, 1.0) == pytest.approx(f_beta(0.5, 0.9, 1.0))
+
+
+def test_f_beta_of_nothing_is_zero():
+    assert f_beta(0.0, 0.0, 0.5) == 0.0
+
+
+def test_aggregate_reports_both_f_scores():
+    got = sequence_prf([{"true_positives": 62, "false_positives": 12, "false_negatives": 7}])
+    assert got["f1"] == pytest.approx(0.867, abs=0.001)
+    assert got["f_half"] == pytest.approx(0.849, abs=0.001)
