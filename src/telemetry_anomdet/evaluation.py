@@ -264,3 +264,98 @@ def false_alarm_rate_at_recall(
         "false_alarm_rate": float(fp[k]) / float(n_neg),
         "precision": float(tp[k]) / float(denom) if denom else 0.0,
     }
+
+
+# ---------------------------------------------------------------------------
+# Event-level scoring, matching the telemanom protocol
+# ---------------------------------------------------------------------------
+
+
+def evaluate_sequences(
+    predicted: Sequence[tuple[int, int]],
+    true_sequences: Sequence[tuple[int, int]],
+) -> dict:
+    """
+    Score predicted anomaly ranges against labelled ones, event by event.
+
+    This reproduces the scoring in Hundman et al.'s telemanom, so numbers are
+    directly comparable with the results published for SMAP and MSL. It is the
+    metric an operator experiences: how many real events were caught, and how
+    many times the system cried wolf.
+
+    The two sides are counted over different things, which is deliberate and
+    easy to get wrong. A **true positive** is a labelled sequence that some
+    prediction overlapped, so true positives and false negatives partition the
+    labelled sequences. A **false positive** is a *predicted* sequence that
+    overlapped nothing, so it is counted over predictions instead.
+
+    When one prediction spans several labelled sequences, only the first is
+    credited. A single alarm covering two events is one catch, not two.
+
+    Contrast :func:`point_adjusted_f1`, which counts points and credits an
+    entire labelled segment to a single flagged sample. That inflates a detector
+    that raises many short false alarms beside a few long true ones: the same
+    detector can read 0.71 point-adjusted and 0.13 here.
+
+    Arguments:
+        predicted: Predicted ``(start, end)`` ranges, inclusive of both ends.
+        true_sequences: Labelled ``(start, end)`` ranges, inclusive.
+    Returns:
+        dict: ``true_positives``, ``false_positives``, ``false_negatives``,
+        and the ``tp_sequences`` / ``fp_sequences`` that produced them.
+    """
+
+    def overlaps(a, b):
+        return not (a[1] < b[0] or a[0] > b[1])
+
+    matched: list[int] = []
+    tp_sequences: list[tuple[int, int]] = []
+    fp_sequences: list[tuple[int, int]] = []
+
+    for seq in predicted:
+        hits = [i for i, true in enumerate(true_sequences) if overlaps(seq, true)]
+        if hits:
+            tp_sequences.append(tuple(seq))
+            # Only the first labelled sequence a prediction reaches is credited.
+            if hits[0] not in matched:
+                matched.append(hits[0])
+        else:
+            fp_sequences.append(tuple(seq))
+
+    return {
+        "true_positives": len(matched),
+        "false_positives": len(fp_sequences),
+        "false_negatives": len(true_sequences) - len(matched),
+        "tp_sequences": tp_sequences,
+        "fp_sequences": fp_sequences,
+    }
+
+
+def sequence_prf(rows: Sequence[dict]) -> dict:
+    """
+    Aggregate per-channel :func:`evaluate_sequences` results, as telemanom does.
+
+    Counts are pooled across channels before precision and recall are computed,
+    rather than averaging per-channel rates. Channels that detect nothing then
+    contribute their misses without also contributing a precision of zero.
+
+    Arguments:
+        rows: Per-channel dicts from :func:`evaluate_sequences`.
+    Returns:
+        dict: pooled ``true_positives``, ``false_positives``,
+        ``false_negatives``, and the derived ``precision``, ``recall``, ``f1``.
+    """
+    tp = sum(int(r["true_positives"]) for r in rows)
+    fp = sum(int(r["false_positives"]) for r in rows)
+    fn = sum(int(r["false_negatives"]) for r in rows)
+    precision = tp / (tp + fp) if (tp + fp) else 0.0
+    recall = tp / (tp + fn) if (tp + fn) else 0.0
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) else 0.0
+    return {
+        "true_positives": tp,
+        "false_positives": fp,
+        "false_negatives": fn,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
+    }
