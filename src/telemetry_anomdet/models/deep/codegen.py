@@ -143,8 +143,13 @@ enum {
     N_NODES = ${n_nodes},
     EMBED   = ${embed_dim},
     WINDOW  = ${window},
-    N_NBR   = ${n_nbr}
+    N_NBR   = ${n_nbr},
+    N_SCORE = ${n_score}
 };
+
+/* Channels allowed to raise an alarm. Every channel still feeds the graph and
+   the forecast; only these contribute to the deviation score. */
+${score_channels}
 
 static const ${real} LEAKY = ${leaky};
 /* Any score beyond this is treated as corruption rather than an anomaly. */
@@ -413,16 +418,17 @@ static int kan_aggregate(const ${real} *node_h, const ${real} *att_src,
 static int kan_deviation(const ${real} *node_z, const ${real} *target, ${real} *out_score)
 {
     ${real} best = (${real})0;
-    int i;
+    int k;
     int status;
 
     if ((node_z == NULL) || (target == NULL) || (out_score == NULL)) {
         return ${up}_ERR_NULL;
     }
-    ${up}_ASSERT(N_NODES > 0);
+    ${up}_ASSERT(N_SCORE > 0);
     ${up}_ASSERT(SCORE_LIMIT > (${real})0);
 
-    for (i = 0; i < N_NODES; ++i) {
+    for (k = 0; k < N_SCORE; ++k) {
+        const int i = (int)score_channels[k];
         ${real} pred = (${real})0;
         ${real} err;
         ${real} normed;
@@ -728,6 +734,11 @@ def generate_c(
     if dtype not in ("float", "double"):
         raise ValueError(f"dtype must be 'float' or 'double', got {dtype!r}")
     real = dtype
+    score_channels = extracted.get("score_channels")
+    if score_channels is None:
+        score_channels = list(range(int(extracted["net"]["n_nodes"])))
+    score_channels = [int(c) for c in score_channels]
+
     if extracted.get("smoothing") is not None:
         # EWMA carries one value of state per node between windows. The emitted
         # entry points are pure functions of a single window, so supporting it
@@ -775,6 +786,15 @@ def generate_c(
             embed_dim=embed_dim,
             window=window,
             n_nbr=n_nbr,
+            n_score=len(score_channels),
+            score_channels=(
+                f"static const unsigned char score_channels[{len(score_channels)}] = {{\n"
+                + ",\n".join(
+                    "    " + ", ".join(str(c) for c in score_channels[i : i + 12])
+                    for i in range(0, len(score_channels), 12)
+                )
+                + "\n};\n"
+            ),
             leaky=_fmt(net["leaky_slope"], digits, suffix),
             score_limit=_fmt(1.0e9, digits, suffix),
         ),

@@ -357,6 +357,7 @@ def extract_kan_gdn(detector) -> dict:
         "err_iqr": np.asarray(detector._err_iqr_, dtype=float),
         "threshold": float(detector.threshold_),
         "smoothing": getattr(detector, "smoothing", None),
+        "score_channels": getattr(detector, "score_channels", None),
     }
 
 
@@ -390,6 +391,7 @@ class KANGDNNumpy:
         self.err_iqr = np.asarray(extracted["err_iqr"], dtype=float)
         self.threshold = float(extracted["threshold"])
         self.smoothing = extracted.get("smoothing")
+        self.score_channels = extracted.get("score_channels")
 
     def _scale(self, X: np.ndarray) -> np.ndarray:
         """Apply the per-channel standardiser (identity when unscaled)."""
@@ -429,6 +431,8 @@ class KANGDNNumpy:
         """
         errors = self.forecast_errors(X)
         normed = np.abs(errors - self.err_median) / (self.err_iqr + 1e-9)
+        if self.score_channels is not None:
+            normed = normed[:, self.score_channels]
         return normed.max(axis=1)
 
     def predict(self, X: np.ndarray) -> np.ndarray:

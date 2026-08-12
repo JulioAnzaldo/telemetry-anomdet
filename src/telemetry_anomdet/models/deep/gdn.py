@@ -23,6 +23,8 @@ torch is an optional dependency. Install the deep extra to use this detector::
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
@@ -74,6 +76,20 @@ class GDN(BaseDetector):
         Seed for torch and numpy RNGs, for reproducible training.
     percentile : float, default=95.0
         Percentile of training deviation scores used to set ``threshold_``.
+    score_channels : sequence of int, optional
+        Which feature channels may raise an alarm. Every channel still feeds
+        the graph and the forecast; this restricts only the deviation score.
+        Defaults to all of them.
+
+        The distinction matters whenever a record mixes continuous sensors with
+        discrete status, mode or command channels. A discrete channel produces a
+        large forecast error every time it switches, which is a state change
+        rather than a fault, so letting it into the score raises an alarm on
+        normal operation. Such channels are still worth feeding to the model,
+        because they carry context that improves the forecast.
+
+        Choosing them well can outweigh any thresholding decision; see the
+        anomaly scoring page of the documentation for the measured effect.
 
     Attributes (set after fit)
     --------------------------
@@ -111,6 +127,7 @@ class GDN(BaseDetector):
         random_state: int | None = None,
         percentile: float = 95.0,
         smoothing: float | None = None,
+        score_channels: Sequence[int] | None = None,
     ):
         super().__init__(percentile=percentile)
         self.embed_dim = embed_dim
@@ -124,6 +141,15 @@ class GDN(BaseDetector):
         if smoothing is not None and not (0.0 < smoothing <= 1.0):
             raise ValueError(f"smoothing must lie in (0, 1], got {smoothing}")
         self.smoothing = smoothing
+        if score_channels is not None:
+            score_channels = [int(c) for c in score_channels]
+            if not score_channels:
+                raise ValueError("score_channels must not be empty")
+            if len(set(score_channels)) != len(score_channels):
+                raise ValueError(f"score_channels contains duplicates: {score_channels}")
+            if any(c < 0 for c in score_channels):
+                raise ValueError(f"score_channels must be non-negative: {score_channels}")
+        self.score_channels = score_channels
 
         # Fit artifacts: set in fit()
         self.net = None
@@ -252,10 +278,17 @@ class GDN(BaseDetector):
         Collapse per-node errors to a single graph deviation score per window.
 
         Each node's error is normalised by its training median and IQR, then the
-        maximum across nodes is taken (the sensor deviating most drives the
-        window score).
+        maximum is taken over the scoring channels (the sensor deviating most
+        drives the window score).
+
+        Which channels contribute is set by ``score_channels``. Every channel
+        still informs the graph and the forecast; this selects only which
+        deviations are allowed to raise an alarm. See the constructor for why
+        that distinction matters.
         """
         normed = np.abs(errors - self._err_median_) / (self._err_iqr_ + 1e-9)
+        if self.score_channels is not None:
+            normed = normed[:, self.score_channels]
         return normed.max(axis=1)
 
     def _build_net(self):
@@ -331,6 +364,13 @@ class GDN(BaseDetector):
                 loss.backward()
                 optimizer.step()
 
+        if self.score_channels is not None:
+            beyond = [c for c in self.score_channels if c >= self.n_nodes_]
+            if beyond:
+                raise ValueError(
+                    f"score_channels {beyond} exceed the {self.n_nodes_} fitted channels"
+                )
+
         # Per-node training-error statistics for deviation normalisation.
         errors = self._forecast_errors(X)  # (n_windows, n_nodes)
         self._err_median_ = np.median(errors, axis=0)
@@ -377,4 +417,5 @@ class GDN(BaseDetector):
             "scale": self.scale,
             "percentile": self.percentile,
             "smoothing": self.smoothing,
+            "score_channels": self.score_channels,
         }
