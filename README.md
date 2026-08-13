@@ -1,14 +1,16 @@
 <h2 align="center">telemetry-anomdet</h2>
 
 <p align="center">
-  <a href="https://julioanzaldo.github.io/telemetry-anomdet/"><img alt="Documentation" src="https://img.shields.io/badge/docs-online-blue"></a>
+  <a href="https://julioanzaldo.github.io/telemetry-anomdet/"><img alt="Documentation" src="https://img.shields.io/badge/Docs-Online-blue"></a>
   <a href="https://test.pypi.org/project/telemetry-anomdet/"><img alt="Test PyPI" src="https://img.shields.io/badge/Test-PyPI-yellow"></a>
-  <a href="https://pypi.org/project/telemetry-anomdet/"><img alt="PyPI" src="https://img.shields.io/pypi/v/telemetry-anomdet"></a>
-  <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/JulioAnzaldo/telemetry-anomdet/actions/workflows/ci.yml/badge.svg?branch=main"></a>
-  <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-blue"></a>
+  <a href="https://pypi.org/project/telemetry-anomdet/"><img alt="PyPI" src="https://img.shields.io/PyPi/v/telemetry-anomdet"></a>
+  <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/actions/workflows/ci.yml"><img alt="Testing" src="https://github.com/JulioAnzaldo/telemetry-anomdet/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue"></a>
 </p>
 
-**telemetry-anomdet** is an open-source anomaly detection toolkit for spacecraft telemetry. It runs a stacking ensemble of classical and deep learning detectors with per-channel SHAP attribution, SymTorch symbolic fault expressions, and LLM-generated diagnostic reports.
+**telemetry-anomdet** is an open-source anomaly detection toolkit for spacecraft telemetry. It runs classical and graph-based deep detectors behind one interface, selects alarm thresholds without labels, and distills a trained detector down to Power of Ten conformant C that runs on flight hardware. Per-channel SHAP attribution and LLM-generated diagnostic reports are on the roadmap.
+
+Benchmarked on SMAP (NASA), with MSL (NASA) and ESA-ADB (ESA) as additional targets.
 
 ---
 
@@ -32,6 +34,13 @@ uv add telemetry-anomdet
 
 # or with pip
 pip install telemetry-anomdet
+```
+
+The base install is torch-free. The deep detectors (`GDN`, `KANGDN`) need the
+`deep` extra:
+
+```bash
+uv add "telemetry-anomdet[deep]"
 ```
 
 ## Example Usage
@@ -82,6 +91,33 @@ components = ensemble.score_components(X_test)
 # {"pca": array(100,), "kmeans": array(100,)}
 ```
 
+### Getting the SMAP dataset
+
+The benchmarks and examples need a local copy of the NASA SMAP/MSL data, which
+is not redistributed with the toolkit. From the root of the repo:
+
+```bash
+pip install kaggle
+
+# Requires a Kaggle API key in ~/.kaggle/kaggle.json
+kaggle datasets download -d patrickfleith/nasa-anomaly-detection-dataset-smap-msl \
+  && mv nasa-anomaly-detection-dataset-smap-msl.zip data.zip \
+  && unzip -o data.zip \
+  && rm data.zip \
+  && mv data/data tmp && rm -r data && mv tmp data
+```
+
+That leaves `data/train/`, `data/test/` and `labeled_anomalies.csv`. Point the
+examples at it:
+
+```bash
+export TAD_SMAP_DIR=data          # Windows: $env:TAD_SMAP_DIR = "data"
+python examples/smap_demo.py
+python examples/smap_benchmark.py
+```
+
+Datasets are never committed; `data/` is gitignored.
+
 ### Coming in Phase 3+
 
 ```python
@@ -106,6 +142,10 @@ components = ensemble.score_components(X_test)
 **Available now**
 
 - **One interface for every detector.** Classical and deep detectors share the same `fit` / `decision_function` / `predict` / `is_anomaly` API, so stacking or swapping models needs no per-model glue.
+- **Graph deviation detectors.** `GDN` and `KANGDN` forecast each channel from its learned top-k neighbours and score the deviation, catching readings that are individually plausible but wrong in relation to each other.
+- **Alarms without labels.** `threshold_for_budget` and `dynamic_threshold` pick an operating point from the score distribution alone. Operations can state an alarm rate; they cannot state a recall they have no way to observe.
+- **Honest evaluation.** Event-level scoring alongside the conventional point-adjusted F1, plus a random baseline row in the benchmark, because point-adjusted F1 rates uniform random noise above every trained configuration on SMAP.
+- **Runs on flight hardware.** A fitted `KANGDN` distills to a torch-free NumPy evaluator, then to Power of Ten conformant C with golden vectors. Host and ESP32-S3 targets are in [`targets/`](targets/).
 - **Stacking ensemble** with robust (median + IQR) score normalization, built for anomaly scores that are extreme by definition.
 - **Per-model score decomposition** via `score_components()`, the hook that enables per-channel attribution without retraining.
 - **Spacecraft-native ingestion.** SMAP and CSV load straight into a long-form `TelemetryDataset`, no schema wrangling.
@@ -113,12 +153,12 @@ components = ensemble.score_components(X_test)
 
 **On the roadmap**
 
-- `GDN` and `TranAD` deep detectors: inter-sensor relational and transformer-reconstruction faults (Phase 2)
+- `TranAD`: transformer-based sequence reconstruction
 - `SHAPExplainer`: per-channel attribution over `score_components()` (Phase 3)
 - LLM diagnostic reports, SHAP chart supplied as an image (Phase 4)
 - Human-in-the-loop threshold feedback (Phase 5)
-- OPS-SAT cross-dataset generalization (Phase 6)
-- SymTorch symbolic distillation to closed-form fault expressions for edge / microcontroller deployment (stretch)
+- MSL results, using the existing SMAP loader (`spacecraft = "MSL"`)
+- ESA-ADB evaluation: the multivariate benchmark (Phase 6)
 
 ## Getting Help
 

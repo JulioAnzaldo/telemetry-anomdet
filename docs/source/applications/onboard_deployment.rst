@@ -390,6 +390,26 @@ flags exactly right, and reports timing and memory.
 See ``targets/README.md`` for the per target instructions.
 
 
+Provenance and interface stability
+----------------------------------
+
+Flight software has to be traceable to what produced it, so every generated file
+records the toolkit version that emitted it in its banner, and ``kangdn.h``
+exposes it as ``KANGDN_VERSION`` for a running build to report. Record that
+version alongside any artifact that is flashed or flown.
+
+The generated interface is unstable until version 1.0.0. Symbol names, macros
+and entry point signatures may change in any 0.x release, per the
+`Semantic Versioning <https://semver.org/>`_ rule for major version zero.
+Upgrading means regenerating and rebuilding rather than hand-patching, then
+re-running the golden vectors, which are regenerated with the sources and are
+the evidence that the new version behaves as the old one did.
+
+Generation is deterministic and carries no timestamp. The same fitted detector
+reproduces the sources byte for byte, so a diff shows only real changes and a
+build is reproducible from a stored detector.
+
+
 Open items
 ----------
 
