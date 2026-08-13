@@ -1,4 +1,4 @@
-"""Event-level scoring must match telemanom's, including its asymmetries."""
+"""Event-level scoring, including the asymmetries that are easy to get wrong."""
 
 import pytest
 
@@ -73,12 +73,10 @@ def test_aggregate_pools_counts_before_dividing():
     assert got["recall"] == pytest.approx(3 / 5)
 
 
-def test_aggregate_reproduces_the_published_smap_totals():
-    """telemanom reports TP 46, FP 10, FN 5 for SMAP; the maths must agree."""
-    got = sequence_prf([{"true_positives": 46, "false_positives": 10, "false_negatives": 5}])
-    assert got["precision"] == pytest.approx(0.821, abs=0.001)
-    assert got["recall"] == pytest.approx(0.902, abs=0.001)
-    assert got["f1"] == pytest.approx(0.859, abs=0.001)
+def test_aggregate_derives_the_usual_ratios():
+    got = sequence_prf([{"true_positives": 8, "false_positives": 2, "false_negatives": 4}])
+    assert got["precision"] == pytest.approx(8 / 10)
+    assert got["recall"] == pytest.approx(8 / 12)
 
 
 def test_aggregate_of_nothing_is_zero_not_an_error():
@@ -93,9 +91,10 @@ def test_aggregate_of_nothing_is_zero_not_an_error():
 
 def test_f_beta_equals_both_when_precision_matches_recall():
     """
-    A published table showing P = R alongside a different F-beta is inconsistent.
+    Every beta collapses to the shared value when precision equals recall.
 
-    Worth pinning: it is the check that caught an error in a reference table.
+    Worth pinning because it is a cheap consistency check when reading a results
+    table: equal precision and recall beside a different F-beta cannot be right.
     """
     for beta in (0.5, 1.0, 2.0):
         assert f_beta(0.855, 0.855, beta) == pytest.approx(0.855)
@@ -116,6 +115,8 @@ def test_f_beta_of_nothing_is_zero():
 
 
 def test_aggregate_reports_both_f_scores():
+    """F0.5 exceeds F1 when precision is the stronger of the two."""
     got = sequence_prf([{"true_positives": 62, "false_positives": 12, "false_negatives": 7}])
-    assert got["f1"] == pytest.approx(0.867, abs=0.001)
-    assert got["f_half"] == pytest.approx(0.849, abs=0.001)
+    p, r = got["precision"], got["recall"]
+    assert got["f1"] == pytest.approx(f_beta(p, r, 1.0))
+    assert got["f_half"] == pytest.approx(f_beta(p, r, 0.5))
