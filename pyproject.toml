@@ -1,9 +1,10 @@
 [project]
 name = "telemetry-anomdet"
-version = "0.1.0"
-description = "Telemetry anomaly detection toolkit with preprocessing, feature extraction, and unsupervised models."
+version = "0.2.0"
+description = "Spacecraft telemetry anomaly detection: classical and graph deep detectors, label-free thresholding, and distillation to C for flight hardware."
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 authors = [
   { name = "Julio Anzaldo", email = "anzaldojuliojesus@gmail.com" }
@@ -12,24 +13,33 @@ dependencies = [
   "pandas>=2.2.2,<3.0.0",
   "numpy>=2.1,<3.0",
   "scikit-learn>=1.3,<2.0",
-  "click>=8.4.2,<9.0",
   "typing-extensions>=4.16.0",
 ]
 keywords = ["telemetry", "anomaly-detection", "machine-learning", "python"]
+# License is declared as an SPDX expression above, not a classifier: license
+# classifiers are deprecated and setuptools warns on them.
 classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
-  "Operating System :: OS Independent",
-  "Topic :: Software Development :: Libraries",
+  # The toolkit is pure Python; the artifact it generates for flight targets is C.
+  "Programming Language :: C",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
-  "Intended Audience :: Science/Research",
-  "Intended Audience :: Developers",
-  "Development Status :: 3 - Alpha",
-  "License :: OSI Approved :: Apache Software License",
-  "Typing :: Typed"
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Topic :: Scientific/Engineering :: Astronomy",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Software Development :: Embedded Systems",
+  "Topic :: Software Development :: Code Generators",
+  "Topic :: System :: Monitoring",
+  "Typing :: Typed",
 ]
 
 [project.optional-dependencies]
@@ -55,6 +65,9 @@ docs = [
   "sphinx-rtd-theme>=2.0",
   "sphinx-autodoc-typehints>=2.0",
   "numpydoc>=1.7",
+  "sphinx-sitemap>=2.6",
+  "sphinxext-opengraph>=0.9",
+  "sphinx-notfound-page>=1.0",
 ]
 # Phase 3
 # xai = [

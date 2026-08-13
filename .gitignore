@@ -65,3 +65,7 @@ targets/host/conformance.exe
 targets/*/build/
 targets/*/sdkconfig
 targets/*/sdkconfig.old
+
+# SMAP/MSL dataset, downloaded per the README. Never commit datasets.
+data/
+labeled_anomalies.csv
