@@ -3,14 +3,14 @@
 <p align="center">
   <a href="https://julioanzaldo.github.io/telemetry-anomdet/"><img alt="Documentation" src="https://img.shields.io/badge/Docs-Online-blue"></a>
   <a href="https://test.pypi.org/project/telemetry-anomdet/"><img alt="Test PyPI" src="https://img.shields.io/badge/Test-PyPI-yellow"></a>
-  <a href="https://pypi.org/project/telemetry-anomdet/"><img alt="PyPI" src="https://img.shields.io/PyPi/v/telemetry-anomdet"></a>
-  <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/actions/workflows/ci.yml"><img alt="Testing" src="https://github.com/JulioAnzaldo/telemetry-anomdet/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="https://pypi.org/project/telemetry-anomdet/"><img alt="PyPI" src="https://img.shields.io/pypi/v/telemetry-anomdet?label=PyPi"></a>
+  <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/actions/workflows/ci.yml"><img alt="Testing" src="https://img.shields.io/github/actions/workflow/status/JulioAnzaldo/telemetry-anomdet/ci.yml?branch=main&label=Testing"></a>
   <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue"></a>
 </p>
 
 **telemetry-anomdet** is an open-source anomaly detection toolkit for spacecraft telemetry. It runs classical and graph-based deep detectors behind one interface, selects alarm thresholds without labels, and distills a trained detector down to Power of Ten conformant C that runs on flight hardware. Per-channel SHAP attribution and LLM-generated diagnostic reports are on the roadmap.
 
-Benchmarked on SMAP (NASA), with MSL (NASA) and ESA-ADB (ESA) as additional targets.
+Benchmarked on SMAP (NASA). MSL (NASA) and ESA-ADB (ESA) results land in v0.3.0.
 
 ---
 
@@ -157,8 +157,8 @@ Datasets are never committed; `data/` is gitignored.
 - `SHAPExplainer`: per-channel attribution over `score_components()` (Phase 3)
 - LLM diagnostic reports, SHAP chart supplied as an image (Phase 4)
 - Human-in-the-loop threshold feedback (Phase 5)
-- MSL results, using the existing SMAP loader (`spacecraft = "MSL"`)
-- ESA-ADB evaluation: the multivariate benchmark (Phase 6)
+- MSL results, using the existing SMAP loader (`spacecraft = "MSL"`) (v0.3.0)
+- ESA-ADB evaluation: the multivariate benchmark that exercises the graph (v0.3.0)
 
 ## Getting Help
 

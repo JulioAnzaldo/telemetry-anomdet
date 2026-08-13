@@ -15,10 +15,17 @@ the roadmap; *(reference)*: informs the design or serves as a benchmark.
   *Detecting Spacecraft Anomalies Using LSTMs and Nonparametric Dynamic Thresholding.*
   KDD '18, 387–395. https://doi.org/10.1145/3219819.3219845
 
-- **GDN: Graph Deviation Network** *(planned for Phase 2)*: learns inter-sensor
+- **GDN: Graph Deviation Network** *(implemented)*: learns inter-sensor
   relationships and scores relational deviations invisible to univariate methods.
   Deng, A., & Hooi, B. (2021). *Graph Neural Network-Based Anomaly Detection in
   Multivariate Time Series.* AAAI 2021. https://arxiv.org/abs/2106.06947
+
+- **KAN: Kolmogorov-Arnold Networks** *(implemented)*: replaces fixed activations with
+  learnable univariate splines on the edges. `KANGDN` uses KAN layers in place of GDN's
+  MLPs; the learned splines are what make the torch-free distillation and the generated
+  C tractable.
+  Liu, Z., Wang, Y., Vaidya, S., Ruehle, F., Halverson, J., Soljačić, M., Hou, T. Y., &
+  Tegmark, M. (2025). *KAN: Kolmogorov-Arnold Networks.* https://arxiv.org/abs/2404.19756
 
 - **TranAD** *(planned for Phase 2)*: dual-phase transformer reconstruction over raw windows.
   Tuli, S., Casale, G., & Jennings, N. R. (2022). *TranAD: Deep Transformer Networks for
@@ -61,7 +68,17 @@ the roadmap; *(reference)*: informs the design or serves as a benchmark.
 
 - **SMAP: Soil Moisture Active Passive** *(primary)*: NASA spacecraft telemetry,
   released with Hundman et al. (2018).
-- **OPS-SAT** *(cross-dataset generalization)*: ESA mission telemetry.
+- **MSL: Mars Science Laboratory** *(planned for v0.3.0)*: the second spacecraft in the telemanom
+  release, sharing SMAP's format and loader. Same univariate structure as SMAP, so it
+  broadens the comparison rather than testing a different regime.
+- **ESA-ADB: ESA Anomaly Detection Benchmark** *(planned for v0.3.0)*: annotated real telemetry from
+  ESA missions, genuinely multivariate and over 700 million points per mission. This is
+  the dataset that exercises the inter-sensor relationships GDN and KANGDN are built for,
+  which SMAP and MSL cannot.
+  Kotowski, K., Haskamp, C., Andrzejewski, J., Ruszczak, B., Nalepa, J., Lakey, D.,
+  Collins, P., Kolmas, A., Bartesaghi, M., Martinez-Heras, J., & De Canio, G. (2024).
+  *European Space Agency Benchmark for Anomaly Detection in Satellite Telemetry.*
+  https://arxiv.org/abs/2406.17826
 
 ## Surveys & standards
 

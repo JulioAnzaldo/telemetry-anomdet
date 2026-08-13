@@ -24,7 +24,7 @@ class AnomalyEnsemble(BaseDetector):
     Parameters
     ----------
     models : Mapping[str, BaseDetector]
-        Named detectors to include in the ensemble. Example:
+        Named detectors to include in the ensemble. Example::
 
             {
                 "pca":    PCAAnomaly(n_components = 10),
