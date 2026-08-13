@@ -1,13 +1,27 @@
 """
 SMAP detector benchmark: classical baselines vs the graph detectors.
 
-Reports point adjusted F1. For each channel it trains on the nominal train split
-and scores the test split, sweeps thresholds, and reports the best point-adjusted
-F1. Because the threshold is selected against the labels, treat every number as
-an oracle threshold upper bound, not a deployable operating point.
+Reports two families of metric, because they disagree sharply and only one of
+them describes something deployable.
 
-Four configurations are run so the comparison is honest (see the ``dims`` note):
+**Event level** is the headline, and matches how telemanom scores its published
+SMAP results: a labelled anomaly counts once if any prediction overlaps it, and
+each prediction overlapping nothing counts once against precision. The threshold
+behind it is chosen without labels. These numbers are comparable with the
+literature and with what an operator would experience.
 
+**Point level** (global and per-channel F1, PR-AUC, false alarm rate) is kept for
+continuity. Point-adjusted F1 in particular credits an entire labelled segment to
+a single flagged sample and picks its threshold against the labels, so on SMAP an
+uninformative detector scores highly; the random@all row exists to show it.
+
+The configurations below are run so the comparison is honest (see the ``dims``
+note), with ``random@all`` present as the floor every other row is read against:
+
+    random@all           Uniform random scores. Not a detector, but the floor
+                         every other row has to clear. Under point-adjusted F1 it
+                         outscores trained configurations, which is the clearest
+                         demonstration of why the event-level columns lead.
     classical@telemetry  PCA + KMeans ensemble on the telemetry column only.
                          This is the original classical baseline; its numbers are
                          unchanged from prior releases.
@@ -24,6 +38,15 @@ Four configurations are run so the comparison is honest (see the ``dims`` note):
                          ``embed_dim**2 * (grid_size + spline_order)``, so the
                          smallest configuration that holds its F1 is the one worth
                          exporting.
+    kangdn@telemetry     The same detector on the telemetry dimension alone, so
+                         there is no graph and no command context. This is a
+                         control that isolates what the graph contributes on this
+                         dataset, not a recommended configuration: a SMAP record
+                         holds one real sensor and 24 command flags, so there is
+                         little for a graph to relate. The inter-sensor
+                         relationships it exists to capture are what contextual
+                         anomalies turn on, and those need a genuinely
+                         multi-sensor system to show up.
 
 Running one row at a time: set ``TAD_BENCH_CONFIGS`` to a comma-separated list of
 configuration names. A sizing sweep over the KAN layers therefore looks like::
@@ -55,6 +78,10 @@ examples/smap_demo.py:
     TAD_BENCH_CONFIGS     -> comma-separated configuration names (default: all)
     TAD_BENCH_SCORES_DIR  -> directory to cache per-channel point scores into
     TAD_BENCH_FROM_CACHE  -> set to 1 to re-score from the cache without training
+    TAD_THRESHOLD         -> event-level operating point: dynamic (default) or budget
+    TAD_ALARM_BUDGET      -> fraction of points flagged when TAD_THRESHOLD=budget
+    TAD_PROTOCOL          -> set to 0 to skip telemanom's sequence filters
+    TAD_SCORE_CHANNELS    -> channels allowed to raise an alarm, e.g. 0 for telemetry
     TAD_BENCH_VERBOSE     -> set to 1 to print per-channel rows (default: summary only)
 
 Training and measurement are separable. Point the run at a cache directory once,
@@ -84,8 +111,10 @@ from sklearn.exceptions import ConvergenceWarning
 
 from telemetry_anomdet.evaluation import (
     best_point_adjusted_f1,
+    evaluate_sequences,
     false_alarm_rate_at_recall,
     pr_auc,
+    sequence_prf,
     windows_to_point_scores,
 )
 from telemetry_anomdet.feature_extraction.features import make_feature_table
@@ -93,6 +122,13 @@ from telemetry_anomdet.ingest import anomaly_point_mask, load_smap, load_smap_la
 from telemetry_anomdet.models.ensemble import AnomalyEnsemble
 from telemetry_anomdet.models.unsupervised import KMeansAnomaly, PCAAnomaly
 from telemetry_anomdet.preprocessing import pipeline
+from telemetry_anomdet.thresholding import (
+    anomalous_sequences,
+    dynamic_threshold,
+    filter_sequences,
+    startup_skip,
+    threshold_for_budget,
+)
 
 # A single telemetry channel is a small, uniform feature space, so PCA and
 # KMeans emit benign warnings (near zero variance, fewer clusters than asked).
@@ -132,6 +168,20 @@ SMOOTHING = float(_SMOOTH_ENV) if _SMOOTH_ENV else None
 # Training seed. Results vary run to run, so a sizing comparison needs repeats
 # rather than a single draw per configuration.
 SEED = int(os.environ.get("TAD_SEED", "0"))
+
+# Operating point for event-level scoring: "dynamic" selects a threshold from
+# the error signal, "budget" caps the fraction of points flagged.
+THRESHOLD_METHOD = os.environ.get("TAD_THRESHOLD", "dynamic")
+# Apply telemanom's sequence filters so event-level numbers are comparable.
+PROTOCOL = os.environ.get("TAD_PROTOCOL", "1") == "1"
+
+# Which feature channels may raise an alarm. A SMAP record is one telemetry
+# dimension plus 24 command one-hots, and the labels describe the telemetry, so
+# scoring the maximum over all 25 alarms on every command switch. Empty means
+# every channel, matching the detector default.
+_SC_ENV = os.environ.get("TAD_SCORE_CHANNELS", "").strip()
+SCORE_CHANNELS = [int(c) for c in _SC_ENV.split(",")] if _SC_ENV else None
+ALARM_BUDGET = float(os.environ.get("TAD_ALARM_BUDGET", "0.05"))
 
 # Recall at which the false alarm rate is reported.
 TARGET_RECALL = float(os.environ.get("TAD_TARGET_RECALL", "0.8"))
@@ -185,6 +235,7 @@ def make_gdn():
         device=GDN_DEVICE,
         random_state=SEED,
         smoothing=SMOOTHING,
+        score_channels=SCORE_CHANNELS,
     )
 
 
@@ -233,6 +284,7 @@ def make_kangdn():
         grid_size=KANGDN_GRID_SIZE,
         spline_order=KANGDN_SPLINE_ORDER,
         smoothing=SMOOTHING,
+        score_channels=SCORE_CHANNELS,
     )
 
 
@@ -251,11 +303,12 @@ CONFIGS: list[tuple[str, str, object, int]] = [
     ("classical@all", "all", make_classical, WINDOW_SIZE),
     ("gdn@all", "all", make_gdn, GDN_WINDOW),
     ("kangdn@all", "all", make_kangdn, GDN_WINDOW),
+    ("kangdn@telemetry", "telemetry", make_kangdn, GDN_WINDOW),
 ]
 
 # Configurations that need torch, so a missing deep extra skips them by name
 # rather than by prefix matching.
-NEEDS_TORCH = frozenset({"gdn@all", "kangdn@all"})
+NEEDS_TORCH = frozenset({"gdn@all", "kangdn@all", "kangdn@telemetry"})
 
 
 def select_configs() -> list[tuple[str, str, object, int]]:
@@ -321,6 +374,7 @@ def config_params(name: str, window_size: int) -> dict:
         "step": STEP,
         "seed": SEED,
         "smoothing": SMOOTHING,
+        "score_channels": SCORE_CHANNELS,
     }
     if name == "gdn@all":
         params.update(embed_dim=GDN_EMBED_DIM, topk=GDN_TOPK, lr=GDN_LR, epochs=GDN_EPOCHS)
@@ -387,6 +441,8 @@ def run_config(name: str, dims: str, make_detector, window_size: int, labels) ->
     all_scores: list[np.ndarray] = []
     all_truth: list[np.ndarray] = []
     per_channel_f1: list[float] = []
+    event_rows: list[dict] = []
+    by_class: dict[str, list[int]] = {}
     for _, row in labels.iterrows():
         if FROM_CACHE:
             result = load_scores(name, row["chan_id"], window_size)
@@ -403,6 +459,35 @@ def run_config(name: str, dims: str, make_detector, window_size: int, labels) ->
         all_truth.append(truth)
         b = best_point_adjusted_f1(scores, truth)
         per_channel_f1.append(b["f1"])
+
+        # Event-level scoring needs a single operating point rather than a
+        # sweep, chosen without labels so the result is deployable.
+        if THRESHOLD_METHOD == "budget":
+            cut = threshold_for_budget(scores, ALARM_BUDGET)["threshold"]
+        else:
+            cut = dynamic_threshold(scores)["threshold"]
+        predicted = anomalous_sequences(scores, cut)
+        if PROTOCOL:
+            # telemanom drops single-sample runs and ignores the cold start,
+            # where the model has no history yet.
+            predicted = filter_sequences(
+                predicted,
+                min_length=2,
+                ignore_before=startup_skip(scores.size, window_size),
+            )
+        event_rows.append(
+            evaluate_sequences(predicted, anomalous_sequences(truth.astype(float), 0.5))
+        )
+
+        # Point and contextual anomalies behave differently under a forecasting
+        # detector, so a single recall hides which kind is being missed.
+        for (a, b_end), label in zip(row["sequences"], row["classes"], strict=False):
+            if a >= scores.size:
+                continue
+            end = min(b_end, scores.size - 1)
+            hit = any(not (y < a or x > end) for x, y in predicted)
+            by_class.setdefault(label, [0, 0])[0 if hit else 1] += 1
+
         if VERBOSE:
             print(f"{row['chan_id']:>8}  {b['precision']:9.3f}  {b['recall']:6.3f}  {b['f1']:6.3f}")
 
@@ -425,6 +510,9 @@ def run_config(name: str, dims: str, make_detector, window_size: int, labels) ->
     # Threshold-free and operating-point metrics. Point-adjusted F1 is retained
     # for comparability with published SMAP results, but it is inflated by the
     # adjustment, so it is reported beside metrics that are not.
+    events = sequence_prf(event_rows)
+    overall["event"] = events
+    overall["by_class"] = by_class
     overall["pr_auc"] = pr_auc(scores, truth)
     overall["base_rate"] = float(truth.mean())
     fa = false_alarm_rate_at_recall(scores, truth, target_recall=TARGET_RECALL)
@@ -440,6 +528,18 @@ def run_config(name: str, dims: str, make_detector, window_size: int, labels) ->
         f"  PR-AUC: {overall['pr_auc']:.3f} (random = {overall['base_rate']:.3f})   "
         f"false alarms at R={TARGET_RECALL:.2f}: {overall['false_alarm_rate']:.3f}"
     )
+    print(
+        f"  event-level ({THRESHOLD_METHOD}): P {events['precision']:.3f} "
+        f"R {events['recall']:.3f} F1 {events['f1']:.3f} F0.5 {events['f_half']:.3f}   "
+        f"TP {events['true_positives']} FP {events['false_positives']} "
+        f"FN {events['false_negatives']}"
+    )
+    if by_class:
+        parts = [
+            f"{name} {hit}/{hit + miss} ({hit / max(hit + miss, 1):.2f})"
+            for name, (hit, miss) in sorted(by_class.items())
+        ]
+        print(f"  recall by anomaly class: {'   '.join(parts)}")
     return overall
 
 
@@ -488,28 +588,39 @@ def main() -> None:
 
     # Final side-by-side comparison.
     print("\n" + "=" * 60)
-    print("SUMMARY  (best-threshold point-adjusted F1, oracle upper bound)")
+    print("SUMMARY")
     print(
-        f"{'configuration':>20}  {'global F1':>9}  {'per-chan F1':>11}  {'PR-AUC':>7}  {'FA@R':>6}"
+        f"{'configuration':>20}  {'global F1':>9}  {'per-chan F1':>11}  {'PR-AUC':>7}  "
+        f"{'FA@R':>6}  {'evP':>6} {'evR':>6} {'evF1':>6} {'evF.5':>6}  "
+        f"{'TP':>4} {'FP':>4} {'FN':>4}"
     )
-    print("-" * 62)
+    print("-" * 116)
     for name in results:
         r = results[name]
+        e = r["event"]
         print(
             f"{name:>20}  {r['f1']:9.3f}  {r['per_channel_f1']:11.3f}  "
-            f"{r['pr_auc']:7.3f}  {r['false_alarm_rate']:6.3f}"
+            f"{r['pr_auc']:7.3f}  {r['false_alarm_rate']:6.3f}  "
+            f"{e['precision']:6.3f} {e['recall']:6.3f} {e['f1']:6.3f} {e['f_half']:6.3f}  "
+            f"{e['true_positives']:4d} {e['false_positives']:4d} {e['false_negatives']:4d}"
         )
     if results:
         floor = next(iter(results.values()))["base_rate"]
         print(f"{'PR-AUC floor (random)':>20}  {'':>9}  {'':>11}  {floor:7.3f}")
     print(
-        "\nNote: point-adjusted F1 marks a whole anomaly segment as detected when any"
-        "\nsingle point inside it is flagged, and its threshold is chosen against the"
-        "\nlabels. On SMAP's long segments an uninformative detector therefore scores"
-        "\nhighly, which is what the random@all row demonstrates. PR-AUC is threshold"
-        "\nfree and equals the base rate for random scores, so read it as the honest"
-        "\nfigure and F1 only for comparability with published results. FA@R is the"
-        "\nfalse alarm rate at the target recall."
+        "\nevP/evR/evF1 are event-level, scored as telemanom scores its published"
+        "\nSMAP results: a labelled anomaly counts once if any prediction overlaps it,"
+        "\nand each prediction overlapping nothing counts once against precision. The"
+        "\nthreshold behind them is chosen without labels, so those columns describe a"
+        "\ndeployable operating point and are the ones to compare against published"
+        "\nnumbers. For reference telemanom reports P 0.838 R 0.899 F1 0.867 on SMAP,"
+        "\nfrom TP 62 FP 12 FN 7 over 69 labelled anomalies in the same 54 channels."
+        "\n"
+        "\nThe remaining columns are point-level and much more forgiving. Global F1"
+        "\nmarks a whole segment detected from one flagged point and picks its"
+        "\nthreshold against the labels, so on SMAP's long segments even the random@all"
+        "\nrow scores highly. PR-AUC is threshold free and sits at the base rate for"
+        "\nrandom scores. FA@R is the false alarm rate at the target recall."
     )
 
 

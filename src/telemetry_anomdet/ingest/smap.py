@@ -38,9 +38,17 @@ def load_smap_labels(labels_csv: str | Path, *, spacecraft: str | None = "SMAP")
         spacecraft: Keep only rows for this spacecraft ('SMAP' or 'MSL').
             None keeps all rows.
     Returns:
-        pd.DataFrame: The label rows with two added columns:
-            'sequences' (list of ``(start, end)`` index tuples) and
-            'anomaly_span' (total number of anomalous timesteps).
+        pd.DataFrame: The label rows with three added columns:
+            'sequences' (list of ``(start, end)`` index tuples),
+            'anomaly_span' (total number of anomalous timesteps), and
+            'classes' (one label per sequence, where the file provides them).
+
+    Notes:
+        The 'class' column labels each sequence 'point' or 'contextual'. A point
+        anomaly is extreme in isolation; a contextual one is individually
+        plausible but wrong given the surrounding state, and is the harder case
+        for a forecaster. Reporting detection rates separately by class is more
+        informative than a single recall, since the two behave differently.
     """
 
     labels = pd.read_csv(labels_csv)
@@ -54,7 +62,25 @@ def load_smap_labels(labels_csv: str | Path, *, spacecraft: str | None = "SMAP")
     labels["anomaly_span"] = labels["sequences"].apply(
         lambda seqs: sum(end - start + 1 for start, end in seqs)
     )
+    labels["classes"] = (
+        labels["class"].apply(_parse_classes)
+        if "class" in labels.columns
+        else [[] for _ in range(len(labels))]
+    )
     return labels
+
+
+def _parse_classes(raw) -> list[str]:
+    """
+    Split the 'class' cell into one label per anomaly sequence.
+
+    The cell holds a bracketed, comma separated list of bare words such as
+    ``[point, contextual]``, which is not valid Python, so it is parsed by hand
+    rather than with ``literal_eval``.
+    """
+    if not isinstance(raw, str):
+        return []
+    return [part.strip() for part in raw.strip("[]").split(",") if part.strip()]
 
 
 def anomaly_point_mask(sequences: Sequence[tuple[int, int]], n_timesteps: int) -> np.ndarray:
