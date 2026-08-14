@@ -11,11 +11,19 @@ from telemetry_anomdet.ingest.dataset import TelemetryDataset
 # Canonical columns
 _TS, _VAR, _VAL = "timestamp", "variable", "value"
 
-# Common aliases
-DEFAULT_ALIASES: Mapping[str, Iterable[str]] = {
-    _TS: {"timestamp", "time", "datetime", "date", "ts"},
-    _VAR: {"name", "key", "channel", "sensor", "variable"},
-    _VAL: {"value", "reading", "val", "y"},
+# Common aliases, in precedence order with the canonical name first.
+#
+# These are tuples rather than sets on purpose. A CSV may carry more than one
+# alias for the same role (a "sensor" column beside a "channel" one), and the
+# first match wins. Iterating a set would pick between them by hash order,
+# which CPython randomises per process, so the same file could resolve to a
+# different column on the next run, or collide with an existing canonical
+# column and fail. Order here is the resolution rule; keep the canonical name
+# first so a file that already uses it is never renamed onto itself.
+DEFAULT_ALIASES: Mapping[str, Sequence[str]] = {
+    _TS: ("timestamp", "time", "datetime", "date", "ts"),
+    _VAR: ("variable", "channel", "sensor", "name", "key"),
+    _VAL: ("value", "reading", "val", "y"),
 }
 
 

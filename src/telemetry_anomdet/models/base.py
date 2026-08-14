@@ -1,11 +1,11 @@
 # src/telemetry_anomdet/models/base.py
 
 """
-BaseDetector: Shared interface for all anomaly detectors in  telemetry_anomdet.
+BaseDetector: Shared interface for all anomaly detectors in telemetry_anomdet.
 
 Design
 ------
-All detectors in this library follow PyOD convention.
+All detectors in this library follow PyOD convention::
 
     fit(x): Train the model on the provided data, sets post-fit attributes.
     predict(x): Return binary labels (0 for normal, 1 for anomaly).
@@ -14,13 +14,13 @@ All detectors in this library follow PyOD convention.
 
 Input Convention
 ----------------
-All detectors accept X of shape (n_windows, window_size, n_features). Classical detecrtors flatten X internally
-using feature_stat(). Sequence detectors (GDN, TranAD) consume X directly.
-The caller never maneges this distinction.
+All detectors accept X of shape (n_windows, window_size, n_features). Classical
+detectors flatten X internally using feature_stat(). Sequence detectors (GDN,
+KANGDN, TranAD) consume X directly. The caller never manages this distinction.
 
 Post-fit Attributes
-----------------
-After fit(), every detectror exposes:
+-------------------
+After fit(), every detector exposes::
 
     decision_scores_: np.ndarray (n_windows,) Training anomaly scores.
     threshold_:       float                   Score cutoff from training.

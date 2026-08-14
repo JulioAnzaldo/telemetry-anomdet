@@ -79,13 +79,18 @@ jobs:
           python-version: "3.11"
 
       # The deep extra pulls torch. Install it on a single Python version so the
-      # torch-backed detectors (GDN, ...) are actually exercised rather than
-      # skipped via importorskip, without adding torch to the 4-version matrix.
+      # torch-backed detectors (GDN, KANGDN, ...) are actually exercised rather
+      # than skipped via importorskip, without adding torch to the 4-version
+      # matrix.
       - name: Install dependencies (with deep extra)
         run: uv sync --group dev --extra deep
 
+      # Covers the whole chain the deep extra unlocks: the detectors, the
+      # torch-free distillation, and the generated C. The codegen tests compile
+      # the emitted sources and check them against golden vectors, so they need
+      # a C compiler; ubuntu-latest ships gcc, and they self-skip without one.
       - name: Run deep detector tests
-        run: uv run pytest -q tests/test_deep_gdn.py
+        run: uv run pytest -q tests/test_deep_kan.py tests/test_deep_gdn.py tests/test_deep_kangdn.py tests/test_deep_smoothing.py tests/test_deep_distill.py tests/test_deep_codegen.py
 
   docs:
     name: Docs Build

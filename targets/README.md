@@ -29,6 +29,22 @@ The vectors header is what makes a port checkable on the device itself. It
 carries the reference evaluator's output for each window, so the target proves
 its own correctness without any host tooling in the loop.
 
+## Provenance and stability
+
+All three files carry the generator version in their banner, and `kangdn.h`
+defines it as `KANGDN_VERSION` so a running build can report which toolkit
+version produced it. Record that version with any artifact you flash or fly.
+
+**The generated interface is unstable until telemetry_anomdet 1.0.0.** Symbol
+names, macros and entry point signatures may change in any 0.x release. When
+upgrading, regenerate and rebuild rather than hand-patching, and re-run the
+golden vectors: they are regenerated alongside the sources and are the check
+that the new version still behaves as the old one did.
+
+There is deliberately no timestamp in the banner. Regenerating from the same
+fitted detector reproduces the sources byte for byte, so a diff of `generated/`
+shows only real changes, and a build is reproducible from a stored detector.
+
 ## Editor diagnostics before generating
 
 An editor will report unresolved includes in each port's `main.c` until the

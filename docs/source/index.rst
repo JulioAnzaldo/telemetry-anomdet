@@ -2,12 +2,17 @@ Telemetry Anomaly Detection Toolkit
 ====================================
 
 **telemetry-anomdet** is an open-source anomaly detection toolkit for spacecraft telemetry.
-It ingests raw telemetry (SMAP, CSV), preprocesses it, and runs a stacking ensemble of
-classical and deep learning detectors with per-channel SHAP attribution and LLM-generated
-diagnostic reports, designed to produce actionable diagnostics within the ground station
-inter-pass window.
+It ingests raw telemetry (SMAP, CSV), preprocesses it, and runs classical and graph-based
+deep detectors behind a single interface, selecting alarm thresholds without labels. A
+trained detector distills to Power of Ten conformant C, so the same model that is
+evaluated on the ground can run on flight hardware.
 
-Validated on SMAP (NASA), with OPS-SAT (ESA) as a cross-dataset generalization source.
+Per-channel SHAP attribution and LLM-generated diagnostic reports, aimed at producing
+actionable diagnostics within the ground station inter-pass window, are on the roadmap.
+
+Benchmarked on SMAP (NASA). MSL (NASA) and ESA-ADB (ESA) results land in v0.3.0:
+SMAP and MSL are univariate per record, while ESA-ADB is the genuinely multivariate
+benchmark that exercises the inter-sensor graph.
 
 Current features:
 
@@ -47,35 +52,25 @@ Coming next:
 Coming in by the end of 2026:
 
 - LLM reasoning layer (Llama 3.1 8B on Jetson Orin via llama.cpp)
-- OPS-SAT cross-dataset generalization evaluation
+- MSL results, using the existing SMAP loader (``spacecraft = "MSL"``) (v0.3.0)
+- ESA-ADB evaluation on genuinely multivariate telemetry (v0.3.0)
 
 
 Contents
 --------
 
+- :doc:`getting_started` - install and first run
+- :doc:`user_guide/index` - how the pipeline fits together, and which metric to trust
+- :doc:`tutorials/real_time_example` - end-to-end worked example
+- :doc:`applications/index` - CubeSat operations and onboard deployment
+- :doc:`api/index` - every public function and class
+
 .. toctree::
    :maxdepth: 2
-   :caption: User Guide
+   :hidden:
 
    getting_started
-   user_guide/pipeline_overview
-   user_guide/real_time_integration
-   user_guide/anomaly_scoring
-   user_guide/glossary
-   tutorials/real_time_example
-   applications/cubesat_ops
-   applications/onboard_deployment
-
-.. toctree::
-   :maxdepth: 2
-   :caption: API Reference
-
-   api/ingest
-   api/preprocessing
-   api/feature_extraction
-   api/evaluation
-   api/thresholding
-   api/models/base
-   api/models/ensemble
-   api/models/unsupervised
-   api/models/deep
+   user_guide/index
+   tutorials/index
+   applications/index
+   api/index
