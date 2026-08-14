@@ -4,7 +4,7 @@
   <a href="https://julioanzaldo.github.io/telemetry-anomdet/"><img alt="Documentation" src="https://img.shields.io/badge/Docs-Online-blue"></a>
   <a href="https://test.pypi.org/project/telemetry-anomdet/"><img alt="Test PyPI" src="https://img.shields.io/badge/Test-PyPI-yellow"></a>
   <a href="https://pypi.org/project/telemetry-anomdet/"><img alt="PyPI" src="https://img.shields.io/pypi/v/telemetry-anomdet?label=PyPi"></a>
-  <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/actions/workflows/ci.yml"><img alt="Testing" src="https://img.shields.io/github/actions/workflow/status/JulioAnzaldo/telemetry-anomdet/ci.yml?branch=main&label=Testing"></a>
+  <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/actions/workflows/ci.yml"><img alt="Testing" src="https://img.shields.io/github/actions/workflow/status/JulioAnzaldo/telemetry-anomdet/ci.yml?branch=main&label=Testing&logo=github&logoColor=white"></a>
   <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue"></a>
 </p>
 
@@ -159,6 +159,17 @@ Datasets are never committed; `data/` is gitignored.
 - Human-in-the-loop threshold feedback (Phase 5)
 - MSL results, using the existing SMAP loader (`spacecraft = "MSL"`) (v0.3.0)
 - ESA-ADB evaluation: the multivariate benchmark that exercises the graph (v0.3.0)
+
+## AI Transparency
+
+AI assistants are used while writing and maintaining this project's documentation: drafting API reference pages, tightening prose, and catching claims that go stale.
+
+What that does not change:
+
+- **Numbers come from runs.** Benchmark figures are produced by [`examples/smap_benchmark.py`](examples/smap_benchmark.py), and the hardware results in the deployment docs are measured on an ESP32-S3 by the conformance harness in [`targets/`](targets/). Nothing quoted in these docs is estimated or inferred.
+- **Behavior claims are backed by tests.** The suite gates CI, and the documented API is covered by it.
+
+Everything published here is reviewed before it lands.
 
 ## Getting Help
 

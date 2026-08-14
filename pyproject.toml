@@ -46,7 +46,7 @@ classifiers = [
 ccsds = [
   "ccsdspy>=2.0.0,<3.0",
 ]
-# Phase 2 deep detectors (GDN, TranAD). Optional so the base install stays
+# Phase 2 deep detector (GDN). Optional so the base install stays
 # torch-free; torch is imported lazily at fit time.
 deep = [
   "torch>=2.0",
@@ -62,7 +62,7 @@ dev = [
 ]
 docs = [
   "sphinx>=7.0",
-  "sphinx-rtd-theme>=2.0",
+  "pydata-sphinx-theme>=0.15",
   "sphinx-autodoc-typehints>=2.0",
   "numpydoc>=1.7",
   "sphinx-sitemap>=2.6",
