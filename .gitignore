@@ -51,3 +51,21 @@ Thumbs.db
 CLAUDE.local.md
 .claude/settings.local.json
 memory/
+
+# Private experiment tracking / eval (Weights & Biases). Not part of the
+# published library. It lives locally / in a separate private repo.
+eval/
+wandb/
+
+# Generated C sources and target build artifacts
+targets/*/generated/
+targets/*/*/generated/
+targets/host/conformance
+targets/host/conformance.exe
+targets/*/build/
+targets/*/sdkconfig
+targets/*/sdkconfig.old
+
+# SMAP/MSL dataset, downloaded per the README. Never commit datasets.
+data/
+labeled_anomalies.csv

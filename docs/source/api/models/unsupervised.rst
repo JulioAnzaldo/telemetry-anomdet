@@ -26,10 +26,9 @@ IsolationForestModel
 --------------------
 
 .. note::
-   ``IsolationForestModel`` is under active development and will be completed in Phase 1
-   (SMAP Integration). It will wrap ``sklearn.ensemble.IsolationForest`` as a full
-   ``BaseDetector`` subclass and be registered in ``AnomalyEnsemble`` alongside
-   ``PCAAnomaly`` and ``KMeansAnomaly``.
+   ``IsolationForestModel`` is not finished. It will wrap
+   ``sklearn.ensemble.IsolationForest`` as a full ``BaseDetector`` subclass and be
+   registered in ``AnomalyEnsemble`` alongside ``PCAAnomaly`` and ``KMeansAnomaly``.
 
 .. automodule:: telemetry_anomdet.models.unsupervised.isolation_forest
    :members:

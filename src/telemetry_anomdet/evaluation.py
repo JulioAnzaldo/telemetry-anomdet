@@ -165,3 +165,224 @@ def best_point_adjusted_f1(
             m["threshold"] = float(t)
             best = m
     return best
+
+
+# ---------------------------------------------------------------------------
+# Threshold-free and operating-point metrics
+# ---------------------------------------------------------------------------
+
+
+def pr_auc(scores: Sequence[float], truth: Sequence[bool]) -> float:
+    """
+    Area under the precision-recall curve, as average precision.
+
+    Computed on raw point scores with no point adjustment, so a detector is
+    credited for the points it actually flags. Two properties make this the
+    honest companion to :func:`best_point_adjusted_f1`:
+
+    * It integrates over every operating point instead of reporting the single
+      best one, so no threshold can be selected against the labels.
+    * Its value for an uninformative detector is the positive base rate. Any
+      score above that reflects real ranking ability, and the margin is
+      interpretable. ROC AUC instead sits at 0.5 for random regardless of class
+      balance, which flatters a detector when anomalies are rare.
+
+    Arguments:
+        scores: Point-level anomaly scores (higher = more anomalous).
+        truth: Point-level boolean ground truth, same length as ``scores``.
+    Returns:
+        float: Average precision in [0, 1]; the base rate for random scores.
+    """
+    scores = np.asarray(scores, dtype=float)
+    truth = np.asarray(truth, dtype=bool)
+    if scores.shape != truth.shape:
+        raise ValueError(f"scores and truth must match: {scores.shape} vs {truth.shape}")
+    n_pos = int(truth.sum())
+    if n_pos == 0 or n_pos == truth.size:
+        return float(n_pos) / float(truth.size) if truth.size else 0.0
+
+    order = np.argsort(-scores, kind="stable")
+    hits = truth[order]
+    tp = np.cumsum(hits)
+    precision = tp / np.arange(1, hits.size + 1)
+    # Average precision: the mean precision at each rank holding a true positive,
+    # which equals the sum of precision * (change in recall).
+    return float(precision[hits].sum() / n_pos)
+
+
+def false_alarm_rate_at_recall(
+    scores: Sequence[float], truth: Sequence[bool], target_recall: float = 0.8
+) -> dict:
+    """
+    Cost of reaching a recall target, as a false positive rate per point.
+
+    Answers the operational question a fixed threshold has to settle: to catch
+    this fraction of anomalous points, how often does the detector fire on
+    nominal data? Unlike a best-F1 figure this is reported at a stated recall,
+    so two detectors are compared at the same sensitivity.
+
+    Arguments:
+        scores: Point-level anomaly scores (higher = more anomalous).
+        truth: Point-level boolean ground truth, same length as ``scores``.
+        target_recall: Recall to reach, in (0, 1].
+    Returns:
+        dict: ``{'threshold', 'recall', 'false_alarm_rate', 'precision'}``. The
+        false alarm rate is false positives divided by the number of nominal
+        points. Returns a rate of 1.0 when the target recall is unreachable.
+    """
+    if not (0.0 < target_recall <= 1.0):
+        raise ValueError(f"target_recall must lie in (0, 1], got {target_recall}")
+    scores = np.asarray(scores, dtype=float)
+    truth = np.asarray(truth, dtype=bool)
+    if scores.shape != truth.shape:
+        raise ValueError(f"scores and truth must match: {scores.shape} vs {truth.shape}")
+
+    n_pos = int(truth.sum())
+    n_neg = int(truth.size - n_pos)
+    if n_pos == 0 or n_neg == 0:
+        return {"threshold": float("inf"), "recall": 0.0, "false_alarm_rate": 1.0, "precision": 0.0}
+
+    order = np.argsort(-scores, kind="stable")
+    hits = truth[order]
+    tp = np.cumsum(hits)
+    fp = np.cumsum(~hits)
+    recall = tp / n_pos
+
+    reached = np.flatnonzero(recall >= target_recall)
+    if reached.size == 0:
+        return {
+            "threshold": float(scores.min()),
+            "recall": float(recall[-1]),
+            "false_alarm_rate": 1.0,
+            "precision": float(n_pos) / truth.size,
+        }
+    k = int(reached[0])
+    denom = tp[k] + fp[k]
+    return {
+        "threshold": float(scores[order][k]),
+        "recall": float(recall[k]),
+        "false_alarm_rate": float(fp[k]) / float(n_neg),
+        "precision": float(tp[k]) / float(denom) if denom else 0.0,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Event-level scoring, matching the telemanom protocol
+# ---------------------------------------------------------------------------
+
+
+def evaluate_sequences(
+    predicted: Sequence[tuple[int, int]],
+    true_sequences: Sequence[tuple[int, int]],
+) -> dict:
+    """
+    Score predicted anomaly ranges against labelled ones, event by event.
+
+    This reproduces the scoring in Hundman et al.'s telemanom, so numbers are
+    directly comparable with the results published for SMAP and MSL. It is the
+    metric an operator experiences: how many real events were caught, and how
+    many times the system cried wolf.
+
+    The two sides are counted over different things, which is deliberate and
+    easy to get wrong. A **true positive** is a labelled sequence that some
+    prediction overlapped, so true positives and false negatives partition the
+    labelled sequences. A **false positive** is a *predicted* sequence that
+    overlapped nothing, so it is counted over predictions instead.
+
+    When one prediction spans several labelled sequences, only the first is
+    credited. A single alarm covering two events is one catch, not two.
+
+    Contrast :func:`point_adjusted_f1`, which counts points and credits an
+    entire labelled segment to a single flagged sample. That inflates a detector
+    raising many short false alarms beside a few long true ones, sometimes by a
+    wide margin, so the two metrics can rank detectors differently.
+
+    Arguments:
+        predicted: Predicted ``(start, end)`` ranges, inclusive of both ends.
+        true_sequences: Labelled ``(start, end)`` ranges, inclusive.
+    Returns:
+        dict: ``true_positives``, ``false_positives``, ``false_negatives``,
+        and the ``tp_sequences`` / ``fp_sequences`` that produced them.
+    """
+
+    def overlaps(a, b):
+        return not (a[1] < b[0] or a[0] > b[1])
+
+    matched: list[int] = []
+    tp_sequences: list[tuple[int, int]] = []
+    fp_sequences: list[tuple[int, int]] = []
+
+    for seq in predicted:
+        hits = [i for i, true in enumerate(true_sequences) if overlaps(seq, true)]
+        if hits:
+            tp_sequences.append(tuple(seq))
+            # Only the first labelled sequence a prediction reaches is credited.
+            if hits[0] not in matched:
+                matched.append(hits[0])
+        else:
+            fp_sequences.append(tuple(seq))
+
+    return {
+        "true_positives": len(matched),
+        "false_positives": len(fp_sequences),
+        "false_negatives": len(true_sequences) - len(matched),
+        "tp_sequences": tp_sequences,
+        "fp_sequences": fp_sequences,
+    }
+
+
+def f_beta(precision: float, recall: float, beta: float = 1.0) -> float:
+    """
+    Weighted harmonic mean of precision and recall.
+
+    ``beta`` sets how much recall counts relative to precision: below 1 favours
+    precision, above 1 favours recall. ``beta = 0.5`` is what the telemanom
+    results report, and it suits a trigger whose false alarms are expensive.
+
+    Note that when precision and recall are equal, every ``beta`` returns that
+    same value, which is a useful check when reading published tables.
+
+    Arguments:
+        precision: Precision in [0, 1].
+        recall: Recall in [0, 1].
+        beta: Relative weight on recall.
+    Returns:
+        float: The F-beta score, or 0.0 when precision and recall are both zero.
+    """
+    b2 = beta * beta
+    denominator = (b2 * precision) + recall
+    return ((1 + b2) * precision * recall / denominator) if denominator else 0.0
+
+
+def sequence_prf(rows: Sequence[dict]) -> dict:
+    """
+    Aggregate per-channel :func:`evaluate_sequences` results, as telemanom does.
+
+    Counts are pooled across channels before precision and recall are computed,
+    rather than averaging per-channel rates. Channels that detect nothing then
+    contribute their misses without also contributing a precision of zero.
+
+    Both ``f1`` and ``f_0.5`` are returned. The latter weights precision more
+    heavily and is the statistic the telemanom results headline.
+
+    Arguments:
+        rows: Per-channel dicts from :func:`evaluate_sequences`.
+    Returns:
+        dict: pooled ``true_positives``, ``false_positives``,
+        ``false_negatives``, and the derived ``precision``, ``recall``, ``f1``
+        and ``f_half``.
+    """
+    tp = sum(int(r["true_positives"]) for r in rows)
+    fp = sum(int(r["false_positives"]) for r in rows)
+    fn = sum(int(r["false_negatives"]) for r in rows)
+    precision = tp / (tp + fp) if (tp + fp) else 0.0
+    recall = tp / (tp + fn) if (tp + fn) else 0.0
+    return {
+        "true_positives": tp,
+        "false_positives": fp,
+        "false_negatives": fn,
+        "precision": precision,
+        "recall": recall,
+        "f1": f_beta(precision, recall, 1.0),
+        "f_half": f_beta(precision, recall, 0.5),
+    }
