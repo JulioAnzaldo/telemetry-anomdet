@@ -23,6 +23,7 @@ torch is an optional dependency. Install the deep extra to use this detector::
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Sequence
 
 import numpy as np
@@ -158,6 +159,7 @@ class GDN(BaseDetector):
         self.window_: int | None = None
         self._err_median_: np.ndarray | None = None
         self._err_iqr_: np.ndarray | None = None
+        self._degenerate_: np.ndarray = np.empty(0, dtype=int)
 
     # ---- helpers ----
     def _resolve_device(self, torch):
@@ -273,6 +275,93 @@ class GDN(BaseDetector):
             out[t] = alpha * errors[t] + (1.0 - alpha) * out[t - 1]
         return out
 
+    # Lower bound on a channel's training error spread, as a fraction of that
+    # channel's own median error.
+    #
+    # A channel that never moved while training has an error IQR of zero, and
+    # dividing by it produces a number decided by the guard epsilon rather than
+    # by the data: 1e10 on SMAP, which then wins the per-window maximum and
+    # decides every score. Status and mode channels that sit constant for long
+    # stretches are the usual source.
+    #
+    # The ratio is set below the smallest spread any real channel shows, so the
+    # floor only ever reaches channels with no measurable spread and never
+    # reshapes one that has some. On SMAP the healthy channels run from 0.030 to
+    # 2.5 by this measure, so 0.02 catches the three degenerate channels and
+    # nothing else, and their deviations land at the same order as the most
+    # extreme healthy channel instead of a million times above it.
+    _SPREAD_FLOOR_RATIO = 0.02
+
+    def _apply_spread_floor(self, iqr: np.ndarray) -> np.ndarray:
+        """
+        Floor the per-channel error spread and record which channels were hit.
+
+        Scaling by each channel's own median error keeps this comparable across
+        datasets and channels carrying different units. Channels whose median
+        error is also zero fall back to the typical channel, since they offer no
+        scale of their own.
+        """
+        scale = np.asarray(self._err_median_, dtype=float).copy()
+        positive = scale[scale > 0]
+        scale[scale <= 0] = np.median(positive) if positive.size else 1.0
+
+        floor = self._SPREAD_FLOOR_RATIO * scale
+        self._degenerate_ = np.flatnonzero(iqr < floor)
+        return np.maximum(iqr, floor)
+
+    def degenerate_channels_(self) -> np.ndarray:
+        """
+        Channels whose forecast error had no measurable spread in training.
+
+        Their spread was floored at fit time, because dividing by it would
+        otherwise yield a number set by the guard epsilon rather than by the
+        data. They can still raise alarms and still score highly when they move;
+        the floor only stops them from dwarfing every other channel.
+
+        Returns
+        -------
+        np.ndarray
+            Indices into the feature axis, ascending.
+        """
+        self._require_fit()
+        return np.asarray(self._degenerate_, dtype=int)
+
+    def _warn_degenerate_spread(self) -> None:
+        """
+        Report channels whose spread was floored and that may raise an alarm.
+
+        A record of what was done rather than advice: the floor is already
+        applied. Only the scoring channels are named, since a floored channel
+        excluded by ``score_channels`` cannot affect a score either way.
+        """
+        degenerate = set(self.degenerate_channels_().tolist())
+        scoring = degenerate.intersection(
+            range(self.n_nodes_) if self.score_channels is None else self.score_channels
+        )
+        if not scoring:
+            return
+        listed = ", ".join(str(c) for c in sorted(scoring))
+        warnings.warn(
+            f"Channels [{listed}] had no measurable spread in the training forecast "
+            "error, so their spread was floored to keep their deviations bounded. "
+            "This is usually a status or mode channel that stayed constant while "
+            "training. They can still raise alarms, and will score highly the first "
+            "time they move; exclude them with score_channels to keep them as "
+            "context only.",
+            RuntimeWarning,
+            stacklevel=3,
+        )
+
+    def _normalise(self, errors: np.ndarray) -> np.ndarray:
+        """
+        Per-node errors divided by their training spread, shape unchanged.
+
+        Normalising by each node's own training median and IQR is what makes
+        deviations comparable across channels carrying different units and
+        dynamic ranges.
+        """
+        return np.abs(errors - self._err_median_) / (self._err_iqr_ + 1e-9)
+
     def _deviation_score(self, errors: np.ndarray) -> np.ndarray:
         """
         Collapse per-node errors to a single graph deviation score per window.
@@ -286,10 +375,29 @@ class GDN(BaseDetector):
         deviations are allowed to raise an alarm. See the constructor for why
         that distinction matters.
         """
-        normed = np.abs(errors - self._err_median_) / (self._err_iqr_ + 1e-9)
+        normed = self._normalise(errors)
         if self.score_channels is not None:
             normed = normed[:, self.score_channels]
         return normed.max(axis=1)
+
+    def _errors_for(self, X: np.ndarray) -> np.ndarray:
+        """
+        Validate ``X`` against the fitted geometry and return per-node errors.
+
+        Shared by every public scoring path so validation and preprocessing
+        cannot drift between them.
+        """
+        self._require_fit()
+        X = self._validate_X(X)
+        if X.shape[2] != self.n_nodes_:
+            raise ValueError(f"X has {X.shape[2]} features but GDN was fitted on {self.n_nodes_}.")
+        if X.shape[1] - 1 != self.window_:
+            raise ValueError(
+                f"X has window_size {X.shape[1]} but GDN was fitted on "
+                f"window_size {self.window_ + 1}."
+            )
+        X = self._scale_transform(X)
+        return self._forecast_errors(X)
 
     def _build_net(self):
         """
@@ -375,10 +483,13 @@ class GDN(BaseDetector):
         errors = self._forecast_errors(X)  # (n_windows, n_nodes)
         self._err_median_ = np.median(errors, axis=0)
         q75, q25 = np.percentile(errors, [75, 25], axis=0)
-        self._err_iqr_ = q75 - q25
+        self._err_iqr_ = self._apply_spread_floor(q75 - q25)
 
         scores = self._deviation_score(errors)
         self._set_post_fit(scores)
+        # After _set_post_fit: the detector must read as fitted before the
+        # public degenerate_channels_() accessor will answer.
+        self._warn_degenerate_spread()
         return self
 
     def decision_function(self, X: np.ndarray) -> np.ndarray:
@@ -394,18 +505,120 @@ class GDN(BaseDetector):
         scores : np.ndarray, shape (n_windows,)
             Graph deviation scores. Higher = more anomalous.
         """
+        return self._deviation_score(self._errors_for(X))
+
+    @property
+    def scoring_channels_(self) -> list[int]:
+        """
+        Indices of the channels allowed to raise an alarm, in original order.
+
+        Every channel is listed when ``score_channels`` is None.
+        """
         self._require_fit()
-        X = self._validate_X(X)
-        if X.shape[2] != self.n_nodes_:
-            raise ValueError(f"X has {X.shape[2]} features but GDN was fitted on {self.n_nodes_}.")
-        if X.shape[1] - 1 != self.window_:
-            raise ValueError(
-                f"X has window_size {X.shape[1]} but GDN was fitted on "
-                f"window_size {self.window_ + 1}."
-            )
-        X = self._scale_transform(X)
-        errors = self._forecast_errors(X)
-        return self._deviation_score(errors)
+        if self.score_channels is None:
+            return list(range(self.n_nodes_))
+        return list(self.score_channels)
+
+    def learned_graph(self) -> dict:
+        """
+        The relational graph the detector learned over channels.
+
+        Node embeddings are frozen after training and the graph is their top-k
+        cosine similarity, so this is a property of the fitted model rather than
+        of any particular input.
+
+        Reading it is the only way to tell whether the graph found real
+        structure. On data where each record holds one true sensor beside
+        command flags, the neighbours are arbitrary and the graph contributes
+        nothing, which metrics reveal only indirectly.
+
+        Returns
+        -------
+        dict
+            ``adjacency`` (bool, ``(n_nodes, n_nodes)``) where ``[i, j]`` is
+            True when j is a neighbour of i; ``similarity`` (float, same shape)
+            of pairwise cosine similarities with the diagonal set to ``-inf``;
+            and ``embeddings`` (``(n_nodes, embed_dim)``).
+
+        Notes
+        -----
+        The adjacency here carries no self-loops, which suits inspection and
+        drawing. The distilled artifact's ``adj`` is the same matrix with the
+        diagonal set, because attention there runs over ``topk + 1`` terms per
+        node, the neighbours plus the node itself.
+        """
+        self._require_fit()
+        from .distill import _topk_adjacency
+
+        embeddings = self.net.encoder.embedding.weight.detach().cpu().numpy()
+        norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
+        normed = embeddings / np.maximum(norms, 1e-12)
+        similarity = normed @ normed.T
+        np.fill_diagonal(similarity, -np.inf)
+        return {
+            "adjacency": _topk_adjacency(embeddings, self.topk),
+            "similarity": similarity,
+            "embeddings": embeddings,
+        }
+
+    def channel_deviations(self, X: np.ndarray) -> np.ndarray:
+        """
+        Per-channel normalised deviation for each window.
+
+        This is the attribution behind :meth:`decision_function`, which reports
+        only the maximum over the scoring channels. The full matrix answers
+        *which* channels deviated and by how much, so an alarm can be explained
+        rather than merely raised.
+
+        The values are exact, not estimated. A perturbation method such as SHAP
+        approximates a black box; here the per-channel deviation is what the
+        detector already computes on its way to a score.
+
+        Every channel is returned, including those excluded from
+        ``score_channels``. A channel that may not raise an alarm can still be
+        informative when diagnosing one, and callers that need only the scoring
+        subset can index with :attr:`scoring_channels_`.
+
+        Parameters
+        ----------
+        X : np.ndarray, shape (n_windows, window_size, n_features)
+
+        Returns
+        -------
+        deviations : np.ndarray, shape (n_windows, n_features)
+            Normalised absolute deviation per window and channel. Higher = the
+            channel departed further from its forecast, in units of its own
+            training spread.
+
+        See Also
+        --------
+        dominant_channels : the channel driving each window's score.
+        """
+        return self._normalise(self._errors_for(X))
+
+    def dominant_channels(self, X: np.ndarray) -> np.ndarray:
+        """
+        Index of the channel driving each window's score.
+
+        Restricted to the scoring channels and returned in original channel
+        indexing, so the result always names the channel whose deviation equals
+        that window's :meth:`decision_function` score. Taking ``argmax`` over
+        :meth:`channel_deviations` instead can name a context-only channel that
+        never contributed to the score.
+
+        Parameters
+        ----------
+        X : np.ndarray, shape (n_windows, window_size, n_features)
+
+        Returns
+        -------
+        channels : np.ndarray, shape (n_windows,)
+            Channel index per window, into the original feature axis.
+        """
+        normed = self._normalise(self._errors_for(X))
+        scoring = self.scoring_channels_
+        local = normed[:, scoring].argmax(axis=1)
+        return np.asarray(scoring, dtype=int)[local]
 
     def _get_params(self) -> dict:
         return {
