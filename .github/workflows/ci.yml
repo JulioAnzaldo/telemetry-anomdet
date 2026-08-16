@@ -82,15 +82,95 @@ jobs:
       # torch-backed detectors (GDN, KANGDN, ...) are actually exercised rather
       # than skipped via importorskip, without adding torch to the 4-version
       # matrix.
-      - name: Install dependencies (with deep extra)
-        run: uv sync --group dev --extra deep
+      # viz rides along because the figure tests need a fitted deep detector,
+      # so they can only run where torch is installed.
+      - name: Install dependencies (with deep and viz extras)
+        run: uv sync --group dev --extra deep --extra viz
 
       # Covers the whole chain the deep extra unlocks: the detectors, the
-      # torch-free distillation, and the generated C. The codegen tests compile
-      # the emitted sources and check them against golden vectors, so they need
-      # a C compiler; ubuntu-latest ships gcc, and they self-skip without one.
+      # torch-free distillation, the generated C, per-channel attribution, and
+      # the figures. The codegen tests compile the emitted sources and check
+      # them against golden vectors, so they need a C compiler; ubuntu-latest
+      # ships gcc, and they self-skip without one.
+      #
+      # Files are listed rather than globbed so that adding a test file is a
+      # deliberate act; a glob would let one join silently and never be noticed
+      # when it stops running.
       - name: Run deep detector tests
-        run: uv run pytest -q tests/test_deep_kan.py tests/test_deep_gdn.py tests/test_deep_kangdn.py tests/test_deep_smoothing.py tests/test_deep_distill.py tests/test_deep_codegen.py
+        run: >
+          uv run pytest -q
+          tests/test_deep_kan.py
+          tests/test_deep_gdn.py
+          tests/test_deep_kangdn.py
+          tests/test_deep_smoothing.py
+          tests/test_deep_distill.py
+          tests/test_deep_codegen.py
+          tests/test_deep_attribution.py
+          tests/test_visualization.py
+
+  package:
+    name: Package Install
+    needs: lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Build sdist and wheel
+        run: uv run --with build python -m build
+
+      # Metadata correctness. Catches a malformed long description or a
+      # classifier PyPI will reject, before a release rather than during one.
+      - name: Check distribution metadata
+        run: uv run --with twine python -m twine check dist/*
+
+      # Installing into an empty environment is what the tests cannot cover:
+      # they import from the source tree, where a file missing from the built
+      # package is still on disk and everything passes.
+      - name: Install the wheel into a clean environment
+        run: |
+          uv venv /tmp/wheel-probe
+          uv pip install --python /tmp/wheel-probe/bin/python dist/*.whl
+          /tmp/wheel-probe/bin/python -c "
+          import telemetry_anomdet as t
+          from telemetry_anomdet.ingest import load_from_csv
+          from telemetry_anomdet.models.ensemble import AnomalyEnsemble
+          from telemetry_anomdet import thresholding, evaluation
+          print('wheel ok:', t.__version__)
+          "
+
+      # The sdist is the stricter test: a file missing from it breaks anyone
+      # building from source, and it is the classic packaging bug.
+      - name: Install the sdist into a clean environment
+        run: |
+          uv venv /tmp/sdist-probe
+          uv pip install --python /tmp/sdist-probe/bin/python dist/*.tar.gz
+          /tmp/sdist-probe/bin/python -c "
+          import telemetry_anomdet as t
+          from telemetry_anomdet.models.deep import GDN, KANGDN
+          print('sdist ok:', t.__version__)
+          "
+
+      # The deep and viz extras are optional, so nothing else in CI proves their
+      # dependency specifications resolve.
+      - name: Install the optional extras
+        run: |
+          uv venv /tmp/extras-probe
+          uv pip install --python /tmp/extras-probe/bin/python "$(echo dist/*.whl)[deep,viz]"
+          /tmp/extras-probe/bin/python -c "
+          import torch, matplotlib
+          from telemetry_anomdet.visualization import plot_sensor_graph
+          print('extras ok: torch', torch.__version__)
+          "
 
   docs:
     name: Docs Build
