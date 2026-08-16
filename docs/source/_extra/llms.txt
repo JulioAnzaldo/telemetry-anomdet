@@ -9,7 +9,8 @@ Per-channel SHAP attribution and LLM-generated diagnostic reports are on the roa
 Two things a reader should know before quoting results:
 
 - Point-adjusted F1, the usual SMAP metric, credits an entire labelled segment to a single flagged sample inside it. On SMAP a uniform random detector reaches 0.75 to 0.99 point-adjusted F1 while scoring 0.000 at the event level. Prefer the event-level figures.
-- The deep detectors need the optional `deep` extra (`pip install "telemetry-anomdet[deep]"`); the base install is torch-free.
+- The deep detectors need the optional `deep` extra (`pip install "telemetry-anomdet[deep]"`); the base install is torch-free. Plotting needs the `viz` extra.
+- Attribution is exact, not estimated. `GDN` and `KANGDN` compute a per-channel deviation on the way to a score, exposed by `channel_deviations`, so a perturbation method such as SHAP is not needed to say which channel drove an alarm.
 
 ## Documentation
 
@@ -32,7 +33,8 @@ Two things a reader should know before quoting results:
 - [BaseDetector](https://julioanzaldo.github.io/telemetry-anomdet/api/models/base.html): the shared detector interface
 - [AnomalyEnsemble](https://julioanzaldo.github.io/telemetry-anomdet/api/models/ensemble.html): stacking combinator, `score_components()`
 - [Unsupervised detectors](https://julioanzaldo.github.io/telemetry-anomdet/api/models/unsupervised.html): `PCAAnomaly`, `KMeansAnomaly`
-- [Deep detectors](https://julioanzaldo.github.io/telemetry-anomdet/api/models/deep.html): `GDN`, `KANGDN`, `score_channels`, distillation to NumPy, C code generation
+- [Deep detectors](https://julioanzaldo.github.io/telemetry-anomdet/api/models/deep.html): `GDN`, `KANGDN`, `score_channels`, `channel_deviations`, `dominant_channels`, `learned_graph`, `degenerate_channels_`, distillation to NumPy, C code generation
+- [Visualization](https://julioanzaldo.github.io/telemetry-anomdet/api/visualization.html): `plot_sensor_graph`, behind the optional `viz` extra
 
 ## Source
 
