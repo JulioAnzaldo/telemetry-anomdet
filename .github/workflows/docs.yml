@@ -1,28 +1,75 @@
 name: Docs
 
+# The site is versioned. One source tree builds every version; TAD_DOCS_SLOT
+# tells conf.py which one, and destination_dir says where it lands:
+#
+#   push to main   -> the site root, the current release
+#   push to dev    -> /dev/
+#   release tag    -> /vX.Y.Z/, an archive that is never rebuilt afterwards
+#
+# The root keeps the URLs it has always had, so llms.txt, robots.txt, the
+# sitemap, the README badge and CITATION.cff all stay correct.
+#
+# Every deploy sets keep_files: true. Without it the action deletes everything
+# already on gh-pages, and a push to main would wipe /dev/ and every archived
+# release. The cost is that a page removed from the docs lingers at the root
+# until gh-pages is cleaned by hand, which is the cheaper of the two failures.
+
 on:
   push:
     branches:
       - main
+      - dev
     paths:
-      # Run when documentation changes
       - 'docs/**'
-      # Run when Python source changes
       - 'src/**'
-      # Run when pyproject or workflow changes
       - 'pyproject.toml'
       - '.github/workflows/docs.yml'
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: 'Deploy slot: root, dev, or vX.Y.Z'
+        required: true
+        default: 'dev'
+      ref:
+        description: 'Git ref to build from'
+        required: true
+        default: 'dev'
 
 jobs:
-  build-and-test:
+  build-and-deploy:
     name: Build and Deploy Docs
     permissions:
       contents: write
     runs-on: ubuntu-latest
 
     steps:
+      - name: Work out which version this build is
+        id: slot
+        run: |
+          case "${{ github.event_name }}" in
+            release)
+              SLOT="${{ github.event.release.tag_name }}"; REF="${{ github.event.release.tag_name }}" ;;
+            workflow_dispatch)
+              SLOT="${{ inputs.slot }}"; REF="${{ inputs.ref }}" ;;
+            *)
+              if [ "${{ github.ref_name }}" = "main" ]; then SLOT="root"; else SLOT="dev"; fi
+              REF="${{ github.ref_name }}" ;;
+          esac
+          # "root" is the sentinel for the site root; everything else is a
+          # literal subdirectory.
+          if [ "$SLOT" = "root" ]; then DEST="."; else DEST="$SLOT"; fi
+          echo "slot=$SLOT" >> $GITHUB_OUTPUT
+          echo "dest=$DEST" >> $GITHUB_OUTPUT
+          echo "ref=$REF"   >> $GITHUB_OUTPUT
+          echo "Building '$REF' into slot '$SLOT' (destination '$DEST')"
+
       - name: Checkout repo
         uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.slot.outputs.ref }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -36,14 +83,17 @@ jobs:
         run: uv sync --group docs --extra ccsds
 
       - name: Build Sphinx docs
+        env:
+          TAD_DOCS_SLOT: ${{ steps.slot.outputs.slot }}
         run: uv run sphinx-build -b html docs/source docs/build/html
 
-      # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs/build/html
           publish_branch: gh-pages
+          destination_dir: ${{ steps.slot.outputs.dest }}
+          keep_files: true
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
