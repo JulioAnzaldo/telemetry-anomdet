@@ -1,0 +1,105 @@
+/* telemetry-anomdet docs - overrides for pydata-sphinx-theme.
+   Colours are set through the theme's own variables, separately for light and
+   dark, so the theme toggle keeps working. Do not hard-code a colour outside
+   these two blocks. */
+
+/* Palette: copper primary with a cold teal secondary. Mission-console warm
+   against instrument cold, and deliberately not the blue/pink the theme ships
+   with. */
+html[data-theme="light"] {
+    --pst-color-primary: #9a4a10;
+    --pst-color-primary-highlight: #7a3a0c;
+    --pst-color-primary-bg: #f6e6d8;
+    --pst-color-secondary: #1a6570;
+    --pst-color-secondary-highlight: #124a52;
+    --pst-color-secondary-bg: #dcedef;
+    --pst-color-accent: #9a4a10;
+    --pst-color-link: #9a4a10;
+    --pst-color-link-hover: #7a3a0c;
+    --pst-color-inline-code: #8a3f1d;
+    --pst-color-inline-code-links: #1a6570;
+}
+
+html[data-theme="dark"] {
+    --pst-color-primary: #f0a868;
+    --pst-color-primary-highlight: #f7c39a;
+    --pst-color-primary-bg: #3a2415;
+    --pst-color-secondary: #5fc9d8;
+    --pst-color-secondary-highlight: #8fdde8;
+    --pst-color-secondary-bg: #10353b;
+    --pst-color-accent: #f0a868;
+    --pst-color-link: #f0a868;
+    --pst-color-link-hover: #f7c39a;
+    --pst-color-inline-code: #e9a97a;
+    --pst-color-inline-code-links: #5fc9d8;
+}
+
+/* Brand text in the navbar: the package name, set in mono so it reads as an
+   identifier rather than a title. */
+.navbar-brand .title,
+.navbar-brand p {
+    font-family: var(--pst-font-family-monospace);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+}
+
+/* Give the prose column more room than the theme's default. The API pages
+   carry wide signatures and the guides carry wide tables. */
+.bd-page-width {
+    max-width: 100rem;
+}
+
+.bd-main .bd-content .bd-article-container {
+    max-width: 68rem;
+}
+
+/* Tables in the guides (benchmark results, resource budgets) should use the
+   width they are given and scroll rather than overflow the page. */
+.bd-article table {
+    display: table;
+    width: 100%;
+}
+
+.bd-article .table-responsive,
+.bd-article div.table-wrapper {
+    overflow-x: auto;
+}
+
+/* Signatures are the densest thing on the API pages; a little more separation
+   makes a long class page scannable. */
+.bd-article dl.py > dt {
+    margin-top: 1.2rem;
+}
+
+/* "Copy for LLM" button (injected by llm_copy.js).
+   The article container is a flex column, so a plain float would stretch the
+   button across the full width. align-self plus fit-content keeps it small. */
+.llm-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    align-self: flex-end;
+    width: fit-content;
+    margin: 0 0 0.25rem 0.75rem;
+    padding: 0.25em 0.7em;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--pst-color-text-muted);
+    background-color: var(--pst-color-surface);
+    border: 1px solid var(--pst-color-border);
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.llm-copy-btn:hover {
+    color: var(--pst-color-primary);
+    border-color: var(--pst-color-primary);
+}
+
+.llm-copy-btn svg {
+    width: 0.95em;
+    height: 0.95em;
+    flex: none;
+}

@@ -1,0 +1,1062 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Onboard Deployment Architecture" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://julioanzaldo.github.io/telemetry-anomdet/dev/applications/onboard_deployment.html" />
+<meta property="og:site_name" content="telemetry-anomdet" />
+<meta property="og:description" content="This page describes how a trained detector is distilled, sized, and deployed onto spacecraft flight hardware, and how responsibility is divided between the spacecraft and the ground segment. The ta..." />
+<meta name="description" content="This page describes how a trained detector is distilled, sized, and deployed onto spacecraft flight hardware, and how responsibility is divided between the spacecraft and the ground segment. The ta..." />
+<meta name="twitter:card" content="summary" />
+
+    <title>Onboard Deployment Architecture &#8212; telemetry_anomdet</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=c33b25c4" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'applications/onboard_deployment';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://julioanzaldo.github.io/telemetry-anomdet/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/llm_copy.js?v=f4a7753a"></script>
+    <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/dev/applications/onboard_deployment.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Reference" href="../api/index.html" />
+    <link rel="prev" title="Applications in CubeSat Operations" href="cubesat_ops.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">telemetry_anomdet</p>
+  
+</a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Applications
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/JulioAnzaldo/telemetry-anomdet" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/telemetry-anomdet/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Applications
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/JulioAnzaldo/telemetry-anomdet" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/telemetry-anomdet/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cubesat_ops.html">Applications in CubeSat Operations</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Onboard Deployment Architecture</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Applications</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Onboard Deployment Architecture</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="onboard-deployment-architecture">
+<h1>Onboard Deployment Architecture<a class="headerlink" href="#onboard-deployment-architecture" title="Link to this heading">#</a></h1>
+<p>This page describes how a trained detector is distilled, sized, and deployed onto
+spacecraft flight hardware, and how responsibility is divided between the
+spacecraft and the ground segment.</p>
+<p>The target artifact is a KANGDN detector reduced to closed-form arithmetic: a
+set of spline coefficients plus a deviation threshold, emitted as C with no
+dependencies beyond <code class="docutils literal notranslate"><span class="pre">math.h</span></code>. See
+<a class="reference internal" href="../api/models/deep.html#module-telemetry_anomdet.models.deep.distill" title="telemetry_anomdet.models.deep.distill"><code class="xref py py-mod docutils literal notranslate"><span class="pre">telemetry_anomdet.models.deep.distill</span></code></a> for the extraction step and
+<a class="reference internal" href="../api/models/deep.html#module-telemetry_anomdet.models.deep.codegen" title="telemetry_anomdet.models.deep.codegen"><code class="xref py py-mod docutils literal notranslate"><span class="pre">telemetry_anomdet.models.deep.codegen</span></code></a> for C generation.</p>
+<section id="design-principle">
+<h2>Design principle<a class="headerlink" href="#design-principle" title="Link to this heading">#</a></h2>
+<p>Perform every computation on the ground that can be performed on the ground.
+Place onboard only what cannot wait for a ground contact.</p>
+<p>Detection and the resulting trigger must be onboard, because a fault requiring
+emergency operations cannot wait for the next pass. Threshold estimation,
+retraining, explanation, and reporting are all slow-varying or offline
+activities, so they belong to the ground segment, where model size, runtime, and
+power are not constrained.</p>
+<p>A consequence worth stating plainly: the ground segment can run models far too
+large to fly, and use their output to calibrate the small onboard detector. The
+flight artifact is a fast, auditable tripwire, tuned by a much larger process
+that never leaves the ground.</p>
+</section>
+<section id="responsibility-tiers">
+<h2>Responsibility tiers<a class="headerlink" href="#responsibility-tiers" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 12.0%" />
+<col style="width: 20.0%" />
+<col style="width: 68.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tier</p></th>
+<th class="head"><p>Location</p></th>
+<th class="head"><p>Responsibility</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>Onboard, hard real time</p></td>
+<td><p>Distilled detector and fixed threshold. Deterministic, bounded runtime,
+no allocation. Raises the anomaly flag that gates emergency operations.</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>Onboard, background</p></td>
+<td><p>EWMA smoothing of the error signal, accumulation of deviation
+statistics, emission of event packets, downlink of compact summaries
+rather than raw telemetry.</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>Ground segment</p></td>
+<td><p>Full-precision models and ensembles, threshold recomputation from
+downlinked statistics, retraining, attribution and reporting, and
+parameter uplink.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="target-hardware">
+<h2>Target hardware<a class="headerlink" href="#target-hardware" title="Link to this heading">#</a></h2>
+<p>Radiation-hardened flight processors trade process technology for
+survivability, so they are typically slower than contemporary commercial parts
+rather than faster. Representative classes:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 30.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Part</p></th>
+<th class="head"><p>Architecture</p></th>
+<th class="head"><p>Approximate clock</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>RAD750</p></td>
+<td><p>PowerPC, radiation hardened</p></td>
+<td><p>130 to 200 MHz</p></td>
+</tr>
+<tr class="row-odd"><td><p>RAD5500 family</p></td>
+<td><p>PowerPC e5500, multicore</p></td>
+<td><p>up to roughly 466 MHz</p></td>
+</tr>
+<tr class="row-even"><td><p>GR712RC, GR740</p></td>
+<td><p>LEON3 and LEON4 SPARC</p></td>
+<td><p>roughly 80 MHz and 250 MHz</p></td>
+</tr>
+<tr class="row-odd"><td><p>Vorago VA416xx</p></td>
+<td><p>Radiation hardened Cortex-M4</p></td>
+<td><p>roughly 100 MHz</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Many missions pair a radiation-hardened command and data handling computer with
+a commercial payload processor that carries watchdog and power-cycling
+mitigation. The distilled detector is designed for the first of these, where a
+full neural network framework cannot be deployed at all.</p>
+<p><strong>Portability constraint.</strong> The generated C is C99 with no intrinsics, no
+dynamic allocation, and no platform APIs, so it compiles unchanged for SPARC,
+PowerPC, Cortex-M, RISC-V, and Xtensa targets. Platform-specific integration
+(flash partitioning, packet handling, scheduling) belongs in a separate glue
+layer and must not be introduced into the generated core.</p>
+</section>
+<section id="resource-budget">
+<h2>Resource budget<a class="headerlink" href="#resource-budget" title="Link to this heading">#</a></h2>
+<p>Measured for a 25-channel model with a 29-sample context, across the embedding
+widths the sizing sweep covers. Coefficients are <code class="docutils literal notranslate"><span class="pre">static</span> <span class="pre">const</span></code> and therefore
+resident in flash; the RAM column is the scratch working set the generated code
+declares.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 16.0%" />
+<col style="width: 18.0%" />
+<col style="width: 18.0%" />
+<col style="width: 16.0%" />
+<col style="width: 16.0%" />
+<col style="width: 16.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>embed_dim</p></th>
+<th class="head"><p>Parameters</p></th>
+<th class="head"><p>Flash (float32)</p></th>
+<th class="head"><p>RAM scratch</p></th>
+<th class="head"><p>MMACs</p></th>
+<th class="head"><p>Approx. ms at 240 MHz</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>128</p></td>
+<td><p>159,232</p></td>
+<td><p>622.0 KB</p></td>
+<td><p>28.1 KB</p></td>
+<td><p>3.84</p></td>
+<td><p>16.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>64</p></td>
+<td><p>42,752</p></td>
+<td><p>167.0 KB</p></td>
+<td><p>15.6 KB</p></td>
+<td><p>1.00</p></td>
+<td><p>4.2</p></td>
+</tr>
+<tr class="row-even"><td><p>32</p></td>
+<td><p>12,160</p></td>
+<td><p>47.5 KB</p></td>
+<td><p>9.4 KB</p></td>
+<td><p>0.27</p></td>
+<td><p>1.1</p></td>
+</tr>
+<tr class="row-odd"><td><p>16</p></td>
+<td><p>3,776</p></td>
+<td><p>14.8 KB</p></td>
+<td><p>6.2 KB</p></td>
+<td><p>0.08</p></td>
+<td><p>0.3</p></td>
+</tr>
+<tr class="row-even"><td><p>8</p></td>
+<td><p>1,312</p></td>
+<td><p>5.1 KB</p></td>
+<td><p>4.7 KB</p></td>
+<td><p>0.02</p></td>
+<td><p>0.1</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Parameter count is dominated by the spline coefficients of the KAN activation
+layer and grows as <code class="docutils literal notranslate"><span class="pre">embed_dim**2</span> <span class="pre">*</span> <span class="pre">(grid_size</span> <span class="pre">+</span> <span class="pre">spline_order)</span></code>, so embedding
+width is the primary size control.</p>
+<p>The millisecond column above is derived from the multiply-accumulate count and
+assumes roughly one per cycle. Measurement does not support that assumption, so
+treat it as a lower bound rather than an estimate; see the measured figures
+below.</p>
+</section>
+<section id="measured-on-hardware">
+<h2>Measured on hardware<a class="headerlink" href="#measured-on-hardware" title="Link to this heading">#</a></h2>
+<p>An ESP32-S3 running the conformance harness in <code class="docutils literal notranslate"><span class="pre">targets/esp32s3</span></code>, with a
+detector trained on a single SMAP channel at <code class="docutils literal notranslate"><span class="pre">embed_dim=16</span></code>, 25 channels and a
+30 sample window, generated as <code class="docutils literal notranslate"><span class="pre">float</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 60.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Measurement</p></th>
+<th class="head"><p>Result</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Worst absolute score error</p></td>
+<td><p>2.78e-04, identical to the host build</p></td>
+</tr>
+<tr class="row-odd"><td><p>Anomaly flag mismatches</p></td>
+<td><p>0 of 8 golden vectors</p></td>
+</tr>
+<tr class="row-even"><td><p>Heap consumed while scoring</p></td>
+<td><p>0 bytes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Time per window</p></td>
+<td><p>19.3 ms</p></td>
+</tr>
+<tr class="row-even"><td><p>RAM used by the firmware</p></td>
+<td><p>19,608 bytes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Flash used by the firmware</p></td>
+<td><p>251,321 bytes, of which roughly 11 KB is coefficients</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Two results are worth drawing out.</p>
+<p>The score error matches the host build digit for digit, so the Xtensa single
+precision unit and an x86 host agree exactly. Combined with the double precision
+mode being exact against the reference evaluator, the whole chain from the
+trained model to the deployed binary is verified rather than assumed.</p>
+<p>Throughput is far below what the operation count suggests. The same model scores
+a window in about 40 microseconds on an x86 host and 19.3 milliseconds on the
+ESP32-S3, a factor of roughly 480. Coefficients are read from flash through the
+cache rather than from RAM, the exponential is a library call made once per input
+per layer, and the spline recursion is scalar. Which of those dominates has not
+been profiled. At telemetry rates of about 1 Hz the detector still occupies only
+a few percent of the processor, and triple modular redundancy remains affordable
+at roughly 58 milliseconds, but a faster duty cycle would need the cost
+investigated first.</p>
+</section>
+<section id="numeric-precision">
+<h2>Numeric precision<a class="headerlink" href="#numeric-precision" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">codegen</span></code> emits either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">double</span></code>.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">float</span></code></dt><dd><p>The deployment mode. It matches single-precision FPUs on the relevant
+targets, and halves the flash footprint relative to <code class="docutils literal notranslate"><span class="pre">double</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">double</span></code></dt><dd><p>A verification mode. It isolates whether a discrepancy originates in the
+port or in reduced precision. It is not intended for flight, and on parts
+without double-precision hardware it is emulated in software.</p>
+</dd>
+</dl>
+<p>Measured against the NumPy reference evaluator on the same windows, at two
+model sizes: a small fixture (5 channels, <code class="docutils literal notranslate"><span class="pre">embed_dim=8</span></code>) and a deployment
+shaped model (25 channels, <code class="docutils literal notranslate"><span class="pre">embed_dim=32</span></code>, 30 sample window).</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 24.0%" />
+<col style="width: 24.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mode</p></th>
+<th class="head"><p>Small model</p></th>
+<th class="head"><p>Deployment model</p></th>
+<th class="head"><p>Interpretation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">double</span></code></p></td>
+<td><p>0.0</p></td>
+<td><p>1.5e-16</p></td>
+<td><p>Exact to within one unit in the last place of float64. The port
+contributes no error of its own.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
+<td><p>3.0e-07</p></td>
+<td><p>1.2e-07</p></td>
+<td><p>About one float32 epsilon (1.19e-07).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Single-precision error does not grow with node count or embedding width; the
+deployment sized model tracks the reference more closely than the small one.
+Because the double mode is exact, any discrepancy observed on a target can be
+attributed to precision or to the platform’s math library rather than to the
+generated code. Drift of order 1e-07 is far below the margin separating nominal
+from anomalous scores, so it does not affect the flag.</p>
+<p>Some radiation-hardened microcontrollers have no floating point unit at all. The
+spline bases are piecewise polynomials, so a fixed-point generation mode is
+tractable and is a planned addition for those targets.</p>
+</section>
+<section id="threshold-strategy">
+<h2>Threshold strategy<a class="headerlink" href="#threshold-strategy" title="Link to this heading">#</a></h2>
+<p>The onboard threshold is a constant, computed on the ground and uplinked. It is
+not estimated onboard.</p>
+<p>Rationale:</p>
+<dl class="simple">
+<dt>Auditability</dt><dd><p>The constant that decides whether emergency operations are triggered is a
+reviewed, versioned, revertible value. An onboard decision can be reproduced
+exactly on the ground from the same inputs.</p>
+</dd>
+<dt>Determinism</dt><dd><p>Identical input always produces identical output, which makes verification
+and regression testing meaningful.</p>
+</dd>
+<dt>Cost is not the deciding factor</dt><dd><p>Onboard threshold estimation is inexpensive in absolute terms, requiring a
+rolling error buffer of a few kilobytes and well under a millisecond of
+computation. The argument for uplink rests on auditability, not resources.</p>
+</dd>
+</dl>
+<p>The known limitation is adaptation lag. If the error distribution drifts through
+thermal cycling, sensor ageing, or a mode change, a stale threshold degrades
+until the next uplink. A planned refinement is bounded onboard adaptation, in
+which the threshold may move only within a ground-approved envelope. That
+preserves reviewability while recovering most of the responsiveness.</p>
+<p>EWMA smoothing of the error signal runs onboard in all cases. It is part of the
+score rather than the threshold, and costs one multiply-add per step.</p>
+</section>
+<section id="parameter-updates">
+<h2>Parameter updates<a class="headerlink" href="#parameter-updates" title="Link to this heading">#</a></h2>
+<p>Coefficients and thresholds are stored in a dedicated flash partition rather
+than compiled into the application image. Updating a threshold then does not
+require rebuilding or replacing executable code.</p>
+<p>This mirrors established practice, where parameter and table uploads are a
+lower-risk category than code patches, and where firmware images are held in
+redundant banks with checksum verification and automatic rollback to a
+known-good image.</p>
+<p>Update sizes are modest:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Payload</p></th>
+<th class="head"><p>Size</p></th>
+<th class="head"><p>At 1 kbps</p></th>
+<th class="head"><p>At 9.6 kbps</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Threshold and deviation statistics</p></td>
+<td><p>204 bytes</p></td>
+<td><p>1.6 s</p></td>
+<td><p>0.2 s</p></td>
+</tr>
+<tr class="row-odd"><td><p>Full model, <code class="docutils literal notranslate"><span class="pre">embed_dim=16</span></code></p></td>
+<td><p>14.8 KB</p></td>
+<td><p>120.8 s</p></td>
+<td><p>12.6 s</p></td>
+</tr>
+<tr class="row-even"><td><p>Full model, <code class="docutils literal notranslate"><span class="pre">embed_dim=32</span></code></p></td>
+<td><p>47.5 KB</p></td>
+<td><p>389.1 s</p></td>
+<td><p>40.5 s</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A threshold update is a single command packet. A complete model replacement is a
+routine operation measured in minutes of contact time.</p>
+</section>
+<section id="radiation-tolerance">
+<h2>Radiation tolerance<a class="headerlink" href="#radiation-tolerance" title="Link to this heading">#</a></h2>
+<p>Qualification is a hardware and process activity. What the software layer
+contributes is tolerance to corruption and evidence of correctness.</p>
+<p>Required mitigations:</p>
+<dl class="simple">
+<dt>Parameter integrity</dt><dd><p>Store the coefficient blob with a CRC and at least one redundant copy.
+Verify on boot and periodically during operation, and reload from a valid
+copy when a mismatch is detected. Single event upsets flip bits in both
+flash and RAM, and a corrupted coefficient silently changes the detector’s
+behaviour.</p>
+</dd>
+<dt>Output plausibility checks</dt><dd><p>Reject non-finite or out-of-range scores before acting on them. Such a value
+indicates corruption rather than an anomaly and must not reach the trigger
+path.</p>
+</dd>
+<dt>Redundant evaluation</dt><dd><p>Where the fault budget requires it, evaluate three times and vote.</p>
+</dd>
+<dt>Watchdog and safe state</dt><dd><p>Define the behaviour on timeout, and ensure the default is inaction rather
+than a spurious trigger.</p>
+</dd>
+</dl>
+<p>The generated code already satisfies much of the NASA/JPL Power of Ten
+guidance by construction: no dynamic allocation, no recursion, fixed loop
+bounds, and no function pointers. Alignment with MISRA C requires explicit
+types, no implicit conversions, mandatory braces, and no floating point equality
+comparisons. Relevant process standards include NPR 7150.2 and NASA-STD-8739.8,
+and ECSS-Q-ST-80C for European missions.</p>
+</section>
+<section id="ccsds-integration">
+<h2>CCSDS integration<a class="headerlink" href="#ccsds-integration" title="Link to this heading">#</a></h2>
+<p>Three separate interfaces make the detector usable within existing ground
+infrastructure rather than requiring bespoke plumbing.</p>
+<dl class="simple">
+<dt>Telemetry input</dt><dd><p>CCSDS Space Packet Protocol (133.0-B) carries the telemetry. XTCE describes
+how packets decode into named parameters, which maps onto the long-form
+<code class="docutils literal notranslate"><span class="pre">[timestamp,</span> <span class="pre">variable,</span> <span class="pre">value]</span></code> schema this toolkit uses throughout.</p>
+</dd>
+<dt>Event output</dt><dd><p>Detections are emitted as event packets so that existing ground software can
+consume them directly.</p>
+</dd>
+<dt>Parameter and model upload</dt><dd><p>CFDP (727.0-B) provides reliable, chunked, resumable file delivery across
+contact windows, which suits both threshold updates and full model
+replacement.</p>
+</dd>
+</dl>
+</section>
+<section id="target-ports">
+<h2>Target ports<a class="headerlink" href="#target-ports" title="Link to this heading">#</a></h2>
+<p>Platform specific code lives in <code class="docutils literal notranslate"><span class="pre">targets</span></code>, one directory per target, and never
+in the generated sources. <code class="docutils literal notranslate"><span class="pre">targets/host</span></code> is the reference implementation of a
+port and <code class="docutils literal notranslate"><span class="pre">targets/esp32s3</span></code> is a bench validation of the software chain.</p>
+<p>Generation can emit golden vectors alongside the detector: input windows, the
+reference evaluator’s score for each, and the expected anomaly flags. A port is
+then validated on the target itself, by scoring each window and comparing, with
+no host tooling in the loop. A port is complete when it compiles clean under the
+strictest warnings its toolchain supports, matches the golden vectors with the
+flags exactly right, and reports timing and memory.</p>
+<p>See <code class="docutils literal notranslate"><span class="pre">targets/README.md</span></code> for the per target instructions.</p>
+</section>
+<section id="provenance-and-interface-stability">
+<h2>Provenance and interface stability<a class="headerlink" href="#provenance-and-interface-stability" title="Link to this heading">#</a></h2>
+<p>Flight software has to be traceable to what produced it, so every generated file
+records the toolkit version that emitted it in its banner, and <code class="docutils literal notranslate"><span class="pre">kangdn.h</span></code>
+exposes it as <code class="docutils literal notranslate"><span class="pre">KANGDN_VERSION</span></code> for a running build to report. Record that
+version alongside any artifact that is flashed or flown.</p>
+<p>The generated interface is unstable until version 1.0.0. Symbol names, macros
+and entry point signatures may change in any 0.x release, per the
+<a class="reference external" href="https://semver.org/">Semantic Versioning</a> rule for major version zero.
+Upgrading means regenerating and rebuilding rather than hand-patching, then
+re-running the golden vectors, which are regenerated with the sources and are
+the evidence that the new version behaves as the old one did.</p>
+<p>Generation is deterministic and carries no timestamp. The same fitted detector
+reproduces the sources byte for byte, so a diff shows only real changes and a
+build is reproducible from a stored detector.</p>
+</section>
+<section id="open-items">
+<h2>Open items<a class="headerlink" href="#open-items" title="Link to this heading">#</a></h2>
+<p>The following are identified but not yet resolved.</p>
+<ul class="simple">
+<li><p>Profiling the inference cost on the ESP32-S3, which is far above what the
+operation count predicts.</p></li>
+<li><p>Fixed-point generation mode for targets without a floating point unit.</p></li>
+<li><p>Bounded onboard threshold adaptation within a ground-approved envelope.</p></li>
+<li><p>MISRA C conformance pass over the generator output.</p></li>
+<li><p>Separation of the coefficient blob into an independently updatable partition,
+with CRC and redundancy, replacing the current compiled-in arrays.</p></li>
+<li><p>Selection of the deployed embedding width, which depends on detection quality
+measured under a metric that is not inflated by point adjustment.</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="cubesat_ops.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Applications in CubeSat Operations</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../api/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">API Reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-principle">Design principle</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#responsibility-tiers">Responsibility tiers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#target-hardware">Target hardware</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resource-budget">Resource budget</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#measured-on-hardware">Measured on hardware</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#numeric-precision">Numeric precision</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#threshold-strategy">Threshold strategy</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parameter-updates">Parameter updates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#radiation-tolerance">Radiation tolerance</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ccsds-integration">CCSDS integration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#target-ports">Target ports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#provenance-and-interface-stability">Provenance and interface stability</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#open-items">Open items</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/edit/main/docs/source/applications/onboard_deployment.rst">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/applications/onboard_deployment.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Julio Anzaldo.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

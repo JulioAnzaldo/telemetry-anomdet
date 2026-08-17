@@ -1,0 +1,1260 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Deep Models" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://julioanzaldo.github.io/telemetry-anomdet/dev/api/models/deep.html" />
+<meta property="og:site_name" content="telemetry-anomdet" />
+<meta property="og:description" content="Deep detectors inherit from BaseDetector and share the same fit/ decision_function/ predict/ is_anomaly API as the classical models, so they can be stacked or swapped without glue. These models req..." />
+<meta name="description" content="Deep detectors inherit from BaseDetector and share the same fit/ decision_function/ predict/ is_anomaly API as the classical models, so they can be stacked or swapped without glue. These models req..." />
+<meta name="twitter:card" content="summary" />
+
+    <title>Deep Models &#8212; telemetry_anomdet</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=c33b25c4" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/models/deep';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://julioanzaldo.github.io/telemetry-anomdet/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../_static/llm_copy.js?v=f4a7753a"></script>
+    <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/dev/api/models/deep.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Ensemble Model" href="ensemble.html" />
+    <link rel="prev" title="Unsupervised Models" href="unsupervised.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">telemetry_anomdet</p>
+  
+</a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../applications/index.html">
+    Applications
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/JulioAnzaldo/telemetry-anomdet" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/telemetry-anomdet/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../applications/index.html">
+    Applications
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/JulioAnzaldo/telemetry-anomdet" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/telemetry-anomdet/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../ingest.html">Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessing.html">Preprocessing Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature_extraction.html">Feature Extraction Module</a></li>
+</ul>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="base.html">BaseDetector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unsupervised.html">Unsupervised Models</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Deep Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ensemble.html">Ensemble Model</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../thresholding.html">Thresholding Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluation.html">Evaluation Module</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">API Reference</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Deep Models</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="deep-models">
+<h1>Deep Models<a class="headerlink" href="#deep-models" title="Link to this heading">#</a></h1>
+<p>Deep detectors inherit from <a class="reference internal" href="base.html#telemetry_anomdet.models.base.BaseDetector" title="telemetry_anomdet.models.base.BaseDetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseDetector</span></code></a>
+and share the same <code class="docutils literal notranslate"><span class="pre">fit</span></code> / <code class="docutils literal notranslate"><span class="pre">decision_function</span></code> / <code class="docutils literal notranslate"><span class="pre">predict</span></code> / <code class="docutils literal notranslate"><span class="pre">is_anomaly</span></code>
+API as the classical models, so they can be stacked or swapped without glue.</p>
+<p>These models require <code class="docutils literal notranslate"><span class="pre">torch</span></code>, which is an optional dependency:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>add<span class="w"> </span><span class="s2">&quot;telemetry-anomdet[deep]&quot;</span>
+</pre></div>
+</div>
+<section id="gdn">
+<h2>GDN<a class="headerlink" href="#gdn" title="Link to this heading">#</a></h2>
+<p>Graph deviation network. Learns a sensor embedding, builds a top-k relational
+graph over channels, and forecasts each channel from its graph neighbours. The
+anomaly score is the deviation between forecast and observation, normalised per
+node by the training median and IQR.</p>
+<p><code class="docutils literal notranslate"><span class="pre">score_channels</span></code> restricts which channels may contribute to that deviation.
+Channels excluded from the score still feed the model as context. This matters
+on data that mixes continuous sensors with discrete mode and status flags, where
+a command switch is a state change rather than a fault.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.gdn.GDN">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.deep.gdn.</span></span><span class="sig-name descname"><span class="pre">GDN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embed_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topk</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">95.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/gdn.html#GDN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.gdn.GDN" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="base.html#telemetry_anomdet.models.base.BaseDetector" title="telemetry_anomdet.models.base.BaseDetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseDetector</span></code></a></p>
+<p>Graph Deviation Network detector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>embed_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=64</em>) – Dimensionality of the learned per-sensor embeddings and hidden features.</p></li>
+<li><p><strong>topk</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=15</em>) – Number of graph neighbours retained per sensor. Clamped internally to
+<code class="docutils literal notranslate"><span class="pre">n_features</span> <span class="pre">-</span> <span class="pre">1</span></code>.</p></li>
+<li><p><strong>epochs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=30</em>) – Number of training epochs.</p></li>
+<li><p><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=64</em>) – Minibatch size for training.</p></li>
+<li><p><strong>lr</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=1e-3</em>) – Adam learning rate.</p></li>
+<li><p><strong>scale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=True</em>) – Standardise each channel (per-feature z-score) before training and
+scoring. Recommended: unlike the classical detectors, the network has
+no implicit scale invariance, so unscaled telemetry lets large-magnitude
+channels dominate the forecast. The scaler is fitted on the training
+windows only and reused at inference, so no test statistics leak in.</p></li>
+<li><p><strong>device</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Torch device string (e.g. “cuda”, “cpu”). If None, uses CUDA when
+available, otherwise CPU.</p></li>
+<li><p><strong>random_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Seed for torch and numpy RNGs, for reproducible training.</p></li>
+<li><p><strong>percentile</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=95.0</em>) – Percentile of training deviation scores used to set <code class="docutils literal notranslate"><span class="pre">threshold_</span></code>.</p></li>
+<li><p><strong>score_channels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – <p>Which feature channels may raise an alarm. Every channel still feeds
+the graph and the forecast; this restricts only the deviation score.
+Defaults to all of them.</p>
+<p>The distinction matters whenever a record mixes continuous sensors with
+discrete status, mode or command channels. A discrete channel produces a
+large forecast error every time it switches, which is a state change
+rather than a fault, so letting it into the score raises an alarm on
+normal operation. Such channels are still worth feeding to the model,
+because they carry context that improves the forecast.</p>
+<p>Choosing them well can outweigh any thresholding decision; see the
+anomaly scoring page of the documentation for the measured effect.</p>
+</p></li>
+<li><p><strong>fit</strong><strong>)</strong> (<em>Attributes</em><em> (</em><em>set after</em>)</p></li>
+<li><p><strong>--------------------------</strong></p></li>
+<li><p><strong>decision_scores</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>,</em><em>)</em>) – Graph deviation scores on the training data.</p></li>
+<li><p><strong>threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Default anomaly cutoff derived from training scores at <code class="docutils literal notranslate"><span class="pre">percentile</span></code>.</p></li>
+<li><p><strong>labels</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>,</em><em>)</em>) – Binary anomaly labels on training data. 0 = normal, 1 = anomaly.</p></li>
+<li><p><strong>net</strong> (<em>GDNNet</em>) – The fitted torch forecasting network.</p></li>
+<li><p><strong>n_nodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of sensor channels seen during fit.</p></li>
+<li><p><strong>window</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Forecasting context length (window_size - 1).</p></li>
+<li><p><strong>scaler</strong> (<a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html#sklearn.preprocessing.StandardScaler" title="(in scikit-learn v1.9)"><em>sklearn.preprocessing.StandardScaler</em></a><em> or </em><em>None</em>) – Fitted per-channel scaler when <code class="docutils literal notranslate"><span class="pre">scale</span> <span class="pre">=</span> <span class="pre">True</span></code>, otherwise None.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The internal torch network is kept deliberately separate from this wrapper
+(see <code class="docutils literal notranslate"><span class="pre">_net.GDNNet</span></code>) so it can be consumed on its own by later
+explainability or symbolic-distillation work without the detector plumbing.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.gdn.GDN.ewma">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ewma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/gdn.html#GDN.ewma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.gdn.GDN.ewma" title="Link to this definition">#</a></dt>
+<dd><p>Exponentially weighted moving average down the window (time) axis.</p>
+<p><code class="docutils literal notranslate"><span class="pre">s_t</span> <span class="pre">=</span> <span class="pre">alpha</span> <span class="pre">*</span> <span class="pre">e_t</span> <span class="pre">+</span> <span class="pre">(1</span> <span class="pre">-</span> <span class="pre">alpha)</span> <span class="pre">*</span> <span class="pre">s_{t-1}</span></code>, seeded with <code class="docutils literal notranslate"><span class="pre">s_0</span> <span class="pre">=</span> <span class="pre">e_0</span></code>
+and applied independently per node. Smaller <code class="docutils literal notranslate"><span class="pre">alpha</span></code> means heavier
+smoothing.</p>
+<p>The recursion only looks backwards, so no future information reaches a
+window’s score and the training statistics stay leakage free. Smoothing
+suppresses single-window spikes, which are the dominant source of
+isolated false alarms in a forecasting detector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>errors</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>, </em><em>n_nodes</em><em>)</em>) – Per-window, per-node errors, ordered in time.</p></li>
+<li><p><strong>alpha</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Smoothing factor in (0, 1]. A value of 1.0 is the identity.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Smoothed errors, same shape as the input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.gdn.GDN.degenerate_channels_">
+<span class="sig-name descname"><span class="pre">degenerate_channels_</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/gdn.html#GDN.degenerate_channels_"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.gdn.GDN.degenerate_channels_" title="Link to this definition">#</a></dt>
+<dd><p>Channels whose forecast error had no measurable spread in training.</p>
+<p>Their spread was floored at fit time, because dividing by it would
+otherwise yield a number set by the guard epsilon rather than by the
+data. They can still raise alarms and still score highly when they move;
+the floor only stops them from dwarfing every other channel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Indices into the feature axis, ascending.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.gdn.GDN.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN" title="telemetry_anomdet.models.deep.gdn.GDN"><span class="pre">GDN</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/gdn.html#GDN.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.gdn.GDN.fit" title="Link to this definition">#</a></dt>
+<dd><p>Fit the GDN forecasting network on nominal telemetry windows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>, </em><em>window_size</em><em>, </em><em>n_features</em><em>)</em>) – Windowed telemetry tensor from windowify(). <code class="docutils literal notranslate"><span class="pre">window_size</span></code> must be
+at least 2 (one context step plus one target step).</p></li>
+<li><p><strong>y</strong> (<em>ignored</em>) – Present for API consistency.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>self</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN" title="telemetry_anomdet.models.deep.gdn.GDN">GDN</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.gdn.GDN.decision_function">
+<span class="sig-name descname"><span class="pre">decision_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/gdn.html#GDN.decision_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.gdn.GDN.decision_function" title="Link to this definition">#</a></dt>
+<dd><p>Compute the graph deviation score for each window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>, </em><em>window_size</em><em>, </em><em>n_features</em><em>)</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>scores</strong> – Graph deviation scores. Higher = more anomalous.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray, shape (n_windows,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.gdn.GDN.scoring_channels_">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">scoring_channels_</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#telemetry_anomdet.models.deep.gdn.GDN.scoring_channels_" title="Link to this definition">#</a></dt>
+<dd><p>Indices of the channels allowed to raise an alarm, in original order.</p>
+<p>Every channel is listed when <code class="docutils literal notranslate"><span class="pre">score_channels</span></code> is None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.gdn.GDN.learned_graph">
+<span class="sig-name descname"><span class="pre">learned_graph</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/gdn.html#GDN.learned_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.gdn.GDN.learned_graph" title="Link to this definition">#</a></dt>
+<dd><p>The relational graph the detector learned over channels.</p>
+<p>Node embeddings are frozen after training and the graph is their top-k
+cosine similarity, so this is a property of the fitted model rather than
+of any particular input.</p>
+<p>Reading it is the only way to tell whether the graph found real
+structure. On data where each record holds one true sensor beside
+command flags, the neighbours are arbitrary and the graph contributes
+nothing, which metrics reveal only indirectly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">adjacency</span></code> (bool, <code class="docutils literal notranslate"><span class="pre">(n_nodes,</span> <span class="pre">n_nodes)</span></code>) where <code class="docutils literal notranslate"><span class="pre">[i,</span> <span class="pre">j]</span></code> is
+True when j is a neighbour of i; <code class="docutils literal notranslate"><span class="pre">similarity</span></code> (float, same shape)
+of pairwise cosine similarities with the diagonal set to <code class="docutils literal notranslate"><span class="pre">-inf</span></code>;
+and <code class="docutils literal notranslate"><span class="pre">embeddings</span></code> (<code class="docutils literal notranslate"><span class="pre">(n_nodes,</span> <span class="pre">embed_dim)</span></code>).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The adjacency here carries no self-loops, which suits inspection and
+drawing. The distilled artifact’s <code class="docutils literal notranslate"><span class="pre">adj</span></code> is the same matrix with the
+diagonal set, because attention there runs over <code class="docutils literal notranslate"><span class="pre">topk</span> <span class="pre">+</span> <span class="pre">1</span></code> terms per
+node, the neighbours plus the node itself.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.gdn.GDN.channel_deviations">
+<span class="sig-name descname"><span class="pre">channel_deviations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/gdn.html#GDN.channel_deviations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.gdn.GDN.channel_deviations" title="Link to this definition">#</a></dt>
+<dd><p>Per-channel normalised deviation for each window.</p>
+<p>This is the attribution behind <a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN.decision_function" title="telemetry_anomdet.models.deep.gdn.GDN.decision_function"><code class="xref py py-meth docutils literal notranslate"><span class="pre">decision_function()</span></code></a>, which reports
+only the maximum over the scoring channels. The full matrix answers
+<em>which</em> channels deviated and by how much, so an alarm can be explained
+rather than merely raised.</p>
+<p>The values are exact, not estimated. A perturbation method such as SHAP
+approximates a black box; here the per-channel deviation is what the
+detector already computes on its way to a score.</p>
+<p>Every channel is returned, including those excluded from
+<code class="docutils literal notranslate"><span class="pre">score_channels</span></code>. A channel that may not raise an alarm can still be
+informative when diagnosing one, and callers that need only the scoring
+subset can index with <a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN.scoring_channels_" title="telemetry_anomdet.models.deep.gdn.GDN.scoring_channels_"><code class="xref py py-attr docutils literal notranslate"><span class="pre">scoring_channels_</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>, </em><em>window_size</em><em>, </em><em>n_features</em><em>)</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>deviations</strong> – Normalised absolute deviation per window and channel. Higher = the
+channel departed further from its forecast, in units of its own
+training spread.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray, shape (n_windows, n_features)</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN.dominant_channels" title="telemetry_anomdet.models.deep.gdn.GDN.dominant_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dominant_channels</span></code></a></dt><dd><p>the channel driving each window’s score.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.gdn.GDN.dominant_channels">
+<span class="sig-name descname"><span class="pre">dominant_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/gdn.html#GDN.dominant_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.gdn.GDN.dominant_channels" title="Link to this definition">#</a></dt>
+<dd><p>Index of the channel driving each window’s score.</p>
+<p>Restricted to the scoring channels and returned in original channel
+indexing, so the result always names the channel whose deviation equals
+that window’s <a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN.decision_function" title="telemetry_anomdet.models.deep.gdn.GDN.decision_function"><code class="xref py py-meth docutils literal notranslate"><span class="pre">decision_function()</span></code></a> score. Taking <code class="docutils literal notranslate"><span class="pre">argmax</span></code> over
+<a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN.channel_deviations" title="telemetry_anomdet.models.deep.gdn.GDN.channel_deviations"><code class="xref py py-meth docutils literal notranslate"><span class="pre">channel_deviations()</span></code></a> instead can name a context-only channel that
+never contributed to the score.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>, </em><em>window_size</em><em>, </em><em>n_features</em><em>)</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>channels</strong> – Channel index per window, into the original feature axis.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray, shape (n_windows,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="kangdn">
+<h2>KANGDN<a class="headerlink" href="#kangdn" title="Link to this heading">#</a></h2>
+<p>GDN with the multilayer perceptrons replaced by Kolmogorov-Arnold layers, whose
+learned univariate splines are what make the distillation and C generation below
+possible.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.kan_gdn.KANGDN">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.deep.kan_gdn.</span></span><span class="sig-name descname"><span class="pre">KANGDN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embed_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topk</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">95.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/kan_gdn.html#KANGDN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.kan_gdn.KANGDN" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN" title="telemetry_anomdet.models.deep.gdn.GDN"><code class="xref py py-class docutils literal notranslate"><span class="pre">GDN</span></code></a></p>
+<p>KAN-GAT Graph Deviation Network detector.</p>
+<p>Inherits GDN’s full pipeline (input scaling, training loop, deviation
+scoring, thresholding) and only swaps the network architecture: the
+<code class="docutils literal notranslate"><span class="pre">GATEncoder</span></code> gets a KAN activation and the forecast head is a KAN layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>embed_dim</strong> – Same as <a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN" title="telemetry_anomdet.models.deep.gdn.GDN"><code class="xref py py-class docutils literal notranslate"><span class="pre">GDN</span></code></a>.</p></li>
+<li><p><strong>topk</strong> – Same as <a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN" title="telemetry_anomdet.models.deep.gdn.GDN"><code class="xref py py-class docutils literal notranslate"><span class="pre">GDN</span></code></a>.</p></li>
+<li><p><strong>epochs</strong> – Same as <a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN" title="telemetry_anomdet.models.deep.gdn.GDN"><code class="xref py py-class docutils literal notranslate"><span class="pre">GDN</span></code></a>.</p></li>
+<li><p><strong>batch_size</strong> – Same as <a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN" title="telemetry_anomdet.models.deep.gdn.GDN"><code class="xref py py-class docutils literal notranslate"><span class="pre">GDN</span></code></a>.</p></li>
+<li><p><strong>lr</strong> – Same as <a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN" title="telemetry_anomdet.models.deep.gdn.GDN"><code class="xref py py-class docutils literal notranslate"><span class="pre">GDN</span></code></a>.</p></li>
+<li><p><strong>scale</strong> – Same as <a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN" title="telemetry_anomdet.models.deep.gdn.GDN"><code class="xref py py-class docutils literal notranslate"><span class="pre">GDN</span></code></a>.</p></li>
+<li><p><strong>device</strong> – Same as <a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN" title="telemetry_anomdet.models.deep.gdn.GDN"><code class="xref py py-class docutils literal notranslate"><span class="pre">GDN</span></code></a>.</p></li>
+<li><p><strong>random_state</strong> – Same as <a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN" title="telemetry_anomdet.models.deep.gdn.GDN"><code class="xref py py-class docutils literal notranslate"><span class="pre">GDN</span></code></a>.</p></li>
+<li><p><strong>percentile</strong> – Same as <a class="reference internal" href="#telemetry_anomdet.models.deep.gdn.GDN" title="telemetry_anomdet.models.deep.gdn.GDN"><code class="xref py py-class docutils literal notranslate"><span class="pre">GDN</span></code></a>.</p></li>
+<li><p><strong>grid_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=5</em>) – Number of spline grid intervals in the KAN layers. Larger = more
+flexible edge functions (and more coefficients to distil).</p></li>
+<li><p><strong>spline_order</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=3</em>) – B-spline order for the KAN layers (3 = cubic).</p></li>
+<li><p><strong>fit</strong><strong>)</strong> (<em>Attributes</em><em> (</em><em>set after</em>)</p></li>
+<li><p><strong>--------------------------</strong></p></li>
+<li><p><strong>GDN</strong> (<em>Same as</em>)</p></li>
+<li><p><strong>KANGDNNet.</strong> (<em>plus net is a</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="distillation">
+<h2>Distillation<a class="headerlink" href="#distillation" title="Link to this heading">#</a></h2>
+<p>Extracts a fitted KANGDN into plain NumPy: spline coefficients, the frozen
+adjacency, and the per-node normalisation constants. The result evaluates
+without torch, which is the intermediate step toward the flight artifact.</p>
+<p id="module-telemetry_anomdet.models.deep.distill">Symbolic distillation of a fitted KANGDN into a torch-free evaluator.</p>
+<p>A fitted <code class="xref py py-class docutils literal notranslate"><span class="pre">KANLayer</span></code> is already a
+closed-form function: every edge is <code class="docutils literal notranslate"><span class="pre">phi_ij(x)</span> <span class="pre">=</span> <span class="pre">w_base</span> <span class="pre">*</span> <span class="pre">silu(x)</span> <span class="pre">+</span> <span class="pre">sum_k</span>
+<span class="pre">theta_ijk</span> <span class="pre">*</span> <span class="pre">B_k(x)</span></code> (a SiLU term plus a B-spline, both exact). This module pulls
+those learned coefficients out of the torch modules into plain dicts and rebuilds
+the forward pass in <strong>pure NumPy</strong>, no torch at inference.</p>
+<p>The NumPy evaluator is the portable, dependency-free form of the detector, and is
+the intended source for a C port onto a microcontroller. The equivalence tests
+(NumPy output == torch output) are the guarantee that the distilled artifact
+behaves exactly like the trained model.</p>
+<p>Two levels are provided:</p>
+<dl class="simple">
+<dt>per layer</dt><dd><p><a class="reference internal" href="#telemetry_anomdet.models.deep.distill.extract_kan_layer" title="telemetry_anomdet.models.deep.distill.extract_kan_layer"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_kan_layer()</span></code></a> / <a class="reference internal" href="#telemetry_anomdet.models.deep.distill.KANLayerNumpy" title="telemetry_anomdet.models.deep.distill.KANLayerNumpy"><code class="xref py py-class docutils literal notranslate"><span class="pre">KANLayerNumpy</span></code></a>, one KAN layer, plus
+<a class="reference internal" href="#telemetry_anomdet.models.deep.distill.KANLayerNumpy.edge_function" title="telemetry_anomdet.models.deep.distill.KANLayerNumpy.edge_function"><code class="xref py py-meth docutils literal notranslate"><span class="pre">KANLayerNumpy.edge_function()</span></code></a> for the atomic 1-D edge <code class="docutils literal notranslate"><span class="pre">phi_ij(x)</span></code>
+that later feeds symbolic regression.</p>
+</dd>
+<dt>whole detector</dt><dd><p><a class="reference internal" href="#telemetry_anomdet.models.deep.distill.extract_kan_gdn" title="telemetry_anomdet.models.deep.distill.extract_kan_gdn"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_kan_gdn()</span></code></a> / <a class="reference internal" href="#telemetry_anomdet.models.deep.distill.KANGDNNumpy" title="telemetry_anomdet.models.deep.distill.KANGDNNumpy"><code class="xref py py-class docutils literal notranslate"><span class="pre">KANGDNNumpy</span></code></a>, the entire scoring path of a
+fitted <code class="docutils literal notranslate"><span class="pre">KANGDN</span></code>: per-channel scaler, GAT encoder (frozen graph, learned
+attention), both KAN layers, the deviation normalisation and the threshold.
+This is the deployable artifact, containing everything needed to turn a
+window of telemetry into an anomaly flag.</p>
+</dd>
+</dl>
+<p>Two things collapse at extraction time and never need recomputing on device:</p>
+<ul class="simple">
+<li><p><strong>The graph is frozen.</strong> <code class="docutils literal notranslate"><span class="pre">topk_graph</span></code> depends only on the learned embeddings,
+so the top-k adjacency is resolved once here and stored as a boolean matrix.
+No cosine similarities or top-k sorts at inference.</p></li>
+<li><p><strong>Attention factorises.</strong> The scores are <code class="docutils literal notranslate"><span class="pre">a^T</span> <span class="pre">[g_i</span> <span class="pre">|</span> <span class="pre">g_j]</span></code>, and <code class="docutils literal notranslate"><span class="pre">a</span></code> splits
+into halves, so <code class="docutils literal notranslate"><span class="pre">score_ij</span> <span class="pre">=</span> <span class="pre">a_src</span> <span class="pre">.</span> <span class="pre">g_i</span> <span class="pre">+</span> <span class="pre">a_dst</span> <span class="pre">.</span> <span class="pre">g_j</span></code> is an outer sum of two
+length-<code class="docutils literal notranslate"><span class="pre">n_nodes</span></code> vectors. The torch code materialises an
+<code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">n,</span> <span class="pre">4</span> <span class="pre">*</span> <span class="pre">embed_dim)</span></code> tensor; the distilled form never does.</p></li>
+</ul>
+<p>This module imports only NumPy; it reads fitted torch modules via their tensors
+but never imports torch, so the distilled path is torch-free.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.distill.extract_kan_layer">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.deep.distill.</span></span><span class="sig-name descname"><span class="pre">extract_kan_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/distill.html#extract_kan_layer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.distill.extract_kan_layer" title="Link to this definition">#</a></dt>
+<dd><p>Pull a fitted <code class="docutils literal notranslate"><span class="pre">KANLayer</span></code>’s learned parameters into a torch-free dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>layer</strong> (<em>KANLayer</em>) – A fitted KAN layer (its <code class="docutils literal notranslate"><span class="pre">grid</span></code>, <code class="docutils literal notranslate"><span class="pre">base_weight</span></code>, <code class="docutils literal notranslate"><span class="pre">spline_weight</span></code> are
+read and detached to NumPy).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">in_features</span></code>, <code class="docutils literal notranslate"><span class="pre">out_features</span></code>, <code class="docutils literal notranslate"><span class="pre">spline_order</span></code> (ints) and <code class="docutils literal notranslate"><span class="pre">grid</span></code>,
+<code class="docutils literal notranslate"><span class="pre">base_weight</span></code>, <code class="docutils literal notranslate"><span class="pre">spline_weight</span></code> (NumPy arrays). Fully describes the
+layer’s function; can be JSON/NPZ-serialised for deployment.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.distill.KANLayerNumpy">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.deep.distill.</span></span><span class="sig-name descname"><span class="pre">KANLayerNumpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extracted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/distill.html#KANLayerNumpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.distill.KANLayerNumpy" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Torch-free evaluator of a distilled KAN layer.</p>
+<p>Reconstructed from <a class="reference internal" href="#telemetry_anomdet.models.deep.distill.extract_kan_layer" title="telemetry_anomdet.models.deep.distill.extract_kan_layer"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_kan_layer()</span></code></a>, this reproduces the torch
+<code class="docutils literal notranslate"><span class="pre">KANLayer</span></code> forward pass using only NumPy, giving the portable form suitable
+for a C port. <code class="docutils literal notranslate"><span class="pre">forward</span></code> accepts <code class="docutils literal notranslate"><span class="pre">(...,</span> <span class="pre">in_features)</span></code> and returns
+<code class="docutils literal notranslate"><span class="pre">(...,</span> <span class="pre">out_features)</span></code>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.distill.KANLayerNumpy.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/distill.html#KANLayerNumpy.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.distill.KANLayerNumpy.forward" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.distill.KANLayerNumpy.edge_function">
+<span class="sig-name descname"><span class="pre">edge_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/distill.html#KANLayerNumpy.edge_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.distill.KANLayerNumpy.edge_function" title="Link to this definition">#</a></dt>
+<dd><p>Return the single 1-D edge function <code class="docutils literal notranslate"><span class="pre">phi_ij(x)</span></code> as a NumPy callable.</p>
+<p>This is the atomic unit of KAN distillation: each edge is a function of
+one input, ready to sample, plot, or hand to symbolic regression.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>out_idx</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Output and input indices selecting the edge.</p></li>
+<li><p><strong>in_idx</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Output and input indices selecting the edge.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">phi(x)</span></code> for scalar or array <code class="docutils literal notranslate"><span class="pre">x</span></code>, where the layer output
+<code class="docutils literal notranslate"><span class="pre">y[out_idx]</span> <span class="pre">=</span> <span class="pre">sum_in</span> <span class="pre">phi(x[in_idx])</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.distill.extract_kan_gdn_net">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.deep.distill.</span></span><span class="sig-name descname"><span class="pre">extract_kan_gdn_net</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/distill.html#extract_kan_gdn_net"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.distill.extract_kan_gdn_net" title="Link to this definition">#</a></dt>
+<dd><p>Pull a fitted <code class="docutils literal notranslate"><span class="pre">KANGDNNet</span></code>’s learned parameters into a torch-free dict.</p>
+<p>Resolves the learned top-k graph and splits the attention vector into its
+source and target halves, so the distilled form has no graph construction
+and no <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">n,</span> <span class="pre">4</span> <span class="pre">*</span> <span class="pre">embed_dim)</span></code> intermediate left to compute.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>net</strong> (<em>KANGDNNet</em>) – A fitted KAN-GAT forecasting network.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">n_nodes</span></code>, <code class="docutils literal notranslate"><span class="pre">window</span></code>, <code class="docutils literal notranslate"><span class="pre">embed_dim</span></code> (ints); <code class="docutils literal notranslate"><span class="pre">embedding</span></code>,
+<code class="docutils literal notranslate"><span class="pre">feat_weight</span></code>, <code class="docutils literal notranslate"><span class="pre">feat_bias</span></code>, <code class="docutils literal notranslate"><span class="pre">attn_src</span></code>, <code class="docutils literal notranslate"><span class="pre">attn_dst</span></code>, <code class="docutils literal notranslate"><span class="pre">adj</span></code>
+(NumPy arrays); <code class="docutils literal notranslate"><span class="pre">leaky_slope</span></code> (float); and <code class="docutils literal notranslate"><span class="pre">activation</span></code> / <code class="docutils literal notranslate"><span class="pre">out</span></code>,
+the two extracted KAN layers.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.distill.KANGDNNetNumpy">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.deep.distill.</span></span><span class="sig-name descname"><span class="pre">KANGDNNetNumpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extracted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/distill.html#KANGDNNetNumpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.distill.KANGDNNetNumpy" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Torch-free evaluator of a distilled <code class="docutils literal notranslate"><span class="pre">KANGDNNet</span></code>.</p>
+<p>Reconstructed from <a class="reference internal" href="#telemetry_anomdet.models.deep.distill.extract_kan_gdn_net" title="telemetry_anomdet.models.deep.distill.extract_kan_gdn_net"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_kan_gdn_net()</span></code></a>, this reproduces the whole
+forecasting network (graph attention encoder, KAN activation, embedding gate,
+KAN forecast head) using only NumPy.</p>
+<p><code class="docutils literal notranslate"><span class="pre">forward</span></code> accepts <code class="docutils literal notranslate"><span class="pre">(batch,</span> <span class="pre">n_nodes,</span> <span class="pre">window)</span></code> and returns the one-step
+forecast <code class="docutils literal notranslate"><span class="pre">(batch,</span> <span class="pre">n_nodes)</span></code>, matching <code class="docutils literal notranslate"><span class="pre">KANGDNNet.forward</span></code>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.distill.KANGDNNetNumpy.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/distill.html#KANGDNNetNumpy.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.distill.KANGDNNetNumpy.forward" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.distill.extract_kan_gdn">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.deep.distill.</span></span><span class="sig-name descname"><span class="pre">extract_kan_gdn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">detector</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/distill.html#extract_kan_gdn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.distill.extract_kan_gdn" title="Link to this definition">#</a></dt>
+<dd><p>Distil a fitted <a class="reference internal" href="#telemetry_anomdet.models.deep.kan_gdn.KANGDN" title="telemetry_anomdet.models.deep.kan_gdn.KANGDN"><code class="xref py py-class docutils literal notranslate"><span class="pre">KANGDN</span></code></a> into a
+torch-free specification of its complete scoring path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>detector</strong> (<a class="reference internal" href="#telemetry_anomdet.models.deep.kan_gdn.KANGDN" title="telemetry_anomdet.models.deep.kan_gdn.KANGDN"><em>KANGDN</em></a>) – A fitted detector (<code class="docutils literal notranslate"><span class="pre">fit</span></code> must have been called).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">net</span></code> (see <a class="reference internal" href="#telemetry_anomdet.models.deep.distill.extract_kan_gdn_net" title="telemetry_anomdet.models.deep.distill.extract_kan_gdn_net"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_kan_gdn_net()</span></code></a>); <code class="docutils literal notranslate"><span class="pre">scaler_mean</span></code> /
+<code class="docutils literal notranslate"><span class="pre">scaler_scale</span></code> (NumPy arrays, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when <code class="docutils literal notranslate"><span class="pre">scale=False</span></code>);
+<code class="docutils literal notranslate"><span class="pre">err_median</span></code> / <code class="docutils literal notranslate"><span class="pre">err_iqr</span></code> (per-node deviation normalisation);
+<code class="docutils literal notranslate"><span class="pre">threshold</span></code> (float). Every array is NumPy, so the whole dict is
+NPZ-serialisable and is what the C export will read.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.14)"><strong>RuntimeError</strong></a> – If the detector has not been fitted.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.distill.KANGDNNumpy">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.deep.distill.</span></span><span class="sig-name descname"><span class="pre">KANGDNNumpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extracted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/distill.html#KANGDNNumpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.distill.KANGDNNumpy" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Torch-free evaluator of a distilled <code class="docutils literal notranslate"><span class="pre">KANGDN</span></code> detector.</p>
+<p>The deployable artifact: takes raw telemetry windows and returns deviation
+scores and anomaly flags identical to the fitted torch detector, using only
+NumPy. Mirrors the detector’s <code class="docutils literal notranslate"><span class="pre">decision_function</span></code> / <code class="docutils literal notranslate"><span class="pre">predict</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>extracted</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Output of <a class="reference internal" href="#telemetry_anomdet.models.deep.distill.extract_kan_gdn" title="telemetry_anomdet.models.deep.distill.extract_kan_gdn"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_kan_gdn()</span></code></a>.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Input is <code class="docutils literal notranslate"><span class="pre">(n_windows,</span> <span class="pre">window_size,</span> <span class="pre">n_features)</span></code>, the same 3-D window tensor
+the detector is fitted on. Scaling, the context/target split, the forecast,
+the per-node deviation normalisation and the threshold comparison all happen
+here, so nothing outside this class is needed at inference.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.distill.KANGDNNumpy.forecast_errors">
+<span class="sig-name descname"><span class="pre">forecast_errors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/distill.html#KANGDNNumpy.forecast_errors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.distill.KANGDNNumpy.forecast_errors" title="Link to this definition">#</a></dt>
+<dd><p>Per-window, per-node absolute forecast error, shape <code class="docutils literal notranslate"><span class="pre">(n_windows,</span> <span class="pre">n_nodes)</span></code>.</p>
+<p>Applies the detector’s EWMA smoothing when it was fitted with any, so the
+distilled scores match the torch detector’s. Note that smoothing makes
+the score path stateful: a window’s score depends on the windows before
+it, and scoring a batch is not the same as scoring its rows separately.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.distill.KANGDNNumpy.decision_function">
+<span class="sig-name descname"><span class="pre">decision_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/distill.html#KANGDNNumpy.decision_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.distill.KANGDNNumpy.decision_function" title="Link to this definition">#</a></dt>
+<dd><p>Graph deviation score per window (higher = more anomalous).</p>
+<p>Each node’s forecast error is normalised by its training median and IQR;
+the score is the maximum across nodes, so the sensor deviating most
+drives the window.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.distill.KANGDNNumpy.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/distill.html#KANGDNNumpy.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.distill.KANGDNNumpy.predict" title="Link to this definition">#</a></dt>
+<dd><p>Binary anomaly labels (1 = anomaly) from the distilled threshold.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="c-code-generation">
+<h2>C Code Generation<a class="headerlink" href="#c-code-generation" title="Link to this heading">#</a></h2>
+<p>Emits a distilled detector as Power of Ten conformant C with no dynamic
+allocation, alongside golden vectors for host-side conformance testing. See
+<a class="reference internal" href="../../applications/onboard_deployment.html"><span class="doc">Onboard Deployment Architecture</span></a> for the target hardware, the
+resource budget, and how responsibility is split between ground and flight.</p>
+<p id="module-telemetry_anomdet.models.deep.codegen">C code generation for a distilled KANGDN.</p>
+<p>Takes the torch-free specification produced by
+<a class="reference internal" href="#telemetry_anomdet.models.deep.distill.extract_kan_gdn" title="telemetry_anomdet.models.deep.distill.extract_kan_gdn"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_kan_gdn()</span></code></a> and emits a
+self-contained C translation unit: every learned parameter becomes a
+<code class="docutils literal notranslate"><span class="pre">static</span> <span class="pre">const</span></code> array and the scoring path becomes ordinary loops. The result
+has no dependencies beyond <code class="docutils literal notranslate"><span class="pre">math.h</span></code>, allocates nothing, and exposes two entry
+points, so it ports to flight hardware without modification.</p>
+<p>The generated code mirrors
+<a class="reference internal" href="#telemetry_anomdet.models.deep.distill.KANGDNNumpy" title="telemetry_anomdet.models.deep.distill.KANGDNNumpy"><code class="xref py py-class docutils literal notranslate"><span class="pre">KANGDNNumpy</span></code></a> statement for
+statement, which is what makes it checkable: the same window scored by the torch
+detector, the NumPy evaluator and the compiled C must agree.</p>
+<p>Three properties of the distilled form are exploited:</p>
+<ul class="simple">
+<li><p><strong>The graph is frozen</strong>, so neighbours are emitted as explicit index lists and
+the attention softmax runs over <code class="docutils literal notranslate"><span class="pre">topk</span> <span class="pre">+</span> <span class="pre">1</span></code> terms per node rather than over
+all nodes.</p></li>
+<li><p><strong>Attention is separable</strong>, so each node needs two dot products
+(<code class="docutils literal notranslate"><span class="pre">a_src</span> <span class="pre">.</span> <span class="pre">g_i</span></code> and <code class="docutils literal notranslate"><span class="pre">a_dst</span> <span class="pre">.</span> <span class="pre">g_i</span></code>) instead of a pairwise concatenation.</p></li>
+<li><p><strong>The spline knots are fixed</strong>, so every Cox-de Boor denominator is known at
+generation time. They are tabulated per recursion level and index, which turns
+each division in the inner loop into a multiply and keeps the result exact for
+any knot vector rather than only for evenly spaced ones.</p></li>
+</ul>
+<section id="coding-standard">
+<h3>Coding standard<a class="headerlink" href="#coding-standard" title="Link to this heading">#</a></h3>
+<p>The output follows the NASA/JPL Power of Ten rules for safety critical code:</p>
+<ol class="arabic simple">
+<li><p>No <code class="docutils literal notranslate"><span class="pre">goto</span></code>, <code class="docutils literal notranslate"><span class="pre">setjmp</span></code>, or recursion.</p></li>
+<li><p>Every loop bound is a compile-time constant.</p></li>
+<li><p>No allocation. Scratch buffers are function-scope <code class="docutils literal notranslate"><span class="pre">static</span></code>.</p></li>
+<li><p>Functions stay short; the scoring path is split into single-purpose steps.</p></li>
+<li><p>At least two assertions per function, routed through <code class="docutils literal notranslate"><span class="pre">KANGDN_ASSERT</span></code>.</p></li>
+<li><p>Data is declared at the smallest workable scope; no file-scope mutable state.</p></li>
+<li><p>Every function returns a status code and validates its parameters, and every
+call site checks the returned status.</p></li>
+<li><p>The preprocessor is limited to include guards, the interface dimensions, and
+the assertion hook. Knot vectors are <code class="docutils literal notranslate"><span class="pre">static</span> <span class="pre">const</span></code> data rather than
+function-like macros, and internal dimensions are enumerations.</p></li>
+<li><p>Pointer use is limited to a single dereference. No function pointers.</p></li>
+<li><p>The output is intended to compile clean under
+<code class="docutils literal notranslate"><span class="pre">-Wall</span> <span class="pre">-Wextra</span> <span class="pre">-Werror</span> <span class="pre">-pedantic</span></code>.</p></li>
+</ol>
+<p>Integrators should define <code class="docutils literal notranslate"><span class="pre">KANGDN_ASSERT</span></code> to route failures into the mission’s
+fault handler. The default delegates to <code class="docutils literal notranslate"><span class="pre">&lt;assert.h&gt;</span></code>, which aborts, and is
+appropriate for ground testing rather than flight.</p>
+<p>Numeric type is selectable. <code class="docutils literal notranslate"><span class="pre">float</span></code> matches the single-precision FPUs on the
+relevant targets and is the deployment mode; <code class="docutils literal notranslate"><span class="pre">double</span></code> reproduces the NumPy
+evaluator to near machine precision and exists to separate porting errors from
+precision loss.</p>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.codegen.generate_c">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.deep.codegen.</span></span><span class="sig-name descname"><span class="pre">generate_c</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extracted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'kangdn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'float'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_windows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/codegen.html#generate_c"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.codegen.generate_c" title="Link to this definition">#</a></dt>
+<dd><p>Generate a self-contained C implementation of a distilled KANGDN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>extracted</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Output of <a class="reference internal" href="#telemetry_anomdet.models.deep.distill.extract_kan_gdn" title="telemetry_anomdet.models.deep.distill.extract_kan_gdn"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_kan_gdn()</span></code></a>.</p></li>
+<li><p><strong>prefix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>default=&quot;kangdn&quot;</em>) – Identifier prefix for the emitted symbols, macros and file names.</p></li>
+<li><p><strong>dtype</strong> (<em>{&quot;float&quot;</em><em>, </em><em>&quot;double&quot;}</em><em>, </em><em>default=&quot;float&quot;</em>) – C type for parameters and arithmetic. <code class="docutils literal notranslate"><span class="pre">float</span></code> is the deployment mode;
+<code class="docutils literal notranslate"><span class="pre">double</span></code> reproduces the NumPy evaluator to near machine precision.</p></li>
+<li><p><strong>test_windows</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Windows of shape <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">window_size,</span> <span class="pre">n_features)</span></code>. When given, a third
+file of golden vectors is emitted: each window flattened as the entry
+point expects, beside the reference evaluator’s score for it. A port
+is then validated on the target itself, by scoring each window and
+comparing, with no host tooling in the loop.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">{f&quot;{prefix}.h&quot;:</span> <span class="pre">...,</span> <span class="pre">f&quot;{prefix}.c&quot;:</span> <span class="pre">...}</span></code>, source text ready to
+write, plus <code class="docutils literal notranslate"><span class="pre">{prefix}_vectors.h</span></code> when <code class="docutils literal notranslate"><span class="pre">test_windows</span></code> is given.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.14)"><strong>NotImplementedError</strong></a> – If a KAN layer’s knot vector differs between input features, if
+    neighbour counts vary between nodes, or if the model has more nodes than
+    a byte index can address.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">dtype</span></code> is unrecognised or a parameter is not finite.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.models.deep.codegen.write_c">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.deep.codegen.</span></span><span class="sig-name descname"><span class="pre">write_c</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extracted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'kangdn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'float'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_windows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/deep/codegen.html#write_c"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.deep.codegen.write_c" title="Link to this definition">#</a></dt>
+<dd><p>Generate the C sources and write them into <code class="docutils literal notranslate"><span class="pre">out_dir</span></code>.</p>
+<p>Returns the list of written paths. See <a class="reference internal" href="#telemetry_anomdet.models.deep.codegen.generate_c" title="telemetry_anomdet.models.deep.codegen.generate_c"><code class="xref py py-func docutils literal notranslate"><span class="pre">generate_c()</span></code></a> for the parameters.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="unsupervised.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Unsupervised Models</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="ensemble.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Ensemble Model</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gdn">GDN</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.gdn.GDN"><code class="docutils literal notranslate"><span class="pre">GDN</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.gdn.GDN.ewma"><code class="docutils literal notranslate"><span class="pre">GDN.ewma()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.gdn.GDN.degenerate_channels_"><code class="docutils literal notranslate"><span class="pre">GDN.degenerate_channels_()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.gdn.GDN.fit"><code class="docutils literal notranslate"><span class="pre">GDN.fit()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.gdn.GDN.decision_function"><code class="docutils literal notranslate"><span class="pre">GDN.decision_function()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.gdn.GDN.scoring_channels_"><code class="docutils literal notranslate"><span class="pre">GDN.scoring_channels_</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.gdn.GDN.learned_graph"><code class="docutils literal notranslate"><span class="pre">GDN.learned_graph()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.gdn.GDN.channel_deviations"><code class="docutils literal notranslate"><span class="pre">GDN.channel_deviations()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.gdn.GDN.dominant_channels"><code class="docutils literal notranslate"><span class="pre">GDN.dominant_channels()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kangdn">KANGDN</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.kan_gdn.KANGDN"><code class="docutils literal notranslate"><span class="pre">KANGDN</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#distillation">Distillation</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.distill.extract_kan_layer"><code class="docutils literal notranslate"><span class="pre">extract_kan_layer()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.distill.KANLayerNumpy"><code class="docutils literal notranslate"><span class="pre">KANLayerNumpy</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.distill.KANLayerNumpy.forward"><code class="docutils literal notranslate"><span class="pre">KANLayerNumpy.forward()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.distill.KANLayerNumpy.edge_function"><code class="docutils literal notranslate"><span class="pre">KANLayerNumpy.edge_function()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.distill.extract_kan_gdn_net"><code class="docutils literal notranslate"><span class="pre">extract_kan_gdn_net()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.distill.KANGDNNetNumpy"><code class="docutils literal notranslate"><span class="pre">KANGDNNetNumpy</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.distill.KANGDNNetNumpy.forward"><code class="docutils literal notranslate"><span class="pre">KANGDNNetNumpy.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.distill.extract_kan_gdn"><code class="docutils literal notranslate"><span class="pre">extract_kan_gdn()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.distill.KANGDNNumpy"><code class="docutils literal notranslate"><span class="pre">KANGDNNumpy</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.distill.KANGDNNumpy.forecast_errors"><code class="docutils literal notranslate"><span class="pre">KANGDNNumpy.forecast_errors()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.distill.KANGDNNumpy.decision_function"><code class="docutils literal notranslate"><span class="pre">KANGDNNumpy.decision_function()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.distill.KANGDNNumpy.predict"><code class="docutils literal notranslate"><span class="pre">KANGDNNumpy.predict()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#c-code-generation">C Code Generation</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-standard">Coding standard</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.codegen.generate_c"><code class="docutils literal notranslate"><span class="pre">generate_c()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.models.deep.codegen.write_c"><code class="docutils literal notranslate"><span class="pre">write_c()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/edit/main/docs/source/api/models/deep.rst">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/api/models/deep.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Julio Anzaldo.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

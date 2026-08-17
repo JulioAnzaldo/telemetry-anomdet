@@ -1,0 +1,42 @@
+# telemetry-anomdet
+
+> Open-source anomaly detection toolkit for spacecraft telemetry. Classical and graph-based deep detectors behind one scikit-learn-compatible interface, alarm thresholds chosen without labels, and distillation of a trained detector to Power of Ten conformant C that runs on flight hardware.
+
+Telemetry is long-form with columns `[timestamp, variable, value]` (the native NASA SMAP / MSL format, ingested without schema transforms). Detectors follow the PyOD / scikit-learn convention: `fit` / `decision_function` / `predict` / `is_anomaly`, with `decision_scores_`, `threshold_`, `labels_` as post-fit attributes. The pipeline runs ingestion, preprocessing, windowed feature extraction, detection, label-free thresholding, and event-level evaluation.
+
+Per-channel SHAP attribution and LLM-generated diagnostic reports are on the roadmap, not implemented. Benchmarked on SMAP; MSL and ESA-ADB results are planned for v0.3.0 and do not exist yet.
+
+Two things a reader should know before quoting results:
+
+- Point-adjusted F1, the usual SMAP metric, credits an entire labelled segment to a single flagged sample inside it. On SMAP a uniform random detector reaches 0.75 to 0.99 point-adjusted F1 while scoring 0.000 at the event level. Prefer the event-level figures.
+- The deep detectors need the optional `deep` extra (`pip install "telemetry-anomdet[deep]"`); the base install is torch-free. Plotting needs the `viz` extra.
+- Attribution is exact, not estimated. `GDN` and `KANGDN` compute a per-channel deviation on the way to a score, exposed by `channel_deviations`, so a perturbation method such as SHAP is not needed to say which channel drove an alarm.
+
+## Documentation
+
+- [Getting Started](https://julioanzaldo.github.io/telemetry-anomdet/getting_started.html): install and first run
+- [Pipeline Overview](https://julioanzaldo.github.io/telemetry-anomdet/user_guide/pipeline_overview.html): ingestion, preprocessing, feature extraction, detection
+- [Scoring and Thresholding](https://julioanzaldo.github.io/telemetry-anomdet/user_guide/anomaly_scoring.html): which metric to judge a detector by, why channel selection dominates, how an operating point is chosen without labels
+- [Real-Time Integration](https://julioanzaldo.github.io/telemetry-anomdet/user_guide/real_time_integration.html): streaming / inter-pass usage
+- [Glossary](https://julioanzaldo.github.io/telemetry-anomdet/user_guide/glossary.html): key terms and conventions
+- [Real-Time Example](https://julioanzaldo.github.io/telemetry-anomdet/tutorials/real_time_example.html): end-to-end tutorial
+- [CubeSat Operations](https://julioanzaldo.github.io/telemetry-anomdet/applications/cubesat_ops.html): operational context
+- [Onboard Deployment](https://julioanzaldo.github.io/telemetry-anomdet/applications/onboard_deployment.html): ground/flight split, target hardware, resource budget, measured ESP32-S3 results
+
+## API Reference
+
+- [Ingest](https://julioanzaldo.github.io/telemetry-anomdet/api/ingest.html): `TelemetryDataset`, `load_smap`, `load_smap_channel`, `load_smap_labels`, `anomaly_point_mask`, `load_from_csv`
+- [Preprocessing](https://julioanzaldo.github.io/telemetry-anomdet/api/preprocessing.html): `clean`, `dedupe`, `integrity_check`, `resample`, `interpolate_gaps`, `normalize_fit`, `pipeline`
+- [Feature Extraction](https://julioanzaldo.github.io/telemetry-anomdet/api/feature_extraction.html): windowing and statistical features
+- [Evaluation](https://julioanzaldo.github.io/telemetry-anomdet/api/evaluation.html): `point_adjust`, `point_adjusted_f1`, `best_point_adjusted_f1`, `evaluate_sequences`, `sequence_prf`, `pr_auc`, `false_alarm_rate_at_recall`
+- [Thresholding](https://julioanzaldo.github.io/telemetry-anomdet/api/thresholding.html): `threshold_for_budget`, `dynamic_threshold`, `anomalous_sequences`, `filter_sequences`, `prune_sequences`, `detect_anomalies`
+- [BaseDetector](https://julioanzaldo.github.io/telemetry-anomdet/api/models/base.html): the shared detector interface
+- [AnomalyEnsemble](https://julioanzaldo.github.io/telemetry-anomdet/api/models/ensemble.html): stacking combinator, `score_components()`
+- [Unsupervised detectors](https://julioanzaldo.github.io/telemetry-anomdet/api/models/unsupervised.html): `PCAAnomaly`, `KMeansAnomaly`
+- [Deep detectors](https://julioanzaldo.github.io/telemetry-anomdet/api/models/deep.html): `GDN`, `KANGDN`, `score_channels`, `channel_deviations`, `dominant_channels`, `learned_graph`, `degenerate_channels_`, distillation to NumPy, C code generation
+- [Visualization](https://julioanzaldo.github.io/telemetry-anomdet/api/visualization.html): `plot_sensor_graph`, behind the optional `viz` extra
+
+## Source
+
+- [GitHub repository](https://github.com/JulioAnzaldo/telemetry-anomdet)
+- [Citations](https://github.com/JulioAnzaldo/telemetry-anomdet/blob/main/CITATIONS.md): research the toolkit builds on

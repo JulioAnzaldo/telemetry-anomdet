@@ -1,0 +1,1420 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>telemetry_anomdet.models.deep.codegen &#8212; telemetry_anomdet</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=c33b25c4" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../../../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/telemetry_anomdet/models/deep/codegen';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://julioanzaldo.github.io/telemetry-anomdet/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../../_static/llm_copy.js?v=f4a7753a"></script>
+    <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/dev/_modules/telemetry_anomdet/models/deep/codegen.html" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../../../_static/searchtools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">telemetry_anomdet</p>
+  
+</a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../applications/index.html">
+    Applications
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../api/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/JulioAnzaldo/telemetry-anomdet" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/telemetry-anomdet/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../applications/index.html">
+    Applications
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../api/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/JulioAnzaldo/telemetry-anomdet" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/telemetry-anomdet/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">telemetry_anomdet.models.deep.codegen</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for telemetry_anomdet.models.deep.codegen</h1><div class="highlight"><pre>
+<span></span><span class="c1"># src/telemetry_anomdet/models/deep/codegen.py</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">C code generation for a distilled KANGDN.</span>
+
+<span class="sd">Takes the torch-free specification produced by</span>
+<span class="sd">:func:`~telemetry_anomdet.models.deep.distill.extract_kan_gdn` and emits a</span>
+<span class="sd">self-contained C translation unit: every learned parameter becomes a</span>
+<span class="sd">``static const`` array and the scoring path becomes ordinary loops. The result</span>
+<span class="sd">has no dependencies beyond ``math.h``, allocates nothing, and exposes two entry</span>
+<span class="sd">points, so it ports to flight hardware without modification.</span>
+
+<span class="sd">The generated code mirrors</span>
+<span class="sd">:class:`~telemetry_anomdet.models.deep.distill.KANGDNNumpy` statement for</span>
+<span class="sd">statement, which is what makes it checkable: the same window scored by the torch</span>
+<span class="sd">detector, the NumPy evaluator and the compiled C must agree.</span>
+
+<span class="sd">Three properties of the distilled form are exploited:</span>
+
+<span class="sd">* **The graph is frozen**, so neighbours are emitted as explicit index lists and</span>
+<span class="sd">  the attention softmax runs over ``topk + 1`` terms per node rather than over</span>
+<span class="sd">  all nodes.</span>
+<span class="sd">* **Attention is separable**, so each node needs two dot products</span>
+<span class="sd">  (``a_src . g_i`` and ``a_dst . g_i``) instead of a pairwise concatenation.</span>
+<span class="sd">* **The spline knots are fixed**, so every Cox-de Boor denominator is known at</span>
+<span class="sd">  generation time. They are tabulated per recursion level and index, which turns</span>
+<span class="sd">  each division in the inner loop into a multiply and keeps the result exact for</span>
+<span class="sd">  any knot vector rather than only for evenly spaced ones.</span>
+
+<span class="sd">Coding standard</span>
+<span class="sd">---------------</span>
+
+<span class="sd">The output follows the NASA/JPL Power of Ten rules for safety critical code:</span>
+
+<span class="sd">1. No ``goto``, ``setjmp``, or recursion.</span>
+<span class="sd">2. Every loop bound is a compile-time constant.</span>
+<span class="sd">3. No allocation. Scratch buffers are function-scope ``static``.</span>
+<span class="sd">4. Functions stay short; the scoring path is split into single-purpose steps.</span>
+<span class="sd">5. At least two assertions per function, routed through ``KANGDN_ASSERT``.</span>
+<span class="sd">6. Data is declared at the smallest workable scope; no file-scope mutable state.</span>
+<span class="sd">7. Every function returns a status code and validates its parameters, and every</span>
+<span class="sd">   call site checks the returned status.</span>
+<span class="sd">8. The preprocessor is limited to include guards, the interface dimensions, and</span>
+<span class="sd">   the assertion hook. Knot vectors are ``static const`` data rather than</span>
+<span class="sd">   function-like macros, and internal dimensions are enumerations.</span>
+<span class="sd">9. Pointer use is limited to a single dereference. No function pointers.</span>
+<span class="sd">10. The output is intended to compile clean under</span>
+<span class="sd">    ``-Wall -Wextra -Werror -pedantic``.</span>
+
+<span class="sd">Integrators should define ``KANGDN_ASSERT`` to route failures into the mission&#39;s</span>
+<span class="sd">fault handler. The default delegates to ``&lt;assert.h&gt;``, which aborts, and is</span>
+<span class="sd">appropriate for ground testing rather than flight.</span>
+
+<span class="sd">Numeric type is selectable. ``float`` matches the single-precision FPUs on the</span>
+<span class="sd">relevant targets and is the deployment mode; ``double`` reproduces the NumPy</span>
+<span class="sd">evaluator to near machine precision and exists to separate porting errors from</span>
+<span class="sd">precision loss.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">string</span><span class="w"> </span><span class="kn">import</span> <span class="n">Template</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">...version</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
+
+<span class="c1"># Banner shared by every generated file, substituted in as ${provenance}.</span>
+<span class="c1">#</span>
+<span class="c1"># Deliberately no generation timestamp. It records the generator version and</span>
+<span class="c1"># nothing else, so regenerating from the same fitted detector reproduces the</span>
+<span class="c1"># sources byte for byte and a diff shows only real changes.</span>
+<span class="n">_PROVENANCE</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2"> * Generated by telemetry_anomdet </span><span class="si">{</span><span class="n">__version__</span><span class="si">}</span><span class="s2">. Do not edit; regenerate from</span>
+<span class="s2"> * the fitted detector instead.</span>
+<span class="s2"> *</span>
+<span class="s2"> * The generated interface is unstable until telemetry_anomdet 1.0.0: symbol</span>
+<span class="s2"> * names, macros and the entry point signatures may change in any 0.x release.</span>
+<span class="s2"> * Record the version above with the artifact, and regenerate rather than</span>
+<span class="s2"> * hand-patching when upgrading.&quot;&quot;&quot;</span>
+
+<span class="n">_HEADER</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">/* $</span><span class="si">{prefix}</span><span class="s2">.h : distilled KANGDN detector.</span>
+<span class="s2"> *</span>
+<span class="s2">$</span><span class="si">{provenance}</span>
+<span class="s2"> *</span>
+<span class="s2"> * Entry points take one window of raw, unscaled telemetry: $</span><span class="si">{window_size}</span>
+<span class="s2"> * timesteps by $</span><span class="si">{n_features}</span><span class="s2"> channels, row major, so element (t, f) lives at</span>
+<span class="s2"> * index t * $</span><span class="si">{up}</span><span class="s2">_N_FEATURES + f. Scaling, forecasting, the deviation</span>
+<span class="s2"> * normalisation and the threshold comparison all happen internally.</span>
+<span class="s2"> *</span>
+<span class="s2"> *   $</span><span class="si">{prefix}</span><span class="s2">_real_t win[$</span><span class="si">{up}</span><span class="s2">_WINDOW_SIZE][$</span><span class="si">{up}</span><span class="s2">_N_FEATURES];</span>
+<span class="s2"> *   $</span><span class="si">{prefix}</span><span class="s2">_real_t score;</span>
+<span class="s2"> *   if ($</span><span class="si">{prefix}</span><span class="s2">_score(&amp;win[0][0], &amp;score) == $</span><span class="si">{up}</span><span class="s2">_OK) { ... }</span>
+<span class="s2"> *</span>
+<span class="s2"> * The window is a flat pointer rather than a two-dimensional array parameter on</span>
+<span class="s2"> * purpose. ISO C before C23 forbids passing a pointer to a non-const array</span>
+<span class="s2"> * where a pointer to a const array is expected, so a caller filling a mutable</span>
+<span class="s2"> * buffer from sensor readings could not pass it without a cast.</span>
+<span class="s2"> *</span>
+<span class="s2"> * Both functions return a status code and deliver their result through an out</span>
+<span class="s2"> * parameter. Callers must check the status: a non-zero value means the result</span>
+<span class="s2"> * was not written and must not be acted upon.</span>
+<span class="s2"> */</span>
+<span class="s2">#ifndef $</span><span class="si">{guard}</span>
+<span class="s2">#define $</span><span class="si">{guard}</span>
+
+<span class="s2">/* Generator version, so a deployed artifact can report its own provenance. */</span>
+<span class="s2">#define $</span><span class="si">{up}</span><span class="s2">_VERSION &quot;$</span><span class="si">{version}</span><span class="s2">&quot;</span>
+
+<span class="s2">#define $</span><span class="si">{up}</span><span class="s2">_WINDOW_SIZE $</span><span class="si">{window_size}</span>
+<span class="s2">#define $</span><span class="si">{up}</span><span class="s2">_N_FEATURES  $</span><span class="si">{n_features}</span>
+<span class="s2">#define $</span><span class="si">{up}</span><span class="s2">_THRESHOLD   $</span><span class="si">{threshold}</span>
+
+<span class="s2">/* Status codes. */</span>
+<span class="s2">#define $</span><span class="si">{up}</span><span class="s2">_OK        0</span>
+<span class="s2">#define $</span><span class="si">{up}</span><span class="s2">_ERR_NULL  1</span>
+<span class="s2">#define $</span><span class="si">{up}</span><span class="s2">_ERR_RANGE 2</span>
+
+<span class="s2">typedef $</span><span class="si">{real}</span><span class="s2"> $</span><span class="si">{prefix}</span><span class="s2">_real_t;</span>
+
+<span class="s2">/* The detector is C, but embedded projects are frequently C++ (Arduino among</span>
+<span class="s2">   them), so give it C linkage when included from a C++ translation unit. */</span>
+<span class="s2">#ifdef __cplusplus</span>
+<span class="s2">extern &quot;C&quot; {</span>
+<span class="s2">#endif</span>
+
+<span class="s2">/* Graph deviation score for one window; higher means more anomalous. */</span>
+<span class="s2">int $</span><span class="si">{prefix}</span><span class="s2">_score(const $</span><span class="si">{prefix}</span><span class="s2">_real_t *window, $</span><span class="si">{prefix}</span><span class="s2">_real_t *out_score);</span>
+
+<span class="s2">/* Sets *out_flag to 1 when the score exceeds the distilled threshold. */</span>
+<span class="s2">int $</span><span class="si">{prefix}</span><span class="s2">_is_anomaly(const $</span><span class="si">{prefix}</span><span class="s2">_real_t *window, int *out_flag);</span>
+
+<span class="s2">#ifdef __cplusplus</span>
+<span class="s2">}</span>
+<span class="s2">#endif</span>
+
+<span class="s2">#endif /* $</span><span class="si">{guard}</span><span class="s2"> */</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+<span class="n">_PRELUDE</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">/* $</span><span class="si">{prefix}</span><span class="s2">.c : distilled KANGDN detector.</span>
+<span class="s2"> *</span>
+<span class="s2">$</span><span class="si">{provenance}</span>
+<span class="s2"> *</span>
+<span class="s2"> * Follows the NASA/JPL Power of Ten rules. No allocation, no recursion, fixed</span>
+<span class="s2"> * loop bounds, status codes on every function, and no file-scope mutable state.</span>
+<span class="s2"> * Learned parameters are static const and therefore flash resident.</span>
+<span class="s2"> */</span>
+<span class="s2">#include &quot;$</span><span class="si">{prefix}</span><span class="s2">.h&quot;</span>
+<span class="s2">#include &lt;math.h&gt;</span>
+<span class="s2">#include &lt;stddef.h&gt;</span>
+
+<span class="s2">/* Assertion hook. Define $</span><span class="si">{up}</span><span class="s2">_ASSERT before building to route failures into a</span>
+<span class="s2">   mission fault handler; the default aborts and suits ground testing only. */</span>
+<span class="s2">#ifndef $</span><span class="si">{up}</span><span class="s2">_ASSERT</span>
+<span class="s2">#include &lt;assert.h&gt;</span>
+<span class="s2">#define $</span><span class="si">{up}</span><span class="s2">_ASSERT(cond) assert(cond)</span>
+<span class="s2">#endif</span>
+
+<span class="s2">enum {</span>
+<span class="s2">    N_NODES = $</span><span class="si">{n_nodes}</span><span class="s2">,</span>
+<span class="s2">    EMBED   = $</span><span class="si">{embed_dim}</span><span class="s2">,</span>
+<span class="s2">    WINDOW  = $</span><span class="si">{window}</span><span class="s2">,</span>
+<span class="s2">    N_NBR   = $</span><span class="si">{n_nbr}</span><span class="s2">,</span>
+<span class="s2">    N_SCORE = $</span><span class="si">{n_score}</span>
+<span class="s2">};</span>
+
+<span class="s2">/* Channels allowed to raise an alarm. Every channel still feeds the graph and</span>
+<span class="s2">   the forecast; only these contribute to the deviation score. */</span>
+<span class="s2">$</span><span class="si">{score_channels}</span>
+
+<span class="s2">static const $</span><span class="si">{real}</span><span class="s2"> LEAKY = $</span><span class="si">{leaky}</span><span class="s2">;</span>
+<span class="s2">/* Any score beyond this is treated as corruption rather than an anomaly. */</span>
+<span class="s2">static const $</span><span class="si">{real}</span><span class="s2"> SCORE_LIMIT = $</span><span class="si">{score_limit}</span><span class="s2">;</span>
+
+<span class="s2">/* exp(-x), guarded on both sides. */</span>
+<span class="s2">static $</span><span class="si">{real}</span><span class="s2"> kan_exp_neg($</span><span class="si">{real}</span><span class="s2"> x)</span>
+<span class="s2">{</span>
+<span class="s2">    $</span><span class="si">{real}</span><span class="s2"> y;</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(isfinite(x) != 0);</span>
+<span class="s2">    y = $</span><span class="si">{expf}</span><span class="s2">(-x);</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(y &gt;= ($</span><span class="si">{real}</span><span class="s2">)0);</span>
+<span class="s2">    return y;</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+<span class="n">_LAYER</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">/* ---- KAN layer $</span><span class="si">{name}</span><span class="s2">: $</span><span class="si">{in_f}</span><span class="s2"> -&gt; $</span><span class="si">{out_f}</span><span class="s2"> ---- */</span>
+<span class="s2">enum {</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_IN     = $</span><span class="si">{in_f}</span><span class="s2">,</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_OUT    = $</span><span class="si">{out_f}</span><span class="s2">,</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ORDER  = $</span><span class="si">{order}</span><span class="s2">,</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_NKNOTS = $</span><span class="si">{n_knots}</span><span class="s2">,</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_NCOEFF = $</span><span class="si">{n_coeff}</span>
+<span class="s2">};</span>
+
+<span class="s2">$</span><span class="si">{knots}</span><span class="s2">$</span><span class="si">{inv_steps}</span><span class="s2">$</span><span class="si">{base_w}</span><span class="s2">$</span><span class="si">{spline_w}</span>
+<span class="s2">/* B-spline bases at x via the Cox-de Boor recursion. Every denominator is a</span>
+<span class="s2">   precomputed reciprocal, so the inner loop multiplies and never divides. */</span>
+<span class="s2">static int $</span><span class="si">{name}</span><span class="s2">_bsplines($</span><span class="si">{real}</span><span class="s2"> x, $</span><span class="si">{real}</span><span class="s2"> out[$</span><span class="si">{up}</span><span class="s2">_NCOEFF])</span>
+<span class="s2">{</span>
+<span class="s2">    $</span><span class="si">{real}</span><span class="s2"> b[$</span><span class="si">{up}</span><span class="s2">_NKNOTS - 1];</span>
+<span class="s2">    int i;</span>
+<span class="s2">    int k;</span>
+<span class="s2">    int n;</span>
+
+<span class="s2">    if (out == NULL) {</span>
+<span class="s2">        return $</span><span class="si">{up_prefix}</span><span class="s2">_ERR_NULL;</span>
+<span class="s2">    }</span>
+<span class="s2">    $</span><span class="si">{up_prefix}</span><span class="s2">_ASSERT(isfinite(x) != 0);</span>
+<span class="s2">    $</span><span class="si">{up_prefix}</span><span class="s2">_ASSERT($</span><span class="si">{up}</span><span class="s2">_NCOEFF == ($</span><span class="si">{up}</span><span class="s2">_NKNOTS - 1 - $</span><span class="si">{up}</span><span class="s2">_ORDER));</span>
+
+<span class="s2">    for (i = 0; i &lt; ($</span><span class="si">{up}</span><span class="s2">_NKNOTS - 1); ++i) {</span>
+<span class="s2">        b[i] = ((x &gt;= $</span><span class="si">{name}</span><span class="s2">_knots[i]) &amp;&amp; (x &lt; $</span><span class="si">{name}</span><span class="s2">_knots[i + 1]))</span>
+<span class="s2">             ? ($</span><span class="si">{real}</span><span class="s2">)1 : ($</span><span class="si">{real}</span><span class="s2">)0;</span>
+<span class="s2">    }</span>
+
+<span class="s2">    n = $</span><span class="si">{up}</span><span class="s2">_NKNOTS - 1;</span>
+<span class="s2">    for (k = 1; k &lt;= $</span><span class="si">{up}</span><span class="s2">_ORDER; ++k) {</span>
+<span class="s2">        const $</span><span class="si">{real}</span><span class="s2"> *inv = &amp;$</span><span class="si">{name}</span><span class="s2">_inv_span[(k - 1) * ($</span><span class="si">{up}</span><span class="s2">_NKNOTS - 1)];</span>
+<span class="s2">        $</span><span class="si">{up_prefix}</span><span class="s2">_ASSERT(n &gt;= 2);</span>
+<span class="s2">        /* b[i] is written before b[i + 1] is read on the following step, so the</span>
+<span class="s2">           update is safe in place. The right-hand span at index i is the</span>
+<span class="s2">           left-hand span at index i + 1, so one table serves both. */</span>
+<span class="s2">        for (i = 0; i &lt; (n - 1); ++i) {</span>
+<span class="s2">            b[i] = ((x - $</span><span class="si">{name}</span><span class="s2">_knots[i]) * inv[i] * b[i])</span>
+<span class="s2">                 + (($</span><span class="si">{name}</span><span class="s2">_knots[i + k + 1] - x) * inv[i + 1] * b[i + 1]);</span>
+<span class="s2">        }</span>
+<span class="s2">        --n;</span>
+<span class="s2">    }</span>
+
+<span class="s2">    for (i = 0; i &lt; $</span><span class="si">{up}</span><span class="s2">_NCOEFF; ++i) {</span>
+<span class="s2">        out[i] = b[i];</span>
+<span class="s2">    }</span>
+<span class="s2">    return $</span><span class="si">{up_prefix}</span><span class="s2">_OK;</span>
+<span class="s2">}</span>
+
+<span class="s2">/* y[o] = sum_i ( base_w[o][i] * silu(x[i]) + sum_c spline_w[o][i][c] * B_c(x[i]) ) */</span>
+<span class="s2">static int $</span><span class="si">{name}</span><span class="s2">_forward(const $</span><span class="si">{real}</span><span class="s2"> *x, $</span><span class="si">{real}</span><span class="s2"> *y)</span>
+<span class="s2">{</span>
+<span class="s2">    $</span><span class="si">{real}</span><span class="s2"> basis[$</span><span class="si">{up}</span><span class="s2">_NCOEFF];</span>
+<span class="s2">    int i;</span>
+<span class="s2">    int o;</span>
+<span class="s2">    int c;</span>
+<span class="s2">    int status;</span>
+
+<span class="s2">    if ((x == NULL) || (y == NULL)) {</span>
+<span class="s2">        return $</span><span class="si">{up_prefix}</span><span class="s2">_ERR_NULL;</span>
+<span class="s2">    }</span>
+<span class="s2">    $</span><span class="si">{up_prefix}</span><span class="s2">_ASSERT($</span><span class="si">{up}</span><span class="s2">_IN &gt; 0);</span>
+<span class="s2">    $</span><span class="si">{up_prefix}</span><span class="s2">_ASSERT($</span><span class="si">{up}</span><span class="s2">_OUT &gt; 0);</span>
+
+<span class="s2">    for (o = 0; o &lt; $</span><span class="si">{up}</span><span class="s2">_OUT; ++o) {</span>
+<span class="s2">        y[o] = ($</span><span class="si">{real}</span><span class="s2">)0;</span>
+<span class="s2">    }</span>
+<span class="s2">    for (i = 0; i &lt; $</span><span class="si">{up}</span><span class="s2">_IN; ++i) {</span>
+<span class="s2">        const $</span><span class="si">{real}</span><span class="s2"> xi = x[i];</span>
+<span class="s2">        const $</span><span class="si">{real}</span><span class="s2"> s = xi / (($</span><span class="si">{real}</span><span class="s2">)1 + kan_exp_neg(xi));</span>
+<span class="s2">        status = $</span><span class="si">{name}</span><span class="s2">_bsplines(xi, basis);</span>
+<span class="s2">        if (status != $</span><span class="si">{up_prefix}</span><span class="s2">_OK) {</span>
+<span class="s2">            return status;</span>
+<span class="s2">        }</span>
+<span class="s2">        for (o = 0; o &lt; $</span><span class="si">{up}</span><span class="s2">_OUT; ++o) {</span>
+<span class="s2">            const $</span><span class="si">{real}</span><span class="s2"> *sw = &amp;$</span><span class="si">{name}</span><span class="s2">_spline_w[(o * $</span><span class="si">{up}</span><span class="s2">_IN + i) * $</span><span class="si">{up}</span><span class="s2">_NCOEFF];</span>
+<span class="s2">            $</span><span class="si">{real}</span><span class="s2"> acc = $</span><span class="si">{name}</span><span class="s2">_base_w[o * $</span><span class="si">{up}</span><span class="s2">_IN + i] * s;</span>
+<span class="s2">            for (c = 0; c &lt; $</span><span class="si">{up}</span><span class="s2">_NCOEFF; ++c) {</span>
+<span class="s2">                acc += sw[c] * basis[c];</span>
+<span class="s2">            }</span>
+<span class="s2">            y[o] += acc;</span>
+<span class="s2">        }</span>
+<span class="s2">    }</span>
+<span class="s2">    return $</span><span class="si">{up_prefix}</span><span class="s2">_OK;</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+<span class="n">_SCORING</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">/* ---- scoring path ---- */</span>
+
+<span class="s2">/* Buffers are flat with explicit index arithmetic. ISO C before C23 rejects</span>
+<span class="s2">   passing a pointer to a non-const array where a pointer to a const array is</span>
+<span class="s2">   expected, so two-dimensional parameters cannot be const qualified. Flat</span>
+<span class="s2">   arrays keep const correctness and match the layout of the parameter tables. */</span>
+
+<span class="s2">/* Scale the window and split it into per-node context and the final target. */</span>
+<span class="s2">static int kan_prepare(const $</span><span class="si">{prefix}</span><span class="s2">_real_t *window, $</span><span class="si">{real}</span><span class="s2"> *context, $</span><span class="si">{real}</span><span class="s2"> *target)</span>
+<span class="s2">{</span>
+<span class="s2">    int t;</span>
+<span class="s2">    int f;</span>
+
+<span class="s2">    if ((window == NULL) || (context == NULL) || (target == NULL)) {</span>
+<span class="s2">        return $</span><span class="si">{up}</span><span class="s2">_ERR_NULL;</span>
+<span class="s2">    }</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(N_NODES == $</span><span class="si">{up}</span><span class="s2">_N_FEATURES);</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(WINDOW == ($</span><span class="si">{up}</span><span class="s2">_WINDOW_SIZE - 1));</span>
+
+<span class="s2">    for (f = 0; f &lt; N_NODES; ++f) {</span>
+<span class="s2">        for (t = 0; t &lt; WINDOW; ++t) {</span>
+<span class="s2">            context[(f * WINDOW) + t] = $</span><span class="si">{scale_ctx}</span><span class="s2">;</span>
+<span class="s2">        }</span>
+<span class="s2">        target[f] = $</span><span class="si">{scale_tgt}</span><span class="s2">;</span>
+<span class="s2">    }</span>
+<span class="s2">    return $</span><span class="si">{up}</span><span class="s2">_OK;</span>
+<span class="s2">}</span>
+
+<span class="s2">/* h_i = W x_i + b */</span>
+<span class="s2">static int kan_features(const $</span><span class="si">{real}</span><span class="s2"> *context, $</span><span class="si">{real}</span><span class="s2"> *node_h)</span>
+<span class="s2">{</span>
+<span class="s2">    int i;</span>
+<span class="s2">    int d;</span>
+<span class="s2">    int t;</span>
+
+<span class="s2">    if ((context == NULL) || (node_h == NULL)) {</span>
+<span class="s2">        return $</span><span class="si">{up}</span><span class="s2">_ERR_NULL;</span>
+<span class="s2">    }</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(EMBED &gt; 0);</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(WINDOW &gt; 0);</span>
+
+<span class="s2">    for (i = 0; i &lt; N_NODES; ++i) {</span>
+<span class="s2">        for (d = 0; d &lt; EMBED; ++d) {</span>
+<span class="s2">            $</span><span class="si">{real}</span><span class="s2"> acc = feat_b[d];</span>
+<span class="s2">            for (t = 0; t &lt; WINDOW; ++t) {</span>
+<span class="s2">                acc += feat_w[(d * WINDOW) + t] * context[(i * WINDOW) + t];</span>
+<span class="s2">            }</span>
+<span class="s2">            node_h[(i * EMBED) + d] = acc;</span>
+<span class="s2">        }</span>
+<span class="s2">    }</span>
+<span class="s2">    return $</span><span class="si">{up}</span><span class="s2">_OK;</span>
+<span class="s2">}</span>
+
+<span class="s2">/* The attention score a^T [g_i | g_j] is separable, so each node needs only the</span>
+<span class="s2">   two projections of g_i = [v_i | h_i] rather than a pairwise concatenation. */</span>
+<span class="s2">static int kan_attention(const $</span><span class="si">{real}</span><span class="s2"> *node_h, $</span><span class="si">{real}</span><span class="s2"> *att_src, $</span><span class="si">{real}</span><span class="s2"> *att_dst)</span>
+<span class="s2">{</span>
+<span class="s2">    int i;</span>
+<span class="s2">    int d;</span>
+
+<span class="s2">    if ((node_h == NULL) || (att_src == NULL) || (att_dst == NULL)) {</span>
+<span class="s2">        return $</span><span class="si">{up}</span><span class="s2">_ERR_NULL;</span>
+<span class="s2">    }</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(N_NODES &gt; 0);</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(EMBED &gt; 0);</span>
+
+<span class="s2">    for (i = 0; i &lt; N_NODES; ++i) {</span>
+<span class="s2">        $</span><span class="si">{real}</span><span class="s2"> s = ($</span><span class="si">{real}</span><span class="s2">)0;</span>
+<span class="s2">        $</span><span class="si">{real}</span><span class="s2"> u = ($</span><span class="si">{real}</span><span class="s2">)0;</span>
+<span class="s2">        for (d = 0; d &lt; EMBED; ++d) {</span>
+<span class="s2">            const $</span><span class="si">{real}</span><span class="s2"> v = embedding[(i * EMBED) + d];</span>
+<span class="s2">            const $</span><span class="si">{real}</span><span class="s2"> h = node_h[(i * EMBED) + d];</span>
+<span class="s2">            s += (attn_src[d] * v) + (attn_src[EMBED + d] * h);</span>
+<span class="s2">            u += (attn_dst[d] * v) + (attn_dst[EMBED + d] * h);</span>
+<span class="s2">        }</span>
+<span class="s2">        att_src[i] = s;</span>
+<span class="s2">        att_dst[i] = u;</span>
+<span class="s2">    }</span>
+<span class="s2">    return $</span><span class="si">{up}</span><span class="s2">_OK;</span>
+<span class="s2">}</span>
+
+<span class="s2">/* Softmax over one node&#39;s frozen neighbour list. */</span>
+<span class="s2">static int kan_weights(int node, const $</span><span class="si">{real}</span><span class="s2"> *att_src, const $</span><span class="si">{real}</span><span class="s2"> *att_dst,</span>
+<span class="s2">                       $</span><span class="si">{real}</span><span class="s2"> *weights)</span>
+<span class="s2">{</span>
+<span class="s2">    $</span><span class="si">{real}</span><span class="s2"> maxlog;</span>
+<span class="s2">    $</span><span class="si">{real}</span><span class="s2"> total = ($</span><span class="si">{real}</span><span class="s2">)0;</span>
+<span class="s2">    int n;</span>
+
+<span class="s2">    if ((att_src == NULL) || (att_dst == NULL) || (weights == NULL)) {</span>
+<span class="s2">        return $</span><span class="si">{up}</span><span class="s2">_ERR_NULL;</span>
+<span class="s2">    }</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(node &gt;= 0);</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(node &lt; N_NODES);</span>
+
+<span class="s2">    for (n = 0; n &lt; N_NBR; ++n) {</span>
+<span class="s2">        const $</span><span class="si">{real}</span><span class="s2"> v = att_src[node] + att_dst[neighbours[(node * N_NBR) + n]];</span>
+<span class="s2">        weights[n] = (v &gt;= ($</span><span class="si">{real}</span><span class="s2">)0) ? v : (LEAKY * v);</span>
+<span class="s2">    }</span>
+<span class="s2">    maxlog = weights[0];</span>
+<span class="s2">    for (n = 1; n &lt; N_NBR; ++n) {</span>
+<span class="s2">        if (weights[n] &gt; maxlog) {</span>
+<span class="s2">            maxlog = weights[n];</span>
+<span class="s2">        }</span>
+<span class="s2">    }</span>
+<span class="s2">    for (n = 0; n &lt; N_NBR; ++n) {</span>
+<span class="s2">        weights[n] = $</span><span class="si">{expf}</span><span class="s2">(weights[n] - maxlog);</span>
+<span class="s2">        total += weights[n];</span>
+<span class="s2">    }</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(total &gt; ($</span><span class="si">{real}</span><span class="s2">)0);</span>
+<span class="s2">    for (n = 0; n &lt; N_NBR; ++n) {</span>
+<span class="s2">        weights[n] /= total;</span>
+<span class="s2">    }</span>
+<span class="s2">    return $</span><span class="si">{up}</span><span class="s2">_OK;</span>
+<span class="s2">}</span>
+
+<span class="s2">/* z_i = activation( sum_j alpha_ij h_j ) * v_i, over the frozen neighbour list. */</span>
+<span class="s2">static int kan_aggregate(const $</span><span class="si">{real}</span><span class="s2"> *node_h, const $</span><span class="si">{real}</span><span class="s2"> *att_src,</span>
+<span class="s2">                         const $</span><span class="si">{real}</span><span class="s2"> *att_dst, $</span><span class="si">{real}</span><span class="s2"> *node_z)</span>
+<span class="s2">{</span>
+<span class="s2">    $</span><span class="si">{real}</span><span class="s2"> agg[EMBED];</span>
+<span class="s2">    $</span><span class="si">{real}</span><span class="s2"> weights[N_NBR];</span>
+<span class="s2">    int i;</span>
+<span class="s2">    int d;</span>
+<span class="s2">    int n;</span>
+<span class="s2">    int status;</span>
+
+<span class="s2">    if ((node_h == NULL) || (att_src == NULL) || (att_dst == NULL) || (node_z == NULL)) {</span>
+<span class="s2">        return $</span><span class="si">{up}</span><span class="s2">_ERR_NULL;</span>
+<span class="s2">    }</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(N_NBR &gt; 0);</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(N_NBR &lt;= N_NODES);</span>
+
+<span class="s2">    for (i = 0; i &lt; N_NODES; ++i) {</span>
+<span class="s2">        status = kan_weights(i, att_src, att_dst, weights);</span>
+<span class="s2">        if (status != $</span><span class="si">{up}</span><span class="s2">_OK) {</span>
+<span class="s2">            return status;</span>
+<span class="s2">        }</span>
+<span class="s2">        for (d = 0; d &lt; EMBED; ++d) {</span>
+<span class="s2">            agg[d] = ($</span><span class="si">{real}</span><span class="s2">)0;</span>
+<span class="s2">        }</span>
+<span class="s2">        for (n = 0; n &lt; N_NBR; ++n) {</span>
+<span class="s2">            const int j = (int)neighbours[(i * N_NBR) + n];</span>
+<span class="s2">            for (d = 0; d &lt; EMBED; ++d) {</span>
+<span class="s2">                agg[d] += weights[n] * node_h[(j * EMBED) + d];</span>
+<span class="s2">            }</span>
+<span class="s2">        }</span>
+<span class="s2">        status = act_forward(agg, &amp;node_z[i * EMBED]);</span>
+<span class="s2">        if (status != $</span><span class="si">{up}</span><span class="s2">_OK) {</span>
+<span class="s2">            return status;</span>
+<span class="s2">        }</span>
+<span class="s2">        for (d = 0; d &lt; EMBED; ++d) {</span>
+<span class="s2">            node_z[(i * EMBED) + d] *= embedding[(i * EMBED) + d];</span>
+<span class="s2">        }</span>
+<span class="s2">    }</span>
+<span class="s2">    return $</span><span class="si">{up}</span><span class="s2">_OK;</span>
+<span class="s2">}</span>
+
+<span class="s2">/* Forecast each node, normalise its deviation, and take the maximum. */</span>
+<span class="s2">static int kan_deviation(const $</span><span class="si">{real}</span><span class="s2"> *node_z, const $</span><span class="si">{real}</span><span class="s2"> *target, $</span><span class="si">{real}</span><span class="s2"> *out_score)</span>
+<span class="s2">{</span>
+<span class="s2">    $</span><span class="si">{real}</span><span class="s2"> best = ($</span><span class="si">{real}</span><span class="s2">)0;</span>
+<span class="s2">    int k;</span>
+<span class="s2">    int status;</span>
+
+<span class="s2">    if ((node_z == NULL) || (target == NULL) || (out_score == NULL)) {</span>
+<span class="s2">        return $</span><span class="si">{up}</span><span class="s2">_ERR_NULL;</span>
+<span class="s2">    }</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(N_SCORE &gt; 0);</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(SCORE_LIMIT &gt; ($</span><span class="si">{real}</span><span class="s2">)0);</span>
+
+<span class="s2">    for (k = 0; k &lt; N_SCORE; ++k) {</span>
+<span class="s2">        const int i = (int)score_channels[k];</span>
+<span class="s2">        $</span><span class="si">{real}</span><span class="s2"> pred = ($</span><span class="si">{real}</span><span class="s2">)0;</span>
+<span class="s2">        $</span><span class="si">{real}</span><span class="s2"> err;</span>
+<span class="s2">        $</span><span class="si">{real}</span><span class="s2"> normed;</span>
+
+<span class="s2">        status = head_forward(&amp;node_z[i * EMBED], &amp;pred);</span>
+<span class="s2">        if (status != $</span><span class="si">{up}</span><span class="s2">_OK) {</span>
+<span class="s2">            return status;</span>
+<span class="s2">        }</span>
+<span class="s2">        err = $</span><span class="si">{fabsf}</span><span class="s2">(pred - target[i]);</span>
+<span class="s2">        normed = $</span><span class="si">{fabsf}</span><span class="s2">(err - err_median[i]) / (err_iqr[i] + ($</span><span class="si">{real}</span><span class="s2">)1e-9);</span>
+<span class="s2">        if (normed &gt; best) {</span>
+<span class="s2">            best = normed;</span>
+<span class="s2">        }</span>
+<span class="s2">    }</span>
+
+<span class="s2">    /* Corruption checks: a non-finite or implausible score must not be treated</span>
+<span class="s2">       as a detection. */</span>
+<span class="s2">    if (isfinite(best) == 0) {</span>
+<span class="s2">        return $</span><span class="si">{up}</span><span class="s2">_ERR_RANGE;</span>
+<span class="s2">    }</span>
+<span class="s2">    if (best &gt; SCORE_LIMIT) {</span>
+<span class="s2">        return $</span><span class="si">{up}</span><span class="s2">_ERR_RANGE;</span>
+<span class="s2">    }</span>
+<span class="s2">    *out_score = best;</span>
+<span class="s2">    return $</span><span class="si">{up}</span><span class="s2">_OK;</span>
+<span class="s2">}</span>
+
+<span class="s2">int $</span><span class="si">{prefix}</span><span class="s2">_score(const $</span><span class="si">{prefix}</span><span class="s2">_real_t *window, $</span><span class="si">{prefix}</span><span class="s2">_real_t *out_score)</span>
+<span class="s2">{</span>
+<span class="s2">    /* Scratch lives at function scope, static to keep it off the stack. */</span>
+<span class="s2">    static $</span><span class="si">{real}</span><span class="s2"> context[N_NODES * WINDOW];</span>
+<span class="s2">    static $</span><span class="si">{real}</span><span class="s2"> target[N_NODES];</span>
+<span class="s2">    static $</span><span class="si">{real}</span><span class="s2"> node_h[N_NODES * EMBED];</span>
+<span class="s2">    static $</span><span class="si">{real}</span><span class="s2"> node_z[N_NODES * EMBED];</span>
+<span class="s2">    static $</span><span class="si">{real}</span><span class="s2"> att_src[N_NODES];</span>
+<span class="s2">    static $</span><span class="si">{real}</span><span class="s2"> att_dst[N_NODES];</span>
+<span class="s2">    int status;</span>
+
+<span class="s2">    if ((window == NULL) || (out_score == NULL)) {</span>
+<span class="s2">        return $</span><span class="si">{up}</span><span class="s2">_ERR_NULL;</span>
+<span class="s2">    }</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(N_NODES &gt; 0);</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(EMBED &gt; 0);</span>
+
+<span class="s2">    status = kan_prepare(window, context, target);</span>
+<span class="s2">    if (status != $</span><span class="si">{up}</span><span class="s2">_OK) {</span>
+<span class="s2">        return status;</span>
+<span class="s2">    }</span>
+<span class="s2">    status = kan_features(context, node_h);</span>
+<span class="s2">    if (status != $</span><span class="si">{up}</span><span class="s2">_OK) {</span>
+<span class="s2">        return status;</span>
+<span class="s2">    }</span>
+<span class="s2">    status = kan_attention(node_h, att_src, att_dst);</span>
+<span class="s2">    if (status != $</span><span class="si">{up}</span><span class="s2">_OK) {</span>
+<span class="s2">        return status;</span>
+<span class="s2">    }</span>
+<span class="s2">    status = kan_aggregate(node_h, att_src, att_dst, node_z);</span>
+<span class="s2">    if (status != $</span><span class="si">{up}</span><span class="s2">_OK) {</span>
+<span class="s2">        return status;</span>
+<span class="s2">    }</span>
+<span class="s2">    return kan_deviation(node_z, target, out_score);</span>
+<span class="s2">}</span>
+
+<span class="s2">int $</span><span class="si">{prefix}</span><span class="s2">_is_anomaly(const $</span><span class="si">{prefix}</span><span class="s2">_real_t *window, int *out_flag)</span>
+<span class="s2">{</span>
+<span class="s2">    $</span><span class="si">{prefix}</span><span class="s2">_real_t score = ($</span><span class="si">{prefix}</span><span class="s2">_real_t)0;</span>
+<span class="s2">    int status;</span>
+
+<span class="s2">    if ((window == NULL) || (out_flag == NULL)) {</span>
+<span class="s2">        return $</span><span class="si">{up}</span><span class="s2">_ERR_NULL;</span>
+<span class="s2">    }</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(SCORE_LIMIT &gt; ($</span><span class="si">{real}</span><span class="s2">)0);</span>
+
+<span class="s2">    status = $</span><span class="si">{prefix}</span><span class="s2">_score(window, &amp;score);</span>
+<span class="s2">    if (status != $</span><span class="si">{up}</span><span class="s2">_OK) {</span>
+<span class="s2">        return status;</span>
+<span class="s2">    }</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(isfinite(score) != 0);</span>
+<span class="s2">    *out_flag = (score &gt; ($</span><span class="si">{real}</span><span class="s2">)$</span><span class="si">{up}</span><span class="s2">_THRESHOLD) ? 1 : 0;</span>
+<span class="s2">    return $</span><span class="si">{up}</span><span class="s2">_OK;</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+
+<span class="n">_VECTORS</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">/* $</span><span class="si">{prefix}</span><span class="s2">_vectors.h : golden vectors for the distilled detector.</span>
+<span class="s2"> *</span>
+<span class="s2">$</span><span class="si">{provenance}</span>
+<span class="s2"> *</span>
+<span class="s2"> * Each row is one window, flattened row major to match the layout</span>
+<span class="s2"> * $</span><span class="si">{prefix}</span><span class="s2">_score expects. The expected scores are the reference evaluator&#39;s</span>
+<span class="s2"> * output in double precision, so a port is validated by scoring each window and</span>
+<span class="s2"> * comparing, with no host tooling required on the target.</span>
+<span class="s2"> *</span>
+<span class="s2"> * Compare as |got - want| &lt;= ATOL + RTOL * |want|. The absolute term matters:</span>
+<span class="s2"> * the score is a difference of differences, so a score far below the threshold</span>
+<span class="s2"> * carries large relative error while its absolute error stays negligible. The</span>
+<span class="s2"> * expected flags are the decisive check, since they are what a port must</span>
+<span class="s2"> * reproduce for the detector to behave identically.</span>
+<span class="s2"> */</span>
+<span class="s2">#ifndef $</span><span class="si">{guard}</span>
+<span class="s2">#define $</span><span class="si">{guard}</span>
+
+<span class="s2">#include &quot;$</span><span class="si">{prefix}</span><span class="s2">.h&quot;</span>
+
+<span class="s2">enum { $</span><span class="si">{up}</span><span class="s2">_N_VECTORS = $</span><span class="si">{n_vectors}</span><span class="s2"> };</span>
+
+<span class="s2">/* Tolerances appropriate to the generated numeric type. */</span>
+<span class="s2">static const double $</span><span class="si">{up}</span><span class="s2">_TEST_RTOL = $</span><span class="si">{rtol}</span><span class="s2">;</span>
+<span class="s2">static const double $</span><span class="si">{up}</span><span class="s2">_TEST_ATOL = $</span><span class="si">{atol}</span><span class="s2">;</span>
+
+<span class="s2">static const $</span><span class="si">{prefix}</span><span class="s2">_real_t $</span><span class="si">{up}</span><span class="s2">_TEST_WINDOWS[$</span><span class="si">{up}</span><span class="s2">_N_VECTORS]</span>
+<span class="s2">                                                [$</span><span class="si">{up}</span><span class="s2">_WINDOW_SIZE * $</span><span class="si">{up}</span><span class="s2">_N_FEATURES] = {</span>
+<span class="s2">$</span><span class="si">{windows}</span>
+<span class="s2">};</span>
+
+<span class="s2">static const double $</span><span class="si">{up}</span><span class="s2">_TEST_SCORES[$</span><span class="si">{up}</span><span class="s2">_N_VECTORS] = {</span>
+<span class="s2">$</span><span class="si">{scores}</span>
+<span class="s2">};</span>
+
+<span class="s2">/* 1 where the reference evaluator flags the window as anomalous. */</span>
+<span class="s2">static const int $</span><span class="si">{up}</span><span class="s2">_TEST_FLAGS[$</span><span class="si">{up}</span><span class="s2">_N_VECTORS] = {</span>
+<span class="s2">$</span><span class="si">{flags}</span>
+<span class="s2">};</span>
+
+<span class="s2">#endif /* $</span><span class="si">{guard}</span><span class="s2"> */</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fmt</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">digits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Format one scalar as a C floating point literal.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Non-finite parameter in the distilled model: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">:</span><span class="s2">.</span><span class="si">{</span><span class="n">digits</span><span class="si">}</span><span class="s2">g</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">c</span> <span class="ow">in</span> <span class="n">text</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="s2">&quot;.eE&quot;</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">+=</span> <span class="s2">&quot;.0&quot;</span>
+    <span class="k">return</span> <span class="n">text</span> <span class="o">+</span> <span class="n">suffix</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_c_array</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">real</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">digits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">per_line</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Emit a flat ``static const`` array declaration for any-rank ``values``.&quot;&quot;&quot;</span>
+    <span class="n">flat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">literals</span> <span class="o">=</span> <span class="p">[</span><span class="n">_fmt</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">flat</span><span class="p">]</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;    &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">literals</span><span class="p">[</span><span class="n">start</span> <span class="p">:</span> <span class="n">start</span> <span class="o">+</span> <span class="n">per_line</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">literals</span><span class="p">),</span> <span class="n">per_line</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="k">if</span> <span class="n">lines</span> <span class="k">else</span> <span class="s2">&quot;    0&quot;</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;static const </span><span class="si">{</span><span class="n">real</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">[</span><span class="si">{</span><span class="n">flat</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">] = </span><span class="se">{{\n</span><span class="si">{</span><span class="n">body</span><span class="si">}</span><span class="se">\n}}</span><span class="s2">;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_layer_knots</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the single knot vector a KAN layer uses for every input feature.</span>
+
+<span class="sd">    One vector is emitted per layer, so the knots must agree across features.</span>
+<span class="sd">    They are exported verbatim rather than reconstructed from a start and a</span>
+<span class="sd">    spacing: the grid is built in float32, so a reconstruction differs from the</span>
+<span class="sd">    stored values by roughly 1e-7 relative, which would show up as a spurious</span>
+<span class="sd">    mismatch against the reference evaluator.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    NotImplementedError</span>
+<span class="sd">        If the knot vector differs between input features.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;C generation requires one knot vector shared across input features.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_inverse_spans</span><span class="p">(</span><span class="n">knots</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">order</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reciprocal Cox-de Boor denominators, one row per recursion level.</span>
+
+<span class="sd">    Entry ``[k - 1, i]`` is ``1 / (knots[i + k] - knots[i])``, the divisor the</span>
+<span class="sd">    recursion applies at level ``k`` and index ``i``. Precomputing these turns</span>
+<span class="sd">    every division in the inner loop into a multiply, and tabulating per index</span>
+<span class="sd">    rather than per level keeps the result exact for any knot vector instead of</span>
+<span class="sd">    only for evenly spaced ones. Entries with no valid span are zero and are</span>
+<span class="sd">    never read.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">knots</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">order</span><span class="p">,</span> <span class="n">width</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">knots</span><span class="p">):</span>
+                <span class="n">span</span> <span class="o">=</span> <span class="n">knots</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">knots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">span</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="n">table</span><span class="p">[</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">span</span>
+    <span class="k">return</span> <span class="n">table</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_emit_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">real</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">digits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Emit the constants and forward functions for one distilled KAN layer.&quot;&quot;&quot;</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;spline_order&quot;</span><span class="p">])</span>
+    <span class="n">knots</span> <span class="o">=</span> <span class="n">_layer_knots</span><span class="p">(</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;grid&quot;</span><span class="p">])</span>
+    <span class="n">n_knots</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;grid&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">inv</span> <span class="o">=</span> <span class="n">_inverse_spans</span><span class="p">(</span><span class="n">knots</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_LAYER</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">up</span><span class="o">=</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+        <span class="n">up_prefix</span><span class="o">=</span><span class="n">prefix</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+        <span class="n">real</span><span class="o">=</span><span class="n">real</span><span class="p">,</span>
+        <span class="n">in_f</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;in_features&quot;</span><span class="p">]),</span>
+        <span class="n">out_f</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;out_features&quot;</span><span class="p">]),</span>
+        <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span>
+        <span class="n">n_knots</span><span class="o">=</span><span class="n">n_knots</span><span class="p">,</span>
+        <span class="n">n_coeff</span><span class="o">=</span><span class="n">n_knots</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">order</span><span class="p">,</span>
+        <span class="n">knots</span><span class="o">=</span><span class="n">_c_array</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_knots&quot;</span><span class="p">,</span> <span class="n">knots</span><span class="p">,</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+        <span class="n">inv_steps</span><span class="o">=</span><span class="n">_c_array</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_inv_span&quot;</span><span class="p">,</span> <span class="n">inv</span><span class="p">,</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+        <span class="n">base_w</span><span class="o">=</span><span class="n">_c_array</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_base_w&quot;</span><span class="p">,</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;base_weight&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+        <span class="n">spline_w</span><span class="o">=</span><span class="n">_c_array</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_spline_w&quot;</span><span class="p">,</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;spline_weight&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_emit_vectors</span><span class="p">(</span><span class="n">extracted</span><span class="p">,</span> <span class="n">test_windows</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Emit golden vectors: input windows beside the reference evaluator&#39;s scores.</span>
+
+<span class="sd">    Scores are always written in double precision, whatever type the detector is</span>
+<span class="sd">    generated in, so the same expectations serve a float build and a double one.</span>
+<span class="sd">    The tolerance is chosen to suit the generated type, leaving each target&#39;s</span>
+<span class="sd">    harness to do nothing but compare.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.distill</span><span class="w"> </span><span class="kn">import</span> <span class="n">KANGDNNumpy</span>
+
+    <span class="n">windows</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">test_windows</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">windows</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;test_windows must be 3-D (n, window_size, n_features), got </span><span class="si">{</span><span class="n">windows</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">expected</span> <span class="o">=</span> <span class="n">KANGDNNumpy</span><span class="p">(</span><span class="n">extracted</span><span class="p">)</span><span class="o">.</span><span class="n">decision_function</span><span class="p">(</span><span class="n">windows</span><span class="p">)</span>
+    <span class="n">flat</span> <span class="o">=</span> <span class="n">windows</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">windows</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">flat</span><span class="p">:</span>
+        <span class="n">literals</span> <span class="o">=</span> <span class="p">[</span><span class="n">_fmt</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">row</span><span class="p">]</span>
+        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;        &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">literals</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">6</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">literals</span><span class="p">),</span> <span class="mi">6</span><span class="p">)]</span>
+        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;    {</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">    }&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_VECTORS</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span>
+        <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
+        <span class="n">up</span><span class="o">=</span><span class="n">prefix</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+        <span class="n">provenance</span><span class="o">=</span><span class="n">_PROVENANCE</span><span class="p">,</span>
+        <span class="n">guard</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">_VECTORS_H&quot;</span><span class="p">,</span>
+        <span class="n">n_vectors</span><span class="o">=</span><span class="n">windows</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="c1"># Single precision loses relative accuracy on scores that are small</span>
+        <span class="c1"># compared with the intermediate magnitudes, so an absolute term is</span>
+        <span class="c1"># needed alongside the relative one.</span>
+        <span class="n">rtol</span><span class="o">=</span><span class="s2">&quot;1e-4&quot;</span> <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s2">&quot;float&quot;</span> <span class="k">else</span> <span class="s2">&quot;1e-9&quot;</span><span class="p">,</span>
+        <span class="n">atol</span><span class="o">=</span><span class="s2">&quot;1e-5&quot;</span> <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s2">&quot;float&quot;</span> <span class="k">else</span> <span class="s2">&quot;1e-12&quot;</span><span class="p">,</span>
+        <span class="n">windows</span><span class="o">=</span><span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rows</span><span class="p">),</span>
+        <span class="n">scores</span><span class="o">=</span><span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    </span><span class="si">{</span><span class="n">v</span><span class="si">:</span><span class="s2">.17g</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">expected</span><span class="p">),</span>
+        <span class="n">flags</span><span class="o">=</span><span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">extracted</span><span class="p">[</span><span class="s1">&#39;threshold&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">expected</span><span class="p">),</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="generate_c">
+<a class="viewcode-back" href="../../../../api/models/deep.html#telemetry_anomdet.models.deep.codegen.generate_c">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_c</span><span class="p">(</span>
+    <span class="n">extracted</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;kangdn&quot;</span><span class="p">,</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span>
+    <span class="n">test_windows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a self-contained C implementation of a distilled KANGDN.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    extracted : dict</span>
+<span class="sd">        Output of :func:`~telemetry_anomdet.models.deep.distill.extract_kan_gdn`.</span>
+<span class="sd">    prefix : str, default=&quot;kangdn&quot;</span>
+<span class="sd">        Identifier prefix for the emitted symbols, macros and file names.</span>
+<span class="sd">    dtype : {&quot;float&quot;, &quot;double&quot;}, default=&quot;float&quot;</span>
+<span class="sd">        C type for parameters and arithmetic. ``float`` is the deployment mode;</span>
+<span class="sd">        ``double`` reproduces the NumPy evaluator to near machine precision.</span>
+<span class="sd">    test_windows : np.ndarray, optional</span>
+<span class="sd">        Windows of shape ``(n, window_size, n_features)``. When given, a third</span>
+<span class="sd">        file of golden vectors is emitted: each window flattened as the entry</span>
+<span class="sd">        point expects, beside the reference evaluator&#39;s score for it. A port</span>
+<span class="sd">        is then validated on the target itself, by scoring each window and</span>
+<span class="sd">        comparing, with no host tooling in the loop.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        ``{f&quot;{prefix}.h&quot;: ..., f&quot;{prefix}.c&quot;: ...}``, source text ready to</span>
+<span class="sd">        write, plus ``{prefix}_vectors.h`` when ``test_windows`` is given.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    NotImplementedError</span>
+<span class="sd">        If a KAN layer&#39;s knot vector differs between input features, if</span>
+<span class="sd">        neighbour counts vary between nodes, or if the model has more nodes than</span>
+<span class="sd">        a byte index can address.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If ``dtype`` is unrecognised or a parameter is not finite.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="s2">&quot;double&quot;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;dtype must be &#39;float&#39; or &#39;double&#39;, got </span><span class="si">{</span><span class="n">dtype</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">real</span> <span class="o">=</span> <span class="n">dtype</span>
+    <span class="n">score_channels</span> <span class="o">=</span> <span class="n">extracted</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;score_channels&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">score_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">score_channels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s2">&quot;net&quot;</span><span class="p">][</span><span class="s2">&quot;n_nodes&quot;</span><span class="p">])))</span>
+    <span class="n">score_channels</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">score_channels</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">extracted</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;smoothing&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># EWMA carries one value of state per node between windows. The emitted</span>
+        <span class="c1"># entry points are pure functions of a single window, so supporting it</span>
+        <span class="c1"># requires a state block and a reset call in the interface.</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;C generation does not yet support a detector fitted with smoothing; &quot;</span>
+            <span class="s2">&quot;the EWMA recursion is stateful across windows.&quot;</span>
+        <span class="p">)</span>
+    <span class="c1"># 9 significant digits round-trips float32, 17 round-trips float64.</span>
+    <span class="n">digits</span> <span class="o">=</span> <span class="mi">9</span> <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s2">&quot;float&quot;</span> <span class="k">else</span> <span class="mi">17</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;f&quot;</span> <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s2">&quot;float&quot;</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">expf</span> <span class="o">=</span> <span class="s2">&quot;expf&quot;</span> <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s2">&quot;float&quot;</span> <span class="k">else</span> <span class="s2">&quot;exp&quot;</span>
+    <span class="n">fabsf</span> <span class="o">=</span> <span class="s2">&quot;fabsf&quot;</span> <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s2">&quot;float&quot;</span> <span class="k">else</span> <span class="s2">&quot;fabs&quot;</span>
+
+    <span class="n">net</span> <span class="o">=</span> <span class="n">extracted</span><span class="p">[</span><span class="s2">&quot;net&quot;</span><span class="p">]</span>
+    <span class="n">n_nodes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s2">&quot;n_nodes&quot;</span><span class="p">])</span>
+    <span class="n">embed_dim</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s2">&quot;embed_dim&quot;</span><span class="p">])</span>
+    <span class="n">window</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s2">&quot;window&quot;</span><span class="p">])</span>
+    <span class="n">scaled</span> <span class="o">=</span> <span class="n">extracted</span><span class="p">[</span><span class="s2">&quot;scaler_mean&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">n_nodes</span> <span class="o">&gt;</span> <span class="mi">255</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Neighbour indices are emitted as bytes; </span><span class="si">{</span><span class="n">n_nodes</span><span class="si">}</span><span class="s2"> nodes exceeds that.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># The frozen graph becomes explicit neighbour lists, so the softmax runs over</span>
+    <span class="c1"># a fixed small count instead of every node.</span>
+    <span class="n">adj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s2">&quot;adj&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">neighbours</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">adj</span><span class="p">]</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="p">{</span><span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">neighbours</span><span class="p">}</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Expected a fixed neighbour count per node, got </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="n">n_nbr</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+
+    <span class="n">up</span> <span class="o">=</span> <span class="n">prefix</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">_PRELUDE</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span>
+            <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
+            <span class="n">up</span><span class="o">=</span><span class="n">up</span><span class="p">,</span>
+            <span class="n">provenance</span><span class="o">=</span><span class="n">_PROVENANCE</span><span class="p">,</span>
+            <span class="n">real</span><span class="o">=</span><span class="n">real</span><span class="p">,</span>
+            <span class="n">expf</span><span class="o">=</span><span class="n">expf</span><span class="p">,</span>
+            <span class="n">n_nodes</span><span class="o">=</span><span class="n">n_nodes</span><span class="p">,</span>
+            <span class="n">embed_dim</span><span class="o">=</span><span class="n">embed_dim</span><span class="p">,</span>
+            <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span>
+            <span class="n">n_nbr</span><span class="o">=</span><span class="n">n_nbr</span><span class="p">,</span>
+            <span class="n">n_score</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">score_channels</span><span class="p">),</span>
+            <span class="n">score_channels</span><span class="o">=</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;static const unsigned char score_channels[</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">score_channels</span><span class="p">)</span><span class="si">}</span><span class="s2">] = </span><span class="se">{{\n</span><span class="s2">&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="s2">&quot;    &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">score_channels</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">12</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">score_channels</span><span class="p">),</span> <span class="mi">12</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">};</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="p">),</span>
+            <span class="n">leaky</span><span class="o">=</span><span class="n">_fmt</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s2">&quot;leaky_slope&quot;</span><span class="p">],</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+            <span class="n">score_limit</span><span class="o">=</span><span class="n">_fmt</span><span class="p">(</span><span class="mf">1.0e9</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">_emit_layer</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s2">&quot;activation&quot;</span><span class="p">],</span> <span class="s2">&quot;act&quot;</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+        <span class="n">_emit_layer</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s2">&quot;out&quot;</span><span class="p">],</span> <span class="s2">&quot;head&quot;</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+        <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">/* ---- encoder parameters ---- */</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;embedding&quot;</span><span class="p">,</span> <span class="n">net</span><span class="p">[</span><span class="s2">&quot;embedding&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+        <span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;feat_w&quot;</span><span class="p">,</span> <span class="n">net</span><span class="p">[</span><span class="s2">&quot;feat_weight&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+        <span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;feat_b&quot;</span><span class="p">,</span> <span class="n">net</span><span class="p">[</span><span class="s2">&quot;feat_bias&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+        <span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;attn_src&quot;</span><span class="p">,</span> <span class="n">net</span><span class="p">[</span><span class="s2">&quot;attn_src&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+        <span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;attn_dst&quot;</span><span class="p">,</span> <span class="n">net</span><span class="p">[</span><span class="s2">&quot;attn_dst&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+        <span class="s2">&quot;static const unsigned char neighbours[&quot;</span>
+        <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n_nodes</span><span class="si">}</span><span class="s2"> * </span><span class="si">{</span><span class="n">n_nbr</span><span class="si">}</span><span class="s2">] = </span><span class="se">{{\n</span><span class="s2">&quot;</span>
+        <span class="o">+</span> <span class="s2">&quot;,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;    &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">j</span><span class="p">))</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">neighbours</span><span class="p">)</span>
+        <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">};</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">/* ---- scoring parameters ---- */</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">scaled</span><span class="p">:</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;scaler_mean&quot;</span><span class="p">,</span> <span class="n">extracted</span><span class="p">[</span><span class="s2">&quot;scaler_mean&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;scaler_scale&quot;</span><span class="p">,</span> <span class="n">extracted</span><span class="p">[</span><span class="s2">&quot;scaler_scale&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
+    <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;err_median&quot;</span><span class="p">,</span> <span class="n">extracted</span><span class="p">[</span><span class="s2">&quot;err_median&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
+    <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;err_iqr&quot;</span><span class="p">,</span> <span class="n">extracted</span><span class="p">[</span><span class="s2">&quot;err_iqr&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">scaled</span><span class="p">:</span>
+        <span class="n">scale_ctx</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(window[(t * </span><span class="si">{</span><span class="n">up</span><span class="si">}</span><span class="s2">_N_FEATURES) + f] - scaler_mean[f]) / scaler_scale[f]&quot;</span>
+        <span class="n">scale_tgt</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;(window[((</span><span class="si">{</span><span class="n">up</span><span class="si">}</span><span class="s2">_WINDOW_SIZE - 1) * </span><span class="si">{</span><span class="n">up</span><span class="si">}</span><span class="s2">_N_FEATURES) + f]&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot; - scaler_mean[f]) / scaler_scale[f]&quot;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">scale_ctx</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;window[(t * </span><span class="si">{</span><span class="n">up</span><span class="si">}</span><span class="s2">_N_FEATURES) + f]&quot;</span>
+        <span class="n">scale_tgt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;window[((</span><span class="si">{</span><span class="n">up</span><span class="si">}</span><span class="s2">_WINDOW_SIZE - 1) * </span><span class="si">{</span><span class="n">up</span><span class="si">}</span><span class="s2">_N_FEATURES) + f]&quot;</span>
+
+    <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">_SCORING</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span>
+            <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
+            <span class="n">up</span><span class="o">=</span><span class="n">up</span><span class="p">,</span>
+            <span class="n">real</span><span class="o">=</span><span class="n">real</span><span class="p">,</span>
+            <span class="n">expf</span><span class="o">=</span><span class="n">expf</span><span class="p">,</span>
+            <span class="n">fabsf</span><span class="o">=</span><span class="n">fabsf</span><span class="p">,</span>
+            <span class="n">scale_ctx</span><span class="o">=</span><span class="n">scale_ctx</span><span class="p">,</span>
+            <span class="n">scale_tgt</span><span class="o">=</span><span class="n">scale_tgt</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">header</span> <span class="o">=</span> <span class="n">_HEADER</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span>
+        <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
+        <span class="n">up</span><span class="o">=</span><span class="n">up</span><span class="p">,</span>
+        <span class="n">provenance</span><span class="o">=</span><span class="n">_PROVENANCE</span><span class="p">,</span>
+        <span class="n">version</span><span class="o">=</span><span class="n">__version__</span><span class="p">,</span>
+        <span class="n">guard</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">up</span><span class="si">}</span><span class="s2">_H&quot;</span><span class="p">,</span>
+        <span class="n">real</span><span class="o">=</span><span class="n">real</span><span class="p">,</span>
+        <span class="n">window_size</span><span class="o">=</span><span class="n">window</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">n_features</span><span class="o">=</span><span class="n">n_nodes</span><span class="p">,</span>
+        <span class="n">threshold</span><span class="o">=</span><span class="n">_fmt</span><span class="p">(</span><span class="n">extracted</span><span class="p">[</span><span class="s2">&quot;threshold&quot;</span><span class="p">],</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="p">{</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">.h&quot;</span><span class="p">:</span> <span class="n">header</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">.c&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)}</span>
+    <span class="k">if</span> <span class="n">test_windows</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">files</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">_vectors.h&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_emit_vectors</span><span class="p">(</span>
+            <span class="n">extracted</span><span class="p">,</span> <span class="n">test_windows</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">files</span></div>
+
+
+
+<div class="viewcode-block" id="write_c">
+<a class="viewcode-back" href="../../../../api/models/deep.html#telemetry_anomdet.models.deep.codegen.write_c">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_c</span><span class="p">(</span>
+    <span class="n">extracted</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">out_dir</span><span class="p">,</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;kangdn&quot;</span><span class="p">,</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span>
+    <span class="n">test_windows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate the C sources and write them into ``out_dir``.</span>
+
+<span class="sd">    Returns the list of written paths. See :func:`generate_c` for the parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+    <span class="n">out_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span>
+    <span class="n">out_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">written</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">generated</span> <span class="o">=</span> <span class="n">generate_c</span><span class="p">(</span><span class="n">extracted</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">test_windows</span><span class="o">=</span><span class="n">test_windows</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">filename</span><span class="p">,</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">generated</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="n">filename</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="n">written</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">written</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Julio Anzaldo.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
