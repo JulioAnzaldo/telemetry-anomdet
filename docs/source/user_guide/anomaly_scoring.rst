@@ -114,9 +114,10 @@ Two label-free selectors are provided in
 :mod:`telemetry_anomdet.thresholding`.
 
 ``threshold_for_budget``
-    Caps the fraction of points flagged. Exactly controllable, which suits a
-    deployed trigger: operations can state an alarm rate, but cannot state a
-    recall they have no way to observe.
+    Caps the fraction of points flagged, as an upper bound rather than a
+    target: fewer are flagged when the signal cannot resolve the fraction
+    asked for. That suits a deployed trigger, because operations can state an
+    alarm rate but cannot state a recall they have no way to observe.
 
 ``dynamic_threshold``
     Chooses a candidate maximising the reduction it produces in the mean and

@@ -38,3 +38,11 @@ Scoring
 
    thresholding
    evaluation
+
+Inspection
+----------
+
+.. toctree::
+   :maxdepth: 2
+
+   visualization

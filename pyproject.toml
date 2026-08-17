@@ -51,6 +51,11 @@ ccsds = [
 deep = [
   "torch>=2.0",
 ]
+# Plotting. Optional so the base install stays lean; matplotlib is imported
+# lazily inside each figure function.
+viz = [
+  "matplotlib>=3.7",
+]
 
 [dependency-groups]
 dev = [

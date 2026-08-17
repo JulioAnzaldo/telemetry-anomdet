@@ -1,0 +1,13 @@
+[
+  {
+    "name": "dev",
+    "version": "dev",
+    "url": "https://julioanzaldo.github.io/telemetry-anomdet/dev/"
+  },
+  {
+    "name": "0.2.0 (stable)",
+    "version": "0.2.0",
+    "url": "https://julioanzaldo.github.io/telemetry-anomdet/",
+    "preferred": true
+  }
+]
