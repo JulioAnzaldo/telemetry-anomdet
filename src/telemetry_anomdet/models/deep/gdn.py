@@ -275,21 +275,20 @@ class GDN(BaseDetector):
             out[t] = alpha * errors[t] + (1.0 - alpha) * out[t - 1]
         return out
 
-    # Lower bound on a channel's training error spread, as a fraction of that
-    # channel's own median error.
+    # Which channels are degenerate and what replaces their spread are separate
+    # questions, so they are separate constants. One value for both rewrites
+    # channels whose spread is small but entirely real.
     #
-    # A channel that never moved while training has an error IQR of zero, and
-    # dividing by it produces a number decided by the guard epsilon rather than
-    # by the data: 1e10 on SMAP, which then wins the per-window maximum and
-    # decides every score. Status and mode channels that sit constant for long
-    # stretches are the usual source.
-    #
-    # The ratio is set below the smallest spread any real channel shows, so the
-    # floor only ever reaches channels with no measurable spread and never
-    # reshapes one that has some. On SMAP the healthy channels run from 0.030 to
-    # 2.5 by this measure, so 0.02 catches the three degenerate channels and
-    # nothing else, and their deviations land at the same order as the most
-    # extreme healthy channel instead of a million times above it.
+    # Degenerate means no spread at all. A channel that never moved while
+    # training has an error IQR of exactly zero, and dividing by it returns a
+    # number set by the guard epsilon rather than by the data, which then wins
+    # the per-window maximum and decides every score. This threshold is large
+    # enough only to absorb floating point noise around zero.
+    _ZERO_SPREAD_RATIO = 1e-9
+
+    # What a degenerate channel's spread becomes, as a fraction of its own
+    # median error. Applied only to the channels caught above, so it is free to
+    # be large enough to bound the result.
     _SPREAD_FLOOR_RATIO = 0.02
 
     def _apply_spread_floor(self, iqr: np.ndarray) -> np.ndarray:
@@ -305,9 +304,12 @@ class GDN(BaseDetector):
         positive = scale[scale > 0]
         scale[scale <= 0] = np.median(positive) if positive.size else 1.0
 
-        floor = self._SPREAD_FLOOR_RATIO * scale
-        self._degenerate_ = np.flatnonzero(iqr < floor)
-        return np.maximum(iqr, floor)
+        # Catch only channels with no measurable spread, then replace the spread
+        # of those alone. Channels with any real spread are returned untouched.
+        self._degenerate_ = np.flatnonzero(iqr <= self._ZERO_SPREAD_RATIO * scale)
+        floored = np.asarray(iqr, dtype=float).copy()
+        floored[self._degenerate_] = self._SPREAD_FLOOR_RATIO * scale[self._degenerate_]
+        return floored
 
     def degenerate_channels_(self) -> np.ndarray:
         """
