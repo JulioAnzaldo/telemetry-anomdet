@@ -31,6 +31,10 @@ note), with ``random@all`` present as the floor every other row is read against:
     gdn@all              The Graph Deviation Network on the multivariate input.
                          GDN needs multiple channels to build its sensor graph, so
                          the telemetry-only column would defeat its purpose.
+    gdn@telemetry        GDN with no graph and no command context, the same
+                         control as kangdn@telemetry. Run both to separate what
+                         the KAN layers change from what the graph changes; with
+                         only kangdn@telemetry the two are confounded.
     kangdn@all           Same graph and scoring as gdn@all, with KAN layers in
                          place of the ReLU activation and MLP head. Run this to
                          size the KAN configuration: its spline coefficients
@@ -47,6 +51,24 @@ note), with ``random@all`` present as the floor every other row is read against:
                          relationships it exists to capture are what contextual
                          anomalies turn on, and those need a genuinely
                          multi-sensor system to show up.
+    kanfeat@*            kangdn with a KAN node feature transform instead of the
+                         single linear layer that otherwise carries raw telemetry
+                         into the network. Nonlinearity on each node's own
+                         history, with none of it discarded.
+    arkan@*              AR-KAN as published (Wu et al. 2025): a frozen
+                         Yule-Walker filter over the window, then a KAN.
+    arkanres@*           Linear(x) + KAN(a * x), so the unfiltered window always
+                         reaches the encoder.
+
+Those three vary only the node feature transform, so read them against kangdn@
+at matched dims.
+
+Do not read a general conclusion about the feature transforms out of this
+benchmark alone. A SMAP record is one real sensor plus 24 near-constant command
+flags, so even the @all rows give the graph almost nothing to relate, and the
+ranking here inverts on a dataset whose channels are genuinely related. The
+measurements across all three datasets, and what they imply for choosing a mode,
+are in docs/source/user_guide/feature_transforms.rst.
 
 Running one row at a time: set ``TAD_BENCH_CONFIGS`` to a comma-separated list of
 configuration names. A sizing sweep over the KAN layers therefore looks like::
@@ -70,11 +92,13 @@ Point it at a local copy of the SMAP dataset (telemanom format), same as
 examples/smap_demo.py:
     TAD_SMAP_DIR          -> directory containing train/ and test/ .npy files
     TAD_SMAP_LABELS       -> labeled_anomalies.csv (optional; searched from DATA_DIR)
-    TAD_SMAP_MAX_CHANNELS -> limit the run (default: all SMAP channels)
+    TAD_SMAP_MAX_CHANNELS -> limit the run (default: all channels)
+    TAD_SPACECRAFT        -> SMAP (default) or MSL; both ship in one release
     TAD_GDN_EPOCHS        -> GDN training epochs per channel (default: 30)
     TAD_GDN_DEVICE        -> torch device for GDN and KANGDN (default: auto)
     TAD_KANGDN_EMBED_DIM  -> KANGDN embedding width (default: 64)
     TAD_KANGDN_GRID_SIZE  -> KANGDN spline grid intervals (default: 5)
+    TAD_KANGDN_AR_ORDER   -> AR order for the arkan rows (default: full window)
     TAD_BENCH_CONFIGS     -> comma-separated configuration names (default: all)
     TAD_BENCH_SCORES_DIR  -> directory to cache per-channel point scores into
     TAD_BENCH_FROM_CACHE  -> set to 1 to re-score from the cache without training
@@ -83,6 +107,13 @@ examples/smap_demo.py:
     TAD_PROTOCOL          -> set to 0 to skip telemanom's sequence filters
     TAD_SCORE_CHANNELS    -> channels allowed to raise an alarm, e.g. 0 for telemetry
     TAD_BENCH_VERBOSE     -> set to 1 to print per-channel rows (default: summary only)
+    TAD_WANDB_PROJECT     -> log the run to this Weights & Biases project (off by default)
+    TAD_WANDB_ENTITY      -> W&B team or user (optional)
+    TAD_WANDB_NAME        -> run name (optional)
+    TAD_WANDB_TAGS        -> comma-separated run tags (optional)
+
+Tracking is opt-in and needs the track extra (``uv sync --extra track``). With
+TAD_WANDB_PROJECT unset the benchmark behaves and prints exactly as before.
 
 Training and measurement are separable. Point the run at a cache directory once,
 and every later metric change is a pass over saved arrays instead of a full
@@ -139,6 +170,10 @@ warnings.filterwarnings("ignore", category=ConvergenceWarning)
 DATA_DIR = Path(os.environ.get("TAD_SMAP_DIR", "")).expanduser()
 LABELS_ENV = os.environ.get("TAD_SMAP_LABELS", "")
 MAX_CHANNELS = int(os.environ.get("TAD_SMAP_MAX_CHANNELS", "0"))  # 0 = all
+# SMAP and MSL ship in one release and share a layout, a labels file and a
+# loader; only the spacecraft column separates them. MSL therefore needs no new
+# code, just a different filter.
+SPACECRAFT = os.environ.get("TAD_SPACECRAFT", "SMAP").upper()
 GDN_DEVICE = os.environ.get("TAD_GDN_DEVICE", "") or None
 VERBOSE = os.environ.get("TAD_BENCH_VERBOSE", "") == "1"
 
@@ -160,6 +195,12 @@ GDN_WINDOW = int(os.environ.get("TAD_GDN_WINDOW", str(WINDOW_SIZE)))
 KANGDN_EMBED_DIM = int(os.environ.get("TAD_KANGDN_EMBED_DIM", str(GDN_EMBED_DIM)))
 KANGDN_GRID_SIZE = int(os.environ.get("TAD_KANGDN_GRID_SIZE", "5"))
 KANGDN_SPLINE_ORDER = int(os.environ.get("TAD_KANGDN_SPLINE_ORDER", "3"))
+# AR order for the arkan rows. Empty means the full context length, one
+# coefficient per timestep. A shorter order is better conditioned (the top lags
+# of a full-length fit rest on very few sample pairs) and zeroes the oldest lags.
+KANGDN_AR_ORDER = (
+    int(os.environ["TAD_KANGDN_AR_ORDER"]) if os.environ.get("TAD_KANGDN_AR_ORDER") else None
+)
 
 # EWMA factor applied to the per-node forecast errors; empty disables smoothing.
 _SMOOTH_ENV = os.environ.get("TAD_SMOOTHING", "").strip()
@@ -264,13 +305,18 @@ def make_random():
     return RandomScorer(seed=SEED)
 
 
-def make_kangdn():
+def make_kangdn(feat_mode: str = "linear"):
     """
     KANGDN detector: GDN's graph and scoring with KAN layers as the nonlinearities.
 
     Shares GDN's training hyperparameters so the two rows differ only in
     architecture. ``embed_dim`` and ``grid_size`` are the two knobs that set the
     distilled artifact's size.
+
+    ``feat_mode`` selects the node feature transform. It is the only difference
+    between the kangdn, kanfeat, arkan and arkanres rows, so reading those at
+    matched dims isolates what the input path is worth, and separates the
+    nonlinearity from the AR filter rather than confounding the two.
     """
     from telemetry_anomdet.models.deep import KANGDN
 
@@ -285,7 +331,24 @@ def make_kangdn():
         spline_order=KANGDN_SPLINE_ORDER,
         smoothing=SMOOTHING,
         score_channels=SCORE_CHANNELS,
+        feat_mode=feat_mode,
+        ar_order=KANGDN_AR_ORDER,
     )
+
+
+def make_kanfeat():
+    """KAN feature transform, no AR filter: the nonlinearity on its own."""
+    return make_kangdn(feat_mode="kan")
+
+
+def make_arkan():
+    """AR-KAN as published: frozen Yule-Walker filter, then a KAN."""
+    return make_kangdn(feat_mode="ar_kan")
+
+
+def make_arkanres():
+    """AR-KAN as a residual on a linear branch, so the window is never lost."""
+    return make_kangdn(feat_mode="ar_kan_residual")
 
 
 # name -> (dims, detector factory, window_size). Kept as data so main() iterates.
@@ -302,13 +365,24 @@ CONFIGS: list[tuple[str, str, object, int]] = [
     ("classical@telemetry", "telemetry", make_classical, WINDOW_SIZE),
     ("classical@all", "all", make_classical, WINDOW_SIZE),
     ("gdn@all", "all", make_gdn, GDN_WINDOW),
+    ("gdn@telemetry", "telemetry", make_gdn, GDN_WINDOW),
     ("kangdn@all", "all", make_kangdn, GDN_WINDOW),
     ("kangdn@telemetry", "telemetry", make_kangdn, GDN_WINDOW),
+    ("kanfeat@all", "all", make_kanfeat, GDN_WINDOW),
+    ("kanfeat@telemetry", "telemetry", make_kanfeat, GDN_WINDOW),
+    ("arkan@all", "all", make_arkan, GDN_WINDOW),
+    ("arkan@telemetry", "telemetry", make_arkan, GDN_WINDOW),
+    ("arkanres@all", "all", make_arkanres, GDN_WINDOW),
+    ("arkanres@telemetry", "telemetry", make_arkanres, GDN_WINDOW),
 ]
 
 # Configurations that need torch, so a missing deep extra skips them by name
 # rather than by prefix matching.
-NEEDS_TORCH = frozenset({"gdn@all", "kangdn@all", "kangdn@telemetry"})
+NEEDS_TORCH = frozenset(
+    name
+    for name, *_ in CONFIGS
+    if name.split("@", 1)[0] in {"gdn", "kangdn", "kanfeat", "arkan", "arkanres"}
+)
 
 
 def select_configs() -> list[tuple[str, str, object, int]]:
@@ -367,18 +441,32 @@ def config_params(name: str, window_size: int) -> dict:
     Two runs sharing a configuration name but differing here (a sizing sweep
     varying embed_dim, say) are different experiments and must not share a cache
     entry.
+
+    ``spacecraft`` is part of the key even though a cache entry is stored per
+    channel. SMAP and MSL happen to use disjoint chan_ids in telemanom's
+    labeled_anomalies.csv, so without it their entries coexist in one directory
+    rather than overwriting: a run reads only its own channels and the scores
+    stay correct, but the directory holds both missions and any later dataset
+    that reused an id would silently serve the wrong mission's scores. Keying on
+    it makes the separation a property of the cache rather than a coincidence.
     """
     params = {
         "config": name,
+        "spacecraft": SPACECRAFT,
         "window_size": window_size,
         "step": STEP,
         "seed": SEED,
         "smoothing": SMOOTHING,
         "score_channels": SCORE_CHANNELS,
     }
-    if name == "gdn@all":
+    # Matched on the model prefix, not the full name: the @telemetry rows are
+    # swept over exactly the same hyperparameters as the @all rows, so keying
+    # only the latter let two sizing runs at different embed_dim collide on one
+    # cache entry and silently return the first run's scores.
+    model = name.split("@", 1)[0]
+    if model == "gdn":
         params.update(embed_dim=GDN_EMBED_DIM, topk=GDN_TOPK, lr=GDN_LR, epochs=GDN_EPOCHS)
-    elif name == "kangdn@all":
+    elif model in ("kangdn", "kanfeat", "arkan", "arkanres"):
         params.update(
             embed_dim=KANGDN_EMBED_DIM,
             grid_size=KANGDN_GRID_SIZE,
@@ -387,6 +475,8 @@ def config_params(name: str, window_size: int) -> dict:
             lr=GDN_LR,
             epochs=GDN_EPOCHS,
         )
+    if model in ("arkan", "arkanres"):
+        params.update(ar_order=KANGDN_AR_ORDER)
     return params
 
 
@@ -543,6 +633,146 @@ def run_config(name: str, dims: str, make_detector, window_size: int, labels) ->
     return overall
 
 
+# ---------------------------------------------------------------------------
+# Experiment tracking (optional)
+# ---------------------------------------------------------------------------
+#
+# Off unless TAD_WANDB_PROJECT is set, and wandb is an optional extra, so the
+# benchmark's behaviour and output are identical without it. Nothing in the
+# library imports wandb; only this script does.
+#
+# One run per invocation, with each configuration's metrics under its own
+# prefix. A sweep sets TAD_BENCH_CONFIGS to a single name, so a sweep trial is
+# one run with one prefix, and a manual comparison is one run with several.
+
+WANDB_PROJECT = os.environ.get("TAD_WANDB_PROJECT", "")
+
+
+def wandb_run_config(labels) -> dict:
+    """
+    Everything that could change a number, recorded with the run.
+
+    Every TAD_* variable is captured rather than a hand-picked few: a result
+    that cannot be traced back to the settings that produced it is not
+    reproducible, and the one setting nobody thought to record is the one that
+    explains the discrepancy.
+    """
+    config = {key: value for key, value in sorted(os.environ.items()) if key.startswith("TAD_")}
+    config.update(
+        {
+            "spacecraft": SPACECRAFT,
+            "n_channels": len(labels),
+            "channels": ",".join(labels["chan_id"]),
+            "threshold_method": THRESHOLD_METHOD,
+            "seed": SEED,
+            "step": STEP,
+            "gdn_epochs": GDN_EPOCHS,
+            "gdn_embed_dim": GDN_EMBED_DIM,
+            "gdn_topk": GDN_TOPK,
+            "kangdn_embed_dim": KANGDN_EMBED_DIM,
+            "kangdn_grid_size": KANGDN_GRID_SIZE,
+            "smoothing": SMOOTHING,
+            "score_channels": str(SCORE_CHANNELS),
+            "from_cache": FROM_CACHE,
+        }
+    )
+    return config
+
+
+def wandb_start(labels):
+    """Begin a run, or return None when tracking is off or wandb is absent."""
+    if not WANDB_PROJECT:
+        return None
+    try:
+        import wandb
+    except ImportError:
+        print("  (TAD_WANDB_PROJECT is set but wandb is not installed; skipping tracking)")
+        print(
+            '   install it with: uv sync --extra track  or  pip install "telemetry-anomdet[track]"'
+        )
+        return None
+
+    run = wandb.init(
+        project=WANDB_PROJECT,
+        entity=os.environ.get("TAD_WANDB_ENTITY") or None,
+        name=os.environ.get("TAD_WANDB_NAME") or None,
+        tags=[t for t in os.environ.get("TAD_WANDB_TAGS", "").split(",") if t],
+        config=wandb_run_config(labels),
+    )
+    # run.url is None when WANDB_MODE=offline, which is a normal way to record
+    # a run on a machine with no network and sync it later.
+    print(f"  tracking to wandb: {run.url or f'offline, sync later from {run.dir}'}")
+    return run
+
+
+def wandb_log_config(run, name: str, overall: dict) -> None:
+    """Log one configuration's aggregate metrics under its own prefix."""
+    if run is None:
+        return
+    events = overall["event"]
+    metrics = {
+        # Event level first: these are the deployable numbers and the ones a
+        # sweep should ever be pointed at.
+        f"{name}/event_f1": events["f1"],
+        f"{name}/event_f_half": events["f_half"],
+        f"{name}/event_precision": events["precision"],
+        f"{name}/event_recall": events["recall"],
+        f"{name}/event_tp": events["true_positives"],
+        f"{name}/event_fp": events["false_positives"],
+        f"{name}/event_fn": events["false_negatives"],
+        # Point level, kept for continuity and inflated by the adjustment.
+        f"{name}/point_adjusted_f1": overall["f1"],
+        f"{name}/per_channel_f1": overall["per_channel_f1"],
+        f"{name}/pr_auc": overall["pr_auc"],
+        f"{name}/false_alarm_rate": overall["false_alarm_rate"],
+        f"{name}/n_channels": overall["n_channels"],
+    }
+    for label, (hit, miss) in overall.get("by_class", {}).items():
+        total = hit + miss
+        if total:
+            metrics[f"{name}/recall_{label}"] = hit / total
+    run.log(metrics)
+
+
+def wandb_log_summary(run, results: dict) -> None:
+    """Log the side-by-side table, and the event F1 of each configuration."""
+    if run is None:
+        return
+    import wandb
+
+    table = wandb.Table(
+        columns=[
+            "configuration",
+            "event_f1",
+            "event_precision",
+            "event_recall",
+            "tp",
+            "fp",
+            "fn",
+            "point_adjusted_f1",
+            "pr_auc",
+            "false_alarm_rate",
+        ]
+    )
+    for name, r in results.items():
+        e = r["event"]
+        table.add_data(
+            name,
+            e["f1"],
+            e["precision"],
+            e["recall"],
+            e["true_positives"],
+            e["false_positives"],
+            e["false_negatives"],
+            r["f1"],
+            r["pr_auc"],
+            r["false_alarm_rate"],
+        )
+        # Summary values are what a sweep sorts on, so they are event level.
+        run.summary[f"{name}/event_f1"] = e["f1"]
+    run.log({"summary": table})
+
+
 def main() -> None:
     if FROM_CACHE and SCORES_DIR is None:
         raise SystemExit("TAD_BENCH_FROM_CACHE=1 requires TAD_BENCH_SCORES_DIR.")
@@ -559,14 +789,14 @@ def main() -> None:
             f"DATA_DIR: {DATA_DIR or '(unset)'}\nlabels: {labels_csv or '(not found)'}"
         )
 
-    labels = load_smap_labels(labels_csv, spacecraft="SMAP")
+    labels = load_smap_labels(labels_csv, spacecraft=SPACECRAFT)
     labels = labels.sort_values("anomaly_span", ascending=False).reset_index(drop=True)
     if MAX_CHANNELS > 0:
         labels = labels.head(MAX_CHANNELS)
 
     configs = select_configs()
 
-    print(f"Benchmarking {len(labels)} SMAP channels (step={STEP})")
+    print(f"Benchmarking {len(labels)} {SPACECRAFT} channels (step={STEP})")
     print("Metric: best-threshold point-adjusted F1 (standard SMAP protocol)")
     print(f"Configurations: {', '.join(name for name, *_ in configs)}")
     if SCORES_DIR is not None:
@@ -578,6 +808,8 @@ def main() -> None:
             "Install the deep extra to include them: uv sync --extra deep"
         )
 
+    run = wandb_start(labels)
+
     results: dict[str, dict] = {}
     for name, dims, make_detector, window_size in configs:
         if name in NEEDS_TORCH and not TORCH_AVAILABLE and not FROM_CACHE:
@@ -585,6 +817,7 @@ def main() -> None:
         outcome = run_config(name, dims, make_detector, window_size, labels)
         if outcome is not None:
             results[name] = outcome
+            wandb_log_config(run, name, outcome)
 
     # Final side-by-side comparison.
     print("\n" + "=" * 60)
@@ -622,6 +855,10 @@ def main() -> None:
         "\nrow scores highly. PR-AUC is threshold free and sits at the base rate for"
         "\nrandom scores. FA@R is the false alarm rate at the target recall."
     )
+
+    if run is not None:
+        wandb_log_summary(run, results)
+        run.finish()
 
 
 if __name__ == "__main__":
