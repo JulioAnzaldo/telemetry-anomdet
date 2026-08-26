@@ -25,7 +25,7 @@ Two things a reader should know before quoting results:
 
 ## API Reference
 
-- [Ingest](https://julioanzaldo.github.io/telemetry-anomdet/api/ingest.html): `TelemetryDataset`, `load_smap`, `load_smap_channel`, `load_smap_labels`, `anomaly_point_mask`, `load_from_csv`
+- [Ingest](https://julioanzaldo.github.io/telemetry-anomdet/api/ingest.html): `TelemetryDataset`, `load_smap`, `load_smap_channel`, `load_smap_labels`, `anomaly_point_mask`, `load_from_csv`, `load_esa`, `load_esa_labels`, `load_esa_channels`, `esa_splits`, `rescope_anomaly_types`, `MISSION1_LIGHTWEIGHT`, `MISSION1_SPAN`
 - [Preprocessing](https://julioanzaldo.github.io/telemetry-anomdet/api/preprocessing.html): `clean`, `dedupe`, `integrity_check`, `resample`, `interpolate_gaps`, `normalize_fit`, `pipeline`
 - [Feature Extraction](https://julioanzaldo.github.io/telemetry-anomdet/api/feature_extraction.html): windowing and statistical features
 - [Evaluation](https://julioanzaldo.github.io/telemetry-anomdet/api/evaluation.html): `point_adjust`, `point_adjusted_f1`, `best_point_adjusted_f1`, `evaluate_sequences`, `sequence_prf`, `pr_auc`, `false_alarm_rate_at_recall`
@@ -33,7 +33,7 @@ Two things a reader should know before quoting results:
 - [BaseDetector](https://julioanzaldo.github.io/telemetry-anomdet/api/models/base.html): the shared detector interface
 - [AnomalyEnsemble](https://julioanzaldo.github.io/telemetry-anomdet/api/models/ensemble.html): stacking combinator, `score_components()`
 - [Unsupervised detectors](https://julioanzaldo.github.io/telemetry-anomdet/api/models/unsupervised.html): `PCAAnomaly`, `KMeansAnomaly`
-- [Deep detectors](https://julioanzaldo.github.io/telemetry-anomdet/api/models/deep.html): `GDN`, `KANGDN`, `score_channels`, `channel_deviations`, `dominant_channels`, `learned_graph`, `degenerate_channels_`, distillation to NumPy, C code generation
+- [Deep detectors](https://julioanzaldo.github.io/telemetry-anomdet/api/models/deep.html): `GDN`, `KANGDN`, `score_channels`, `channel_deviations`, `dominant_channels`, `learned_graph`, `degenerate_channels_`, `feat_mode` (node feature transform: `linear`, `kan`, `ar_kan`, `ar_kan_residual`), distillation to NumPy, C code generation
 - [Visualization](https://julioanzaldo.github.io/telemetry-anomdet/api/visualization.html): `plot_sensor_graph`, behind the optional `viz` extra
 
 ## Source

@@ -28,6 +28,34 @@ Guidance for AI agents (and humans) working in this repo. Keep it short and curr
 - **`score_channels` separates context from alarms.** Every channel feeds the model; only
   the named ones contribute to the deviation score.
 
+## ESA-ADB
+Second dataset (Zenodo DOI 10.5281/zenodo.12528696), loaded by `ingest/esa.py`. It
+breaks assumptions inherited from SMAP, so read this before changing code that touches
+it. Protocol, measured figures and the two evaluation traps are in
+`docs/source/user_guide/anomaly_scoring.rst`; F0.5 is the headline metric, not F1.
+
+- **No preprocessing step.** A mission archive is one `channels/channel_N.zip` per
+  channel plus four metadata CSVs, read directly. The upstream preprocessing repo and
+  the Linux/cloud setup it asks for are not part of this path.
+- **Payloads are pickled pandas objects**, so loading executes the pickle stream. Safe
+  for the official archive, not for arbitrary paths. Keep that warning wherever the
+  loader is documented.
+- **Take splits from `esa_splits()`**, never hand-written dates, or results stop being
+  comparable with the published benchmark.
+- **Anomalies appear in all three splits, training included**, so the median and IQR
+  calibrating the deviation score are fitted on data containing faults. Do not write
+  code that assumes a clean training split.
+- **An event is an `ID`, not a contiguous run.** Group by `ID` before scoring: a row
+  count is a segment count, and scoring segments separately invents both false positives
+  and misses.
+- **Keep `step` small and avoid resampling.** Events are short enough that a coarse
+  stride steps over them entirely. That is a structural miss no hyperparameter recovers.
+- **Benchmark `prune` both ways.** `detect_anomalies(prune=True)` suits a few long
+  anomalies per channel and is wrong here; `examples/esa_benchmark.py` sweeps it via
+  `TAD_ESA_PRUNE`.
+- **`MISSION1_LIGHTWEIGHT` (channels 41 to 46) is the comparable subset.** The full
+  58-channel set defeats every algorithm ESA-ADB published.
+
 ## Evaluation
 - **Never quote point-adjusted F1 alone.** It credits a whole labelled segment to one
   flagged sample, so on SMAP a uniform random detector beats every trained configuration

@@ -178,3 +178,103 @@ reached a channel whose spread was real and changed its scores. Detection now
 triggers only at a spread of zero to within floating point noise, while the
 replacement value stays at 0.02, which it is free to do because it reaches
 nothing else.
+
+
+The shape of the ESA-ADB subset
+-------------------------------
+
+Three measurements on the Mission1 lightweight subset (channels 41 to 46) decide
+how the rest of this section has to be read. They are properties of the data, not
+of any detector, and they are what the SMAP defaults get wrong.
+
+The channels are genuinely related
+    Over the year 2000 the off-diagonal cross-channel correlations have a median
+    ``|r|`` of 0.86, and ``channel_44`` runs anti-correlated at -0.55 against the
+    other five. This is the first input in the project where a learned sensor
+    graph has something to relate: a SMAP record is one real sensor plus
+    near-constant command flags, so the graph detectors were previously only ever
+    measured on a lone self-loop or a relation over one-hots.
+
+The events are shorter than a plausible window
+    The median annotated segment lasts about 390 s, which is 13 samples at the
+    native 30 s cadence, and 62 percent of segments run shorter than 30 samples.
+    A window of 30 is already wider than the thing it is meant to catch, so the
+    stride matters more here than any hyperparameter carried over from SMAP.
+
+Downsampling erases them
+    Resampling is the obvious way to make 14 years of 30 s telemetry tractable,
+    and on this dataset it is barely affordable. The median event spans roughly
+    13 samples at the native cadence, 3 at a 2 minute rule, 1 at 5 minutes, and
+    0.4 at 15 minutes, which is to say it no longer exists. Prefer a slice of the
+    split at native cadence over the whole split resampled.
+
+One annotation detail matters when reading any of these figures: ``Anomaly`` and
+``Rare Event`` are scored together by the benchmark but mean different things. An
+Anomaly is a fault; a Rare Event is expected behaviour that merely resembles one,
+such as a commanded manoeuvre, a reset, or a calibration.
+:func:`~telemetry_anomdet.ingest.esa.load_esa_labels` keeps the ``Category``
+column so either convention can be applied deliberately rather than by accident.
+
+
+Scoring ESA-ADB
+---------------
+
+The ESA Anomaly Benchmark fixes a protocol of its own, and three of its choices
+differ from the SMAP conventions above in ways that change the code, not just
+the numbers. ``examples/esa_benchmark.py`` follows it rather than reusing the
+SMAP settings.
+
+An event is an identifier, not a contiguous run
+    One annotated event spans every channel it affects and may be split into
+    several disjoint regions on each, deliberately, so that a burst of related
+    disturbances counts once rather than five times. Detection is therefore
+    scored by grouping segments on their event ID: an event counts as detected
+    when any prediction overlaps any of its segments. Treating each region as
+    its own event inflates false positives and deflates recall at the same time.
+
+F0.5 leads, not F1
+    False alarms are the main obstacle to operational adoption, so the benchmark
+    weights precision. F1 is reported beside it, and the two can disagree about
+    which operating point is best.
+
+Threshold-agnostic metrics are excluded
+    Metrics must be computable from binary detections, so PR-AUC and similar
+    scores are outside the comparable set and are not reported.
+
+The benchmark also treats channel identification as a primary aspect, ranked
+above detection timing: an algorithm that cannot say which channels an alarm
+concerns is of limited use to an operator. ``channel_deviations`` answers that
+exactly rather than by perturbation, which is unusual enough that the published
+unsupervised baselines leave those cells blank.
+
+
+Compare detectors at a matched alarm budget
+-------------------------------------------
+
+On ESA-ADB every detector measured reached precision 1.000 with zero false
+alarms under ``dynamic_threshold``. That sounds like a good result and is
+actually a broken comparison: with precision saturated, the F0.5 ranking was
+decided entirely by how many alarms each model's threshold happened to admit.
+One configuration raised 39 alarms and detected 15 events; another raised 4 and
+detected 3. That ranks threshold conservatism, not detection quality.
+
+Holding the alarm budget fixed with ``threshold_for_budget`` puts every model at
+a comparable alarm rate, which is the only condition under which a recall
+difference means something about the detector. It is also the operationally
+honest control, for the reason given above: an alarm rate can be stated in
+advance, a recall cannot.
+
+Pruning deserves the same scrutiny, and on this dataset it was the binding
+constraint rather than the threshold. Raising the budget admitted hundreds of
+candidate sequences and pruning then discarded all but the largest, so budgets
+spanning an order of magnitude produced an identical single detection. Switching
+it off moved one configuration's F0.5 from 0.294 to 0.690 on the same scores.
+
+That is consistent with the SMAP finding above, and the reason is the same in
+both cases and worth stating plainly: telemanom's ``min_decrease`` rule assumes a
+channel has a few long anomalies. ESA-ADB's Mission1 subset has 65 events across
+seven years with a median annotated segment of 13 samples, and 62 percent of
+segments shorter than 30. The rule discards exactly what such a dataset is made
+of. The same reasoning applies to the window stride: a step of 10 samples steps
+over a 13-sample event, and no hyperparameter recovers a detection the windowing
+never had a chance to see.
