@@ -7,15 +7,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta property="og:title" content="Glossary" />
+<meta property="og:title" content="Choosing a Feature Transform" />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://julioanzaldo.github.io/telemetry-anomdet/dev/user_guide/glossary.html" />
+<meta property="og:url" content="https://julioanzaldo.github.io/telemetry-anomdet/dev/user_guide/feature_transforms.html" />
 <meta property="og:site_name" content="telemetry-anomdet" />
-<meta property="og:description" content="Long form, Each row represents a single observation:(timestamp, variable, value). Used throughout ingest and preprocessing because it generalizes across any number of sensors without schema changes..." />
-<meta name="description" content="Long form, Each row represents a single observation:(timestamp, variable, value). Used throughout ingest and preprocessing because it generalizes across any number of sensors without schema changes..." />
+<meta property="og:description" content="KANGDN builds its forecast from two things: each channel’s own recent history, and its neighbours in the learned graph. feat_mode selects how the first of those enters the network, and on a single ..." />
+<meta name="description" content="KANGDN builds its forecast from two things: each channel’s own recent history, and its neighbours in the learned graph. feat_mode selects how the first of those enters the network, and on a single ..." />
 <meta name="twitter:card" content="summary" />
 
-    <title>Glossary &#8212; telemetry_anomdet</title>
+    <title>Choosing a Feature Transform &#8212; telemetry_anomdet</title>
   
   
   
@@ -49,7 +49,7 @@
     <script src="../_static/documentation_options.js?v=938c9ccc"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/glossary';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/feature_transforms';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://julioanzaldo.github.io/telemetry-anomdet/switcher.json';
@@ -59,11 +59,11 @@
         </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="../_static/llm_copy.js?v=f4a7753a"></script>
-    <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/dev/user_guide/glossary.html" />
+    <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/dev/user_guide/feature_transforms.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Tutorials" href="../tutorials/index.html" />
-    <link rel="prev" title="Real-Time Integration" href="real_time_integration.html" />
+    <link rel="next" title="Real-Time Integration" href="real_time_integration.html" />
+    <link rel="prev" title="Scoring and Thresholding" href="anomaly_scoring.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -413,9 +413,9 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="pipeline_overview.html">Pipeline Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="anomaly_scoring.html">Scoring and Thresholding</a></li>
-<li class="toctree-l1"><a class="reference internal" href="feature_transforms.html">Choosing a Feature Transform</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Choosing a Feature Transform</a></li>
 <li class="toctree-l1"><a class="reference internal" href="real_time_integration.html">Real-Time Integration</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary</a></li>
 </ul>
 </div>
 </nav></div>
@@ -459,7 +459,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">User Guide</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Glossary</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Choosing a Feature Transform</span></li>
   </ul>
 </nav>
 </div>
@@ -476,80 +476,171 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="glossary">
-<h1>Glossary<a class="headerlink" href="#glossary" title="Link to this heading">#</a></h1>
-<dl class="simple glossary">
-<dt id="term-Long-form">Long form<a class="headerlink" href="#term-Long-form" title="Link to this term">#</a></dt><dd><p>Each row represents a single observation: <code class="docutils literal notranslate"><span class="pre">(timestamp,</span> <span class="pre">variable,</span> <span class="pre">value)</span></code>.
-Used throughout ingest and preprocessing because it generalizes across
-any number of sensors without schema changes.</p>
+  <section id="choosing-a-feature-transform">
+<h1>Choosing a Feature Transform<a class="headerlink" href="#choosing-a-feature-transform" title="Link to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">KANGDN</span></code> builds its forecast from two things: each channel’s own recent
+history, and its neighbours in the learned graph. <code class="docutils literal notranslate"><span class="pre">feat_mode</span></code> selects how the
+first of those enters the network, and on a single channel it is the only path
+that does anything at all, because a graph with one node is a self-loop.</p>
+<p>The figures here are a snapshot of three benchmarks rather than a property of
+the toolkit. They are kept in the documentation, not in module docstrings, so
+they can be revised as the detectors change.</p>
+<section id="the-modes">
+<h2>The modes<a class="headerlink" href="#the-modes" title="Link to this heading">#</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">linear</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">nn.Linear(window,</span> <span class="pre">embed_dim)</span></code>. The default, and what both <code class="docutils literal notranslate"><span class="pre">GDN</span></code> and
+<code class="docutils literal notranslate"><span class="pre">KANGDN</span></code> have always used. Raw telemetry enters through a single linear
+map, so the KAN layers only ever see an already-compressed embedding.</p>
 </dd>
-<dt id="term-Wide-form">Wide form<a class="headerlink" href="#term-Wide-form" title="Link to this term">#</a></dt><dd><p>Each row represents one timestamp; each column is a sensor channel.
-Produced by <code class="docutils literal notranslate"><span class="pre">pivot_wide()</span></code> as the first step of feature extraction.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">kan</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">KAN(x)</span></code>. A nonlinearity over each channel’s own window, with none of the
+window discarded.</p>
 </dd>
-<dt id="term-Window">Window<a class="headerlink" href="#term-Window" title="Link to this term">#</a></dt><dd><p>A fixed-size block of sequential telemetry samples, typically 50–100 readings.
-<code class="docutils literal notranslate"><span class="pre">windowify()</span></code> slides a window over wide-form data to produce a 3D tensor
-of shape <code class="docutils literal notranslate"><span class="pre">(n_windows,</span> <span class="pre">window_size,</span> <span class="pre">n_features)</span></code>. Each window is one
-observation for the anomaly detectors.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">ar_kan</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">KAN(a</span> <span class="pre">*</span> <span class="pre">x)</span></code>. AR-KAN as published by Wu et al. (2025), arXiv:2509.02967:
+an autoregressive model is fitted in closed form by Yule-Walker, its
+coefficients are frozen, and they scale the window element-wise before a KAN
+sees it. The AR stage adds no trainable parameters and no backward pass.</p>
 </dd>
-<dt id="term-Anomaly-score">Anomaly score<a class="headerlink" href="#term-Anomaly-score" title="Link to this term">#</a></dt><dd><p>A scalar measuring how unlike nominal behavior a telemetry window is.
-Higher scores indicate greater anomaly likelihood. All detectors in
-telemetry-anomdet return scores where higher = more anomalous, matching
-the PyOD convention.</p>
-</dd>
-<dt id="term-BaseDetector">BaseDetector<a class="headerlink" href="#term-BaseDetector" title="Link to this term">#</a></dt><dd><p>The abstract base class all detectors inherit from. Enforces the
-<code class="docutils literal notranslate"><span class="pre">fit</span></code> / <code class="docutils literal notranslate"><span class="pre">decision_function</span></code> / <code class="docutils literal notranslate"><span class="pre">predict</span></code> / <code class="docutils literal notranslate"><span class="pre">is_anomaly</span></code> interface
-and guarantees <code class="docutils literal notranslate"><span class="pre">decision_scores_</span></code>, <code class="docutils literal notranslate"><span class="pre">threshold_</span></code>, and <code class="docutils literal notranslate"><span class="pre">labels_</span></code>
-are set after fitting. Modeled on PyOD’s <code class="docutils literal notranslate"><span class="pre">BaseDetector</span></code>.</p>
-</dd>
-<dt id="term-decision_function">decision_function<a class="headerlink" href="#term-decision_function" title="Link to this term">#</a></dt><dd><p>Returns raw anomaly scores, shape <code class="docutils literal notranslate"><span class="pre">(n_windows,)</span></code>. Higher = more anomalous.
-Never returns binary labels - that is <code class="docutils literal notranslate"><span class="pre">predict()</span></code>. The two are never swapped.</p>
-</dd>
-<dt id="term-score_components">score_components<a class="headerlink" href="#term-score_components" title="Link to this term">#</a></dt><dd><p>Returns a <code class="docutils literal notranslate"><span class="pre">dict</span></code> of per-model raw scores before combination:
-<code class="docutils literal notranslate"><span class="pre">{model_name:</span> <span class="pre">np.ndarray}</span></code>. This is the input to <code class="docutils literal notranslate"><span class="pre">SHAPExplainer</span></code> -
-SHAP perturbs input windows and measures how each channel affects each
-model’s score independently.</p>
-</dd>
-<dt id="term-SHAP">SHAP<a class="headerlink" href="#term-SHAP" title="Link to this term">#</a></dt><dd><p>SHapley Additive exPlanations. A game-theoretic method for attributing
-a model’s output to its input features. In telemetry-anomdet, SHAP
-operates over <code class="docutils literal notranslate"><span class="pre">score_components()</span></code> to produce per-channel attribution
-values: how much did each sensor channel contribute to the ensemble
-anomaly score for a given window.</p>
-</dd>
-<dt id="term-GDN">GDN<a class="headerlink" href="#term-GDN" title="Link to this term">#</a></dt><dd><p>Graph Deviation Network (Deng &amp; Hooi, AAAI 2021). Models each sensor
-as a node in a learned graph. During training it learns the nominal
-relationships between sensors. At inference time, anomaly scores are
-deviations from those expected relational behaviors - detecting faults
-that are invisible to univariate detectors because each sensor
-individually looks normal.</p>
-</dd>
-<dt id="term-TranAD">TranAD<a class="headerlink" href="#term-TranAD" title="Link to this term">#</a></dt><dd><p>Transformer-based anomaly detection (Tuli et al., VLDB 2022). Consumes
-the raw 3D windowed tensor directly. Uses a two-phase attention mechanism
-to reconstruct telemetry windows; anomaly scores are reconstruction errors.</p>
-</dd>
-<dt id="term-Robust-normalization">Robust normalization<a class="headerlink" href="#term-Robust-normalization" title="Link to this term">#</a></dt><dd><p>Per-model score scaling using median and IQR (interquartile range) rather
-than min/max. Preferred in anomaly detection because anomalies are extreme
-values by definition - they would skew a minmax scale and compress the
-normal operating range. Robust normalization centers the middle 50% of
-training scores on <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code> and clips everything else.</p>
-</dd>
-<dt id="term-Feature">Feature<a class="headerlink" href="#term-Feature" title="Link to this term">#</a></dt><dd><p>A numerical summary computed from a telemetry window. <code class="docutils literal notranslate"><span class="pre">features_stat()</span></code>
-produces six statistics per channel per window: mean, std, min, max,
-median, slope. Yielding a 2D feature matrix of shape
-<code class="docutils literal notranslate"><span class="pre">(n_windows,</span> <span class="pre">n_features</span> <span class="pre">*</span> <span class="pre">6)</span></code> used by classical detectors.</p>
-</dd>
-<dt id="term-CCSDS">CCSDS<a class="headerlink" href="#term-CCSDS" title="Link to this term">#</a></dt><dd><p>Consultative Committee for Space Data Systems. A standardized packet
-protocol used by many spacecraft missions for telemetry and telecommand
-downlink.</p>
-</dd>
-<dt id="term-Inter-pass-window">Inter-pass window<a class="headerlink" href="#term-Inter-pass-window" title="Link to this term">#</a></dt><dd><p>The gap between two ground station contact passes, typically a few hours
-for LEO spacecraft.</p>
-</dd>
-<dt id="term-DiagnosticReport">DiagnosticReport<a class="headerlink" href="#term-DiagnosticReport" title="Link to this term">#</a></dt><dd><p>The structured output of the LLM reasoning layer. Fields:
-<code class="docutils literal notranslate"><span class="pre">anomaly_type</span></code>, <code class="docutils literal notranslate"><span class="pre">severity</span></code>, <code class="docutils literal notranslate"><span class="pre">primary_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">explanation</span></code>,
-<code class="docutils literal notranslate"><span class="pre">recommended_action</span></code>, <code class="docutils literal notranslate"><span class="pre">confidence</span></code>. Generated by Llama 3.1 8B (or similar)
-from SHAP attributions and anomaly context.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">ar_kan_residual</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">Linear(x)</span> <span class="pre">+</span> <span class="pre">KAN(a</span> <span class="pre">*</span> <span class="pre">x)</span></code>. The AR-KAN branch corrects a linear baseline
+instead of replacing it, so the unfiltered window always reaches the encoder.</p>
 </dd>
 </dl>
+</section>
+<section id="which-one-wins-depends-on-the-input-and-it-reverses">
+<h2>Which one wins depends on the input, and it reverses<a class="headerlink" href="#which-one-wins-depends-on-the-input-and-it-reverses" title="Link to this heading">#</a></h2>
+<p>Event-level score at each model’s best label-free operating point. SMAP columns
+are event F1 on 55 channels; the ESA column is event-wise F0.5 on Mission1
+channels 41 to 46, which is that benchmark’s own headline metric.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 34.0%" />
+<col style="width: 22.0%" />
+<col style="width: 22.0%" />
+<col style="width: 22.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">feat_mode</span></code></p></th>
+<th class="head"><p>SMAP, 1 channel</p></th>
+<th class="head"><p>SMAP, 25 channels</p></th>
+<th class="head"><p>ESA-ADB, 6 channels</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">linear</span></code></p></td>
+<td><p>0.683</p></td>
+<td><p>0.541</p></td>
+<td><p>0.674</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">kan</span></code></p></td>
+<td><p>0.720</p></td>
+<td><p>0.504</p></td>
+<td><p>0.657</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ar_kan</span></code></p></td>
+<td><p>0.583</p></td>
+<td><p>0.446</p></td>
+<td><p><strong>0.745</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ar_kan_residual</span></code></p></td>
+<td><p><strong>0.724</strong></p></td>
+<td><p><strong>0.597</strong></p></td>
+<td><p>0.705</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The published AR-KAN formulation is worst on SMAP and best on ESA-ADB. That is
+not noise, and the mechanism is measurable.</p>
+<p>Spacecraft telemetry is strongly persistent, so Yule-Walker concentrates almost
+all of its weight on the most recent lag. Measured on real SMAP channels, the
+lag-1 coefficient carries 93 to 100 percent of the filter’s energy, which means
+nearly every one of the <code class="docutils literal notranslate"><span class="pre">window</span></code> inputs to the KAN is multiplied by
+approximately zero. The transform sees the previous sample rather than the
+window.</p>
+<p>Whether that is fatal depends entirely on whether anything else can supply the
+missing history:</p>
+<ul class="simple">
+<li><p>A SMAP record is one real sensor plus 24 near-constant command flags. The
+graph has nothing informative to relate, so a node stripped of its own past
+cannot recover it from anywhere, and <code class="docutils literal notranslate"><span class="pre">ar_kan</span></code> comes last.</p></li>
+<li><p>ESA-ADB’s channels 41 to 46 are six sensors from one subsystem with a median
+cross-channel correlation of 0.86. Neighbours supply exactly the context the
+filter discards, and the aggressive focus on the newest sample becomes an
+advantage.</p></li>
+</ul>
+<p>The same reversal shows in the class breakdown on SMAP: <code class="docutils literal notranslate"><span class="pre">ar_kan</span></code> detects 6 of
+26 contextual anomalies against 10 for <code class="docutils literal notranslate"><span class="pre">linear</span></code>, and contextual anomalies are
+precisely the ones that require history rather than magnitude.</p>
+</section>
+<section id="recommendation">
+<h2>Recommendation<a class="headerlink" href="#recommendation" title="Link to this heading">#</a></h2>
+<p><strong>Prefer</strong> <code class="docutils literal notranslate"><span class="pre">ar_kan_residual</span></code> <strong>when the input’s structure is unknown.</strong> Its
+linear branch carries the whole window regardless of what the filter does, so
+the AR-KAN branch can only add. It wins both SMAP configurations and comes third
+on ESA-ADB, and it is the only mode that is never worse than second.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">ar_kan</span></code> when the channels are known to be genuinely related, which is the
+case it is best in and the case onboard deployment targets.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">linear</span></code> when the model has to reach hardware today: it is the only mode
+<a class="reference internal" href="../api/models/deep.html#telemetry_anomdet.models.deep.codegen.generate_c" title="telemetry_anomdet.models.deep.codegen.generate_c"><code class="xref py py-func docutils literal notranslate"><span class="pre">generate_c()</span></code></a> can emit. Distillation
+to NumPy supports every mode.</p>
+</section>
+<section id="cost">
+<h2>Cost<a class="headerlink" href="#cost" title="Link to this heading">#</a></h2>
+<p>Any KAN mode multiplies the feature transform’s coefficient count by roughly
+<code class="docutils literal notranslate"><span class="pre">grid_size</span> <span class="pre">+</span> <span class="pre">spline_order</span></code>, and at small <code class="docutils literal notranslate"><span class="pre">embed_dim</span></code> that transform dominates
+the distilled flash footprint. Measured on a single-channel model at
+<code class="docutils literal notranslate"><span class="pre">embed_dim=8</span></code>, <code class="docutils literal notranslate"><span class="pre">window=50</span></code>, <code class="docutils literal notranslate"><span class="pre">grid_size=5</span></code>:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 30.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">feat_mode</span></code></p></th>
+<th class="head"><p>Parameters</p></th>
+<th class="head"><p>Flash, float32</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">linear</span></code></p></td>
+<td><p>1,096</p></td>
+<td><p>4.3 KB</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">kan</span></code></p></td>
+<td><p>4,288</p></td>
+<td><p>16.8 KB</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ar_kan</span></code></p></td>
+<td><p>4,288 + 50 frozen</p></td>
+<td><p>16.9 KB</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ar_kan_residual</span></code></p></td>
+<td><p>4,696 + 50 frozen</p></td>
+<td><p>18.5 KB</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The AR filter itself is nearly free: <code class="docutils literal notranslate"><span class="pre">n_nodes</span> <span class="pre">*</span> <span class="pre">window</span></code> frozen floats, 200
+bytes for a single channel, with no gradient and no training cost. The expense
+is the KAN that follows it.</p>
+<p>Window length matters as much as width here, because the transform’s input is
+the window. The same <code class="docutils literal notranslate"><span class="pre">ar_kan_residual</span></code> model falls from 18.5 KB to 4.5 KB at
+<code class="docutils literal notranslate"><span class="pre">embed_dim=4</span></code>, <code class="docutils literal notranslate"><span class="pre">window=30</span></code>, <code class="docutils literal notranslate"><span class="pre">grid_size=3</span></code>, which was its best measured
+configuration on SMAP rather than a deliberate shrink.</p>
+</section>
+<section id="a-mode-that-was-removed">
+<h2>A mode that was removed<a class="headerlink" href="#a-mode-that-was-removed" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Linear(x)</span> <span class="pre">+</span> <span class="pre">KAN(x)</span></code>, briefly offered as <code class="docutils literal notranslate"><span class="pre">kan_residual</span></code>, is gone. It was
+measured in six regimes across three datasets and was never best in any of them.
+On ESA-ADB it merely tied the plain <code class="docutils literal notranslate"><span class="pre">linear</span></code> transform it exists to improve on,
+while identifying affected channels worse.</p>
+<p>It is recorded here because the obvious question about the table above is
+whether the AR filter contributes anything at all, or whether the residual
+structure is doing all the work. <code class="docutils literal notranslate"><span class="pre">kan_residual</span></code> is the control that answers it:
+at matched settings <code class="docutils literal notranslate"><span class="pre">ar_kan_residual</span></code> beat it in all four SMAP and MSL
+comparisons. The filter earns its place.</p>
+</section>
 </section>
 
 
@@ -563,20 +654,20 @@ from SHAP attributions and anomaly context.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="real_time_integration.html"
+       href="anomaly_scoring.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Real-Time Integration</p>
+        <p class="prev-next-title">Scoring and Thresholding</p>
       </div>
     </a>
     <a class="right-next"
-       href="../tutorials/index.html"
+       href="real_time_integration.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Tutorials</p>
+        <p class="prev-next-title">Real-Time Integration</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -592,10 +683,26 @@ from SHAP attributions and anomaly context.</p>
 
 
   <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-modes">The modes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#which-one-wins-depends-on-the-input-and-it-reverses">Which one wins depends on the input, and it reverses</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#recommendation">Recommendation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cost">Cost</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-mode-that-was-removed">A mode that was removed</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/edit/main/docs/source/user_guide/glossary.rst">
+    <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/edit/main/docs/source/user_guide/feature_transforms.rst">
       <i class="fa-solid fa-pencil"></i>
       
       
@@ -610,7 +717,7 @@ from SHAP attributions and anomaly context.</p>
   <div class="sidebar-secondary-item">
 
   <div class="tocsection sourcelink">
-    <a href="../_sources/user_guide/glossary.rst.txt">
+    <a href="../_sources/user_guide/feature_transforms.rst.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
   </div>

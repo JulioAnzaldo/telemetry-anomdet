@@ -413,6 +413,7 @@
   <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="pipeline_overview.html">Pipeline Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="anomaly_scoring.html">Scoring and Thresholding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feature_transforms.html">Choosing a Feature Transform</a></li>
 <li class="toctree-l1"><a class="reference internal" href="real_time_integration.html">Real-Time Integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary</a></li>
 </ul>
@@ -479,7 +480,9 @@ not obvious from the API alone.</p>
 <p>Start with the pipeline overview for the shape of the whole thing. Read
 <a class="reference internal" href="anomaly_scoring.html"><span class="doc">Scoring and Thresholding</span></a> before quoting any benchmark number: it explains why the
 usual SMAP metric rates uniform random noise above every trained detector, and
-which figures to trust instead.</p>
+which figures to trust instead. <a class="reference internal" href="feature_transforms.html"><span class="doc">Choosing a Feature Transform</span></a> covers choosing
+between the deep detectors, where the best option reverses depending on whether
+the input’s channels are genuinely related.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="pipeline_overview.html">Pipeline Overview</a></li>
@@ -489,6 +492,15 @@ which figures to trust instead.</p>
 <li class="toctree-l2"><a class="reference internal" href="anomaly_scoring.html#choosing-what-may-raise-an-alarm">Choosing what may raise an alarm</a></li>
 <li class="toctree-l2"><a class="reference internal" href="anomaly_scoring.html#a-note-on-the-univariate-result">A note on the univariate result</a></li>
 <li class="toctree-l2"><a class="reference internal" href="anomaly_scoring.html#selecting-an-operating-point">Selecting an operating point</a></li>
+<li class="toctree-l2"><a class="reference internal" href="anomaly_scoring.html#channels-with-no-error-spread">Channels with no error spread</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="feature_transforms.html">Choosing a Feature Transform</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="feature_transforms.html#the-modes">The modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature_transforms.html#which-one-wins-depends-on-the-input-and-it-reverses">Which one wins depends on the input, and it reverses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature_transforms.html#recommendation">Recommendation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature_transforms.html#cost">Cost</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature_transforms.html#a-mode-that-was-removed">A mode that was removed</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="real_time_integration.html">Real-Time Integration</a></li>

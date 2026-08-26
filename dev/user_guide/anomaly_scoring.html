@@ -62,7 +62,7 @@
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/dev/user_guide/anomaly_scoring.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Real-Time Integration" href="real_time_integration.html" />
+    <link rel="next" title="Choosing a Feature Transform" href="feature_transforms.html" />
     <link rel="prev" title="Pipeline Overview" href="pipeline_overview.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -413,6 +413,7 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="pipeline_overview.html">Pipeline Overview</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Scoring and Thresholding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feature_transforms.html">Choosing a Feature Transform</a></li>
 <li class="toctree-l1"><a class="reference internal" href="real_time_integration.html">Real-Time Integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary</a></li>
 </ul>
@@ -611,6 +612,34 @@ threshold is chosen.</p>
 points are scattered singletons that never form a run of two, so
 <code class="docutils literal notranslate"><span class="pre">filter_sequences</span></code> with its default minimum length discards all of them.</p>
 </section>
+<section id="channels-with-no-error-spread">
+<h2>Channels with no error spread<a class="headerlink" href="#channels-with-no-error-spread" title="Link to this heading">#</a></h2>
+<p>A deviation score divides each channel’s forecast error by that channel’s own
+training median and IQR, which is what makes the channels comparable. A channel
+that never moved during training breaks it: its error IQR is exactly zero, so
+the division returns a number set by the guard epsilon rather than by the data.
+On SMAP three of 25 channels are in this state, all of them command flags that
+sit constant for long stretches, and their deviations reached 1.7e10. Since a
+window’s score is the maximum across channels, those three decided every score
+in the run, which is the mechanism behind the 0.126 event-level F1 measured when
+every channel was allowed to raise an alarm.</p>
+<p><code class="docutils literal notranslate"><span class="pre">GDN</span></code> therefore replaces the spread of such channels with a fraction of their
+own median error, bringing the maximum deviation to 1.29e4, within 1.5 times the
+most extreme healthy channel, and leaving 19 of 25 channels driving scores
+instead of a handful. <code class="docutils literal notranslate"><span class="pre">degenerate_channels_</span></code> reports which channels were
+affected, <code class="docutils literal notranslate"><span class="pre">fit</span></code> warns and names them when they can actually raise an alarm,
+and both graph figures mark them.</p>
+<p>Detecting these channels and repairing them are separate decisions, and
+conflating them is a mistake worth recording. An earlier version used a single
+ratio of 0.02 for both, on the reasoning that no real channel shows spread that
+small relative to its own median error. That holds across the 25-channel input
+and fails on the single-channel one, where the telemetry channel has an IQR of
+3.6e-4 against a median error of 1.8e-2: a ratio of exactly 0.02, so the repair
+reached a channel whose spread was real and changed its scores. Detection now
+triggers only at a spread of zero to within floating point noise, while the
+replacement value stays at 0.02, which it is free to do because it reaches
+nothing else.</p>
+</section>
 </section>
 
 
@@ -633,11 +662,11 @@ points are scattered singletons that never form a run of two, so
       </div>
     </a>
     <a class="right-next"
-       href="real_time_integration.html"
+       href="feature_transforms.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Real-Time Integration</p>
+        <p class="prev-next-title">Choosing a Feature Transform</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -665,6 +694,7 @@ points are scattered singletons that never form a run of two, so
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choosing-what-may-raise-an-alarm">Choosing what may raise an alarm</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-note-on-the-univariate-result">A note on the univariate result</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#selecting-an-operating-point">Selecting an operating point</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#channels-with-no-error-spread">Channels with no error spread</a></li>
 </ul>
   </nav></div>
 

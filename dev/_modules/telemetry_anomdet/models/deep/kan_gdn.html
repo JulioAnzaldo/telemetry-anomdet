@@ -478,6 +478,21 @@
 <span class="sd">    scoring, thresholding) and only swaps the network architecture: the</span>
 <span class="sd">    ``GATEncoder`` gets a KAN activation and the forecast head is a KAN layer.</span>
 
+<span class="sd">    ``feat_mode`` additionally swaps the input path, which is the only path that</span>
+<span class="sd">    does anything on single-channel telemetry: with one node the graph is a lone</span>
+<span class="sd">    self-loop, so the default linear transform leaves the model with no</span>
+<span class="sd">    nonlinear view of its own history at all.</span>
+
+<span class="sd">    Which mode performs best depends on whether the input&#39;s channels are</span>
+<span class="sd">    genuinely related, and it reverses between datasets, so it is a measurement</span>
+<span class="sd">    rather than a default. See :doc:`/user_guide/feature_transforms` for the</span>
+<span class="sd">    comparison, the flash cost of each, and the recommendation.</span>
+
+<span class="sd">    Any KAN mode multiplies the feature transform&#39;s coefficients by roughly</span>
+<span class="sd">    ``grid_size + spline_order``, which dominates the distilled flash footprint</span>
+<span class="sd">    at small ``embed_dim``. Distillation supports every mode; C generation</span>
+<span class="sd">    supports only ``linear``.</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    embed_dim, topk, epochs, batch_size, lr, scale, device, random_state, percentile</span>
@@ -487,10 +502,26 @@
 <span class="sd">        flexible edge functions (and more coefficients to distil).</span>
 <span class="sd">    spline_order : int, default=3</span>
 <span class="sd">        B-spline order for the KAN layers (3 = cubic).</span>
+<span class="sd">    feat_mode : str, default=&quot;linear&quot;</span>
+<span class="sd">        Node feature transform, one of :data:`~telemetry_anomdet.models.deep._ar.FEAT_MODES`.</span>
+<span class="sd">        ``linear`` is a single ``nn.Linear`` over the window, ``kan`` is</span>
+<span class="sd">        ``KAN(x)``, ``ar_kan`` is AR-KAN as published (Wu et al. 2025,</span>
+<span class="sd">        arXiv:2509.02967) at ``KAN(a * x)``, and ``ar_kan_residual`` is</span>
+<span class="sd">        ``Linear(x) + KAN(a * x)``. See above for what each costs and buys.</span>
+<span class="sd">    ar_order : int or None, default=None</span>
+<span class="sd">        AR order for the ``ar_kan`` modes. Defaults to the full context length,</span>
+<span class="sd">        one coefficient per timestep. A smaller order zeroes the oldest lags and</span>
+<span class="sd">        is better conditioned: a full-length fit estimates its top lags from very</span>
+<span class="sd">        few sample pairs.</span>
 
-<span class="sd">    Attributes (set after fit)</span>
-<span class="sd">    --------------------------</span>
-<span class="sd">    Same as GDN, plus ``net`` is a ``KANGDNNet``.</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    net : KANGDNNet</span>
+<span class="sd">        The fitted torch forecasting network. Other post-fit attributes are the</span>
+<span class="sd">        same as GDN&#39;s.</span>
+<span class="sd">    ar_filters_ : np.ndarray or None</span>
+<span class="sd">        Frozen per-channel Yule-Walker coefficients, shape</span>
+<span class="sd">        ``(n_nodes_, window_)``. None unless ``feat_mode`` includes an AR stage.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -508,6 +539,8 @@
         <span class="n">spline_order</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
         <span class="n">smoothing</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">score_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">feat_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;linear&quot;</span><span class="p">,</span>
+        <span class="n">ar_order</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">embed_dim</span><span class="o">=</span><span class="n">embed_dim</span><span class="p">,</span>
@@ -524,6 +557,19 @@
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">grid_size</span> <span class="o">=</span> <span class="n">grid_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">spline_order</span> <span class="o">=</span> <span class="n">spline_order</span>
+        <span class="k">if</span> <span class="n">ar_order</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ar_order</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ar_order must be &gt;= 1, got </span><span class="si">{</span><span class="n">ar_order</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># Validated here rather than only at fit time: a typo should fail when</span>
+        <span class="c1"># the detector is constructed, not after a training run.</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">._ar</span><span class="w"> </span><span class="kn">import</span> <span class="n">FEAT_MODES</span>
+
+        <span class="k">if</span> <span class="n">feat_mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">FEAT_MODES</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;feat_mode must be one of </span><span class="si">{</span><span class="n">FEAT_MODES</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">feat_mode</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feat_mode</span> <span class="o">=</span> <span class="n">feat_mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ar_order</span> <span class="o">=</span> <span class="n">ar_order</span>
+
+        <span class="c1"># Fit artifact: set in _init_net_from_data when feat_mode has an AR stage.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ar_filters_</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_build_net</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">._kan</span><span class="w"> </span><span class="kn">import</span> <span class="n">KANGDNNet</span>
@@ -535,12 +581,31 @@
             <span class="n">topk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">topk</span><span class="p">,</span>
             <span class="n">grid_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_size</span><span class="p">,</span>
             <span class="n">spline_order</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spline_order</span><span class="p">,</span>
+            <span class="n">feat_mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">feat_mode</span><span class="p">,</span>
         <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_net_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Solve the frozen AR memory filters and install them in the transform.</span>
+
+<span class="sd">        Runs before the optimiser exists, so the coefficients never receive a</span>
+<span class="sd">        gradient. They come from the scaled training context only, which keeps</span>
+<span class="sd">        them on the same leakage-free footing as the per-channel scaler.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_mode</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;ar_kan&quot;</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="kn">from</span><span class="w"> </span><span class="nn">._ar</span><span class="w"> </span><span class="kn">import</span> <span class="n">ar_filters</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ar_filters_</span> <span class="o">=</span> <span class="n">ar_filters</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ar_order</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">set_ar_filters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ar_filters_</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="n">params</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_get_params</span><span class="p">()</span>
         <span class="n">params</span><span class="p">[</span><span class="s2">&quot;grid_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid_size</span>
         <span class="n">params</span><span class="p">[</span><span class="s2">&quot;spline_order&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spline_order</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;feat_mode&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_mode</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;ar_order&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ar_order</span>
         <span class="k">return</span> <span class="n">params</span></div>
 
 </pre></div>

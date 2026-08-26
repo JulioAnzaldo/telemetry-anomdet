@@ -1224,6 +1224,18 @@
     <span class="n">window</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s2">&quot;window&quot;</span><span class="p">])</span>
     <span class="n">scaled</span> <span class="o">=</span> <span class="n">extracted</span><span class="p">[</span><span class="s2">&quot;scaler_mean&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
+    <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feat_kan&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># The emitted encoder hardcodes a dense feature transform (feat_w/feat_b</span>
+        <span class="c1"># and a matrix-vector product). Every non-linear feat_mode puts a spline</span>
+        <span class="c1"># layer over `window` inputs there instead, which needs its own emitter</span>
+        <span class="c1"># and a much larger coefficient block. Refuse rather than emit C that</span>
+        <span class="c1"># computes the wrong function.</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;C generation supports only feat_mode=&#39;linear&#39;; this detector was &quot;</span>
+            <span class="s2">&quot;fitted with a KAN feature transform, not the dense one the emitted &quot;</span>
+            <span class="s2">&quot;encoder assumes.&quot;</span>
+        <span class="p">)</span>
+
     <span class="k">if</span> <span class="n">n_nodes</span> <span class="o">&gt;</span> <span class="mi">255</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Neighbour indices are emitted as bytes; </span><span class="si">{</span><span class="n">n_nodes</span><span class="si">}</span><span class="s2"> nodes exceeds that.&quot;</span>

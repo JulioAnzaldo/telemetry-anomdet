@@ -146,3 +146,35 @@ threshold is chosen.
 One interaction is worth knowing. Below roughly a 3 percent budget the flagged
 points are scattered singletons that never form a run of two, so
 ``filter_sequences`` with its default minimum length discards all of them.
+
+
+Channels with no error spread
+-----------------------------
+
+A deviation score divides each channel's forecast error by that channel's own
+training median and IQR, which is what makes the channels comparable. A channel
+that never moved during training breaks it: its error IQR is exactly zero, so
+the division returns a number set by the guard epsilon rather than by the data.
+On SMAP three of 25 channels are in this state, all of them command flags that
+sit constant for long stretches, and their deviations reached 1.7e10. Since a
+window's score is the maximum across channels, those three decided every score
+in the run, which is the mechanism behind the 0.126 event-level F1 measured when
+every channel was allowed to raise an alarm.
+
+``GDN`` therefore replaces the spread of such channels with a fraction of their
+own median error, bringing the maximum deviation to 1.29e4, within 1.5 times the
+most extreme healthy channel, and leaving 19 of 25 channels driving scores
+instead of a handful. ``degenerate_channels_`` reports which channels were
+affected, ``fit`` warns and names them when they can actually raise an alarm,
+and both graph figures mark them.
+
+Detecting these channels and repairing them are separate decisions, and
+conflating them is a mistake worth recording. An earlier version used a single
+ratio of 0.02 for both, on the reasoning that no real channel shows spread that
+small relative to its own median error. That holds across the 25-channel input
+and fails on the single-channel one, where the telemetry channel has an IQR of
+3.6e-4 against a median error of 1.8e-2: a ratio of exactly 0.02, so the repair
+reached a channel whose spread was real and changed its scores. Detection now
+triggers only at a spread of zero to within floating point noise, while the
+replacement value stays at 0.02, which it is free to do because it reaches
+nothing else.

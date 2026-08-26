@@ -723,21 +723,20 @@
         <span class="k">return</span> <span class="n">out</span></div>
 
 
-    <span class="c1"># Lower bound on a channel&#39;s training error spread, as a fraction of that</span>
-    <span class="c1"># channel&#39;s own median error.</span>
+    <span class="c1"># Which channels are degenerate and what replaces their spread are separate</span>
+    <span class="c1"># questions, so they are separate constants. One value for both rewrites</span>
+    <span class="c1"># channels whose spread is small but entirely real.</span>
     <span class="c1">#</span>
-    <span class="c1"># A channel that never moved while training has an error IQR of zero, and</span>
-    <span class="c1"># dividing by it produces a number decided by the guard epsilon rather than</span>
-    <span class="c1"># by the data: 1e10 on SMAP, which then wins the per-window maximum and</span>
-    <span class="c1"># decides every score. Status and mode channels that sit constant for long</span>
-    <span class="c1"># stretches are the usual source.</span>
-    <span class="c1">#</span>
-    <span class="c1"># The ratio is set below the smallest spread any real channel shows, so the</span>
-    <span class="c1"># floor only ever reaches channels with no measurable spread and never</span>
-    <span class="c1"># reshapes one that has some. On SMAP the healthy channels run from 0.030 to</span>
-    <span class="c1"># 2.5 by this measure, so 0.02 catches the three degenerate channels and</span>
-    <span class="c1"># nothing else, and their deviations land at the same order as the most</span>
-    <span class="c1"># extreme healthy channel instead of a million times above it.</span>
+    <span class="c1"># Degenerate means no spread at all. A channel that never moved while</span>
+    <span class="c1"># training has an error IQR of exactly zero, and dividing by it returns a</span>
+    <span class="c1"># number set by the guard epsilon rather than by the data, which then wins</span>
+    <span class="c1"># the per-window maximum and decides every score. This threshold is large</span>
+    <span class="c1"># enough only to absorb floating point noise around zero.</span>
+    <span class="n">_ZERO_SPREAD_RATIO</span> <span class="o">=</span> <span class="mf">1e-9</span>
+
+    <span class="c1"># What a degenerate channel&#39;s spread becomes, as a fraction of its own</span>
+    <span class="c1"># median error. Applied only to the channels caught above, so it is free to</span>
+    <span class="c1"># be large enough to bound the result.</span>
     <span class="n">_SPREAD_FLOOR_RATIO</span> <span class="o">=</span> <span class="mf">0.02</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_spread_floor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iqr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
@@ -753,9 +752,12 @@
         <span class="n">positive</span> <span class="o">=</span> <span class="n">scale</span><span class="p">[</span><span class="n">scale</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
         <span class="n">scale</span><span class="p">[</span><span class="n">scale</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">positive</span><span class="p">)</span> <span class="k">if</span> <span class="n">positive</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="mf">1.0</span>
 
-        <span class="n">floor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SPREAD_FLOOR_RATIO</span> <span class="o">*</span> <span class="n">scale</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_degenerate_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">iqr</span> <span class="o">&lt;</span> <span class="n">floor</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">iqr</span><span class="p">,</span> <span class="n">floor</span><span class="p">)</span>
+        <span class="c1"># Catch only channels with no measurable spread, then replace the spread</span>
+        <span class="c1"># of those alone. Channels with any real spread are returned untouched.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_degenerate_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">iqr</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ZERO_SPREAD_RATIO</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">floored</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">iqr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">floored</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_degenerate_</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SPREAD_FLOOR_RATIO</span> <span class="o">*</span> <span class="n">scale</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_degenerate_</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">floored</span>
 
 <div class="viewcode-block" id="GDN.degenerate_channels_">
 <a class="viewcode-back" href="../../../../api/models/deep.html#telemetry_anomdet.models.deep.gdn.GDN.degenerate_channels_">[docs]</a>
