@@ -160,16 +160,18 @@ jobs:
           print('sdist ok:', t.__version__)
           "
 
-      # The deep and viz extras are optional, so nothing else in CI proves their
-      # dependency specifications resolve.
+      # The deep, viz and track extras are optional, so nothing else in CI proves
+      # their dependency specifications resolve. track is here rather than in the
+      # test job because nothing imports it: only a resolution failure or a typo
+      # in the declaration could break it, and only an install catches that.
       - name: Install the optional extras
         run: |
           uv venv /tmp/extras-probe
-          uv pip install --python /tmp/extras-probe/bin/python "$(echo dist/*.whl)[deep,viz]"
+          uv pip install --python /tmp/extras-probe/bin/python "$(echo dist/*.whl)[deep,viz,track]"
           /tmp/extras-probe/bin/python -c "
-          import torch, matplotlib
+          import torch, matplotlib, wandb
           from telemetry_anomdet.visualization import plot_sensor_graph
-          print('extras ok: torch', torch.__version__)
+          print('extras ok: torch', torch.__version__, 'wandb', wandb.__version__)
           "
 
   docs:

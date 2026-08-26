@@ -56,6 +56,11 @@ deep = [
 viz = [
   "matplotlib>=3.7",
 ]
+# Experiment tracking for the benchmark scripts. Nothing in the library imports
+# it; examples/smap_benchmark.py logs to it only when TAD_WANDB_PROJECT is set.
+track = [
+  "wandb>=0.17",
+]
 
 [dependency-groups]
 dev = [
