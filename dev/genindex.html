@@ -530,12 +530,14 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.distill.KANLayerNumpy.edge_function">edge_function() (telemetry_anomdet.models.deep.distill.KANLayerNumpy method)</a>
 </li>
-      <li><a href="api/evaluation.html#telemetry_anomdet.evaluation.evaluate_sequences">evaluate_sequences() (in module telemetry_anomdet.evaluation)</a>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.esa_splits">esa_splits() (in module telemetry_anomdet.ingest.esa)</a>
 </li>
-      <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.gdn.GDN.ewma">ewma() (telemetry_anomdet.models.deep.gdn.GDN static method)</a>
+      <li><a href="api/evaluation.html#telemetry_anomdet.evaluation.evaluate_sequences">evaluate_sequences() (in module telemetry_anomdet.evaluation)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.gdn.GDN.ewma">ewma() (telemetry_anomdet.models.deep.gdn.GDN static method)</a>
+</li>
       <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.distill.extract_kan_gdn">extract_kan_gdn() (in module telemetry_anomdet.models.deep.distill)</a>
 </li>
       <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.distill.extract_kan_gdn_net">extract_kan_gdn_net() (in module telemetry_anomdet.models.deep.distill)</a>
@@ -652,12 +654,18 @@
 </li>
       <li><a href="api/models/base.html#telemetry_anomdet.models.base.BaseDetector.load">load() (telemetry_anomdet.models.base.BaseDetector class method)</a>
 </li>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.load_esa">load_esa() (in module telemetry_anomdet.ingest.esa)</a>
+</li>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.load_esa_channels">load_esa_channels() (in module telemetry_anomdet.ingest.esa)</a>
+</li>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.load_esa_labels">load_esa_labels() (in module telemetry_anomdet.ingest.esa)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/ingest.html#telemetry_anomdet.ingest.ccsds_loader.load_from_ccsds">load_from_ccsds() (in module telemetry_anomdet.ingest.ccsds_loader)</a>
 </li>
       <li><a href="api/ingest.html#telemetry_anomdet.ingest.csv_loader.load_from_csv">load_from_csv() (in module telemetry_anomdet.ingest.csv_loader)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/ingest.html#telemetry_anomdet.ingest.smap.load_smap">load_smap() (in module telemetry_anomdet.ingest.smap)</a>
 </li>
       <li><a href="api/ingest.html#telemetry_anomdet.ingest.smap.load_smap_channel">load_smap_channel() (in module telemetry_anomdet.ingest.smap)</a>
@@ -674,6 +682,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.make_feature_table">make_feature_table() (in module telemetry_anomdet.feature_extraction.features)</a>
 </li>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.MISSION1_CADENCE_S">MISSION1_CADENCE_S (in module telemetry_anomdet.ingest.esa)</a>
+</li>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.MISSION1_LIGHTWEIGHT">MISSION1_LIGHTWEIGHT (in module telemetry_anomdet.ingest.esa)</a>
+</li>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.MISSION1_SPAN">MISSION1_SPAN (in module telemetry_anomdet.ingest.esa)</a>
+</li>
       <li>
     module
 
@@ -685,6 +699,8 @@
         <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.ccsds_loader">telemetry_anomdet.ingest.ccsds_loader</a>
 </li>
         <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.csv_loader">telemetry_anomdet.ingest.csv_loader</a>
+</li>
+        <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.esa">telemetry_anomdet.ingest.esa</a>
 </li>
         <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.smap">telemetry_anomdet.ingest.smap</a>
 </li>
@@ -721,6 +737,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.NON_EVENT_CATEGORIES">NON_EVENT_CATEGORIES (in module telemetry_anomdet.ingest.esa)</a>
+</li>
       <li><a href="api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.normalize_fit">normalize_fit() (in module telemetry_anomdet.preprocessing.preprocessing)</a>
 </li>
   </ul></td>
@@ -741,9 +759,11 @@
 </li>
       <li><a href="api/evaluation.html#telemetry_anomdet.evaluation.point_adjust">point_adjust() (in module telemetry_anomdet.evaluation)</a>
 </li>
+      <li><a href="api/evaluation.html#telemetry_anomdet.evaluation.point_adjusted_f1">point_adjusted_f1() (in module telemetry_anomdet.evaluation)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/evaluation.html#telemetry_anomdet.evaluation.point_adjusted_f1">point_adjusted_f1() (in module telemetry_anomdet.evaluation)</a>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.POINT_MAX_SAMPLES">POINT_MAX_SAMPLES (in module telemetry_anomdet.ingest.esa)</a>
 </li>
       <li><a href="api/evaluation.html#telemetry_anomdet.evaluation.pr_auc">pr_auc() (in module telemetry_anomdet.evaluation)</a>
 </li>
@@ -769,6 +789,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.rescope_anomaly_types">rescope_anomaly_types() (in module telemetry_anomdet.ingest.esa)</a>
+</li>
       <li><a href="user_guide/glossary.html#term-Robust-normalization"><strong>Robust normalization</strong></a>
 </li>
   </ul></td>
@@ -827,6 +849,13 @@
 
       <ul>
         <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.csv_loader">module</a>
+</li>
+      </ul></li>
+      <li>
+    telemetry_anomdet.ingest.esa
+
+      <ul>
+        <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.esa">module</a>
 </li>
       </ul></li>
       <li>

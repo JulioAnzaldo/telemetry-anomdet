@@ -640,6 +640,93 @@ triggers only at a spread of zero to within floating point noise, while the
 replacement value stays at 0.02, which it is free to do because it reaches
 nothing else.</p>
 </section>
+<section id="the-shape-of-the-esa-adb-subset">
+<h2>The shape of the ESA-ADB subset<a class="headerlink" href="#the-shape-of-the-esa-adb-subset" title="Link to this heading">#</a></h2>
+<p>Three measurements on the Mission1 lightweight subset (channels 41 to 46) decide
+how the rest of this section has to be read. They are properties of the data, not
+of any detector, and they are what the SMAP defaults get wrong.</p>
+<dl class="simple">
+<dt>The channels are genuinely related</dt><dd><p>Over the year 2000 the off-diagonal cross-channel correlations have a median
+<code class="docutils literal notranslate"><span class="pre">|r|</span></code> of 0.86, and <code class="docutils literal notranslate"><span class="pre">channel_44</span></code> runs anti-correlated at -0.55 against the
+other five. This is the first input in the project where a learned sensor
+graph has something to relate: a SMAP record is one real sensor plus
+near-constant command flags, so the graph detectors were previously only ever
+measured on a lone self-loop or a relation over one-hots.</p>
+</dd>
+<dt>The events are shorter than a plausible window</dt><dd><p>The median annotated segment lasts about 390 s, which is 13 samples at the
+native 30 s cadence, and 62 percent of segments run shorter than 30 samples.
+A window of 30 is already wider than the thing it is meant to catch, so the
+stride matters more here than any hyperparameter carried over from SMAP.</p>
+</dd>
+<dt>Downsampling erases them</dt><dd><p>Resampling is the obvious way to make 14 years of 30 s telemetry tractable,
+and on this dataset it is barely affordable. The median event spans roughly
+13 samples at the native cadence, 3 at a 2 minute rule, 1 at 5 minutes, and
+0.4 at 15 minutes, which is to say it no longer exists. Prefer a slice of the
+split at native cadence over the whole split resampled.</p>
+</dd>
+</dl>
+<p>One annotation detail matters when reading any of these figures: <code class="docutils literal notranslate"><span class="pre">Anomaly</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Rare</span> <span class="pre">Event</span></code> are scored together by the benchmark but mean different things. An
+Anomaly is a fault; a Rare Event is expected behaviour that merely resembles one,
+such as a commanded manoeuvre, a reset, or a calibration.
+<a class="reference internal" href="../api/ingest.html#telemetry_anomdet.ingest.esa.load_esa_labels" title="telemetry_anomdet.ingest.esa.load_esa_labels"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_esa_labels()</span></code></a> keeps the <code class="docutils literal notranslate"><span class="pre">Category</span></code>
+column so either convention can be applied deliberately rather than by accident.</p>
+</section>
+<section id="scoring-esa-adb">
+<h2>Scoring ESA-ADB<a class="headerlink" href="#scoring-esa-adb" title="Link to this heading">#</a></h2>
+<p>The ESA Anomaly Benchmark fixes a protocol of its own, and three of its choices
+differ from the SMAP conventions above in ways that change the code, not just
+the numbers. <code class="docutils literal notranslate"><span class="pre">examples/esa_benchmark.py</span></code> follows it rather than reusing the
+SMAP settings.</p>
+<dl class="simple">
+<dt>An event is an identifier, not a contiguous run</dt><dd><p>One annotated event spans every channel it affects and may be split into
+several disjoint regions on each, deliberately, so that a burst of related
+disturbances counts once rather than five times. Detection is therefore
+scored by grouping segments on their event ID: an event counts as detected
+when any prediction overlaps any of its segments. Treating each region as
+its own event inflates false positives and deflates recall at the same time.</p>
+</dd>
+<dt>F0.5 leads, not F1</dt><dd><p>False alarms are the main obstacle to operational adoption, so the benchmark
+weights precision. F1 is reported beside it, and the two can disagree about
+which operating point is best.</p>
+</dd>
+<dt>Threshold-agnostic metrics are excluded</dt><dd><p>Metrics must be computable from binary detections, so PR-AUC and similar
+scores are outside the comparable set and are not reported.</p>
+</dd>
+</dl>
+<p>The benchmark also treats channel identification as a primary aspect, ranked
+above detection timing: an algorithm that cannot say which channels an alarm
+concerns is of limited use to an operator. <code class="docutils literal notranslate"><span class="pre">channel_deviations</span></code> answers that
+exactly rather than by perturbation, which is unusual enough that the published
+unsupervised baselines leave those cells blank.</p>
+</section>
+<section id="compare-detectors-at-a-matched-alarm-budget">
+<h2>Compare detectors at a matched alarm budget<a class="headerlink" href="#compare-detectors-at-a-matched-alarm-budget" title="Link to this heading">#</a></h2>
+<p>On ESA-ADB every detector measured reached precision 1.000 with zero false
+alarms under <code class="docutils literal notranslate"><span class="pre">dynamic_threshold</span></code>. That sounds like a good result and is
+actually a broken comparison: with precision saturated, the F0.5 ranking was
+decided entirely by how many alarms each model’s threshold happened to admit.
+One configuration raised 39 alarms and detected 15 events; another raised 4 and
+detected 3. That ranks threshold conservatism, not detection quality.</p>
+<p>Holding the alarm budget fixed with <code class="docutils literal notranslate"><span class="pre">threshold_for_budget</span></code> puts every model at
+a comparable alarm rate, which is the only condition under which a recall
+difference means something about the detector. It is also the operationally
+honest control, for the reason given above: an alarm rate can be stated in
+advance, a recall cannot.</p>
+<p>Pruning deserves the same scrutiny, and on this dataset it was the binding
+constraint rather than the threshold. Raising the budget admitted hundreds of
+candidate sequences and pruning then discarded all but the largest, so budgets
+spanning an order of magnitude produced an identical single detection. Switching
+it off moved one configuration’s F0.5 from 0.294 to 0.690 on the same scores.</p>
+<p>That is consistent with the SMAP finding above, and the reason is the same in
+both cases and worth stating plainly: telemanom’s <code class="docutils literal notranslate"><span class="pre">min_decrease</span></code> rule assumes a
+channel has a few long anomalies. ESA-ADB’s Mission1 subset has 65 events across
+seven years with a median annotated segment of 13 samples, and 62 percent of
+segments shorter than 30. The rule discards exactly what such a dataset is made
+of. The same reasoning applies to the window stride: a step of 10 samples steps
+over a 13-sample event, and no hyperparameter recovers a detection the windowing
+never had a chance to see.</p>
+</section>
 </section>
 
 
@@ -695,6 +782,9 @@ nothing else.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-note-on-the-univariate-result">A note on the univariate result</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#selecting-an-operating-point">Selecting an operating point</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#channels-with-no-error-spread">Channels with no error spread</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-shape-of-the-esa-adb-subset">The shape of the ESA-ADB subset</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scoring-esa-adb">Scoring ESA-ADB</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compare-detectors-at-a-matched-alarm-budget">Compare detectors at a matched alarm budget</a></li>
 </ul>
   </nav></div>
 

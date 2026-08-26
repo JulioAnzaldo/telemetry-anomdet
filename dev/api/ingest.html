@@ -610,6 +610,269 @@ or pass an explicit list of column indices.</p></li>
 </dl>
 </dd></dl>
 
+<p id="module-telemetry_anomdet.ingest.esa">Loader for the ESA Anomaly Dataset / ESA-ADB (Zenodo DOI 10.5281/zenodo.12528696).</p>
+<p>A mission archive holds one <code class="docutils literal notranslate"><span class="pre">channels/channel_N.zip</span></code> per telemetry channel and
+one <code class="docutils literal notranslate"><span class="pre">telecommands/telecommand_N.zip</span></code> per command, alongside four metadata CSVs:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">channels.csv</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">Channel,</span> <span class="pre">Subsystem,</span> <span class="pre">Physical</span> <span class="pre">Unit,</span> <span class="pre">Group,</span> <span class="pre">Target,</span> <span class="pre">Categorical</span></code>. Only
+<code class="docutils literal notranslate"><span class="pre">Target</span> <span class="pre">=</span> <span class="pre">YES</span></code> channels are monitored for anomalies (58 of 76 in Mission1);
+the rest exist to support detection.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">labels.csv</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">ID,</span> <span class="pre">Channel,</span> <span class="pre">StartTime,</span> <span class="pre">EndTime</span></code>. One row per <em>segment</em>, so a single event
+<code class="docutils literal notranslate"><span class="pre">ID</span></code> appears once per affected channel and may appear several times for one
+channel when the event is a burst of separate disturbances.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">anomaly_types.csv</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">ID,</span> <span class="pre">Class,</span> <span class="pre">Subclass,</span> <span class="pre">Category,</span> <span class="pre">Dimensionality,</span> <span class="pre">Locality,</span> <span class="pre">Length</span></code>, where
+<code class="docutils literal notranslate"><span class="pre">Category</span></code> is Anomaly, Rare Event, or Communication Gap.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">telecommands.csv</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">Telecommand,</span> <span class="pre">Priority</span></code>.</p>
+</dd>
+</dl>
+<p>Unlike SMAP/MSL this dataset carries real timestamps, so nothing is synthesised.
+Output is the canonical long form <code class="docutils literal notranslate"><span class="pre">[timestamp,</span> <span class="pre">variable,</span> <span class="pre">value]</span></code> wrapped in a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">TelemetryDataset</span></code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Channel payloads are <strong>pickled pandas objects</strong>, so loading executes the
+pickle stream. That is safe for the official Zenodo archive and is not safe
+for arbitrary user-supplied paths. Point this loader at data you trust.</p>
+</div>
+<p>Two facts about the annotations drive how results must be scored, and both
+differ from SMAP:</p>
+<ul class="simple">
+<li><p>An event is identified by its <code class="docutils literal notranslate"><span class="pre">ID</span></code>, not by contiguity. Roughly a fifth of
+the (event, channel) pairs in the Mission1 lightweight subset are split across
+two to five segments, deliberately, so that a burst of related disturbances
+counts once. Scoring segments as separate events inflates false positives and
+deflates recall at the same time.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Rare</span> <span class="pre">Event</span></code> rows are atypical but expected behaviour (commanded manoeuvres,
+resets, calibrations). ESA-ADB’s headline results score every category except
+<code class="docutils literal notranslate"><span class="pre">Communication</span> <span class="pre">Gap</span></code>; <a class="reference internal" href="#telemetry_anomdet.ingest.esa.load_esa_labels" title="telemetry_anomdet.ingest.esa.load_esa_labels"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_esa_labels()</span></code></a> keeps the column so either
+convention can be applied explicitly rather than by accident.</p></li>
+</ul>
+<dl class="py data">
+<dt class="sig sig-object py" id="telemetry_anomdet.ingest.esa.MISSION1_LIGHTWEIGHT">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.esa.</span></span><span class="sig-name descname"><span class="pre">MISSION1_LIGHTWEIGHT</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('channel_41',</span> <span class="pre">'channel_42',</span> <span class="pre">'channel_43',</span> <span class="pre">'channel_44',</span> <span class="pre">'channel_45',</span> <span class="pre">'channel_46')</span></span><a class="headerlink" href="#telemetry_anomdet.ingest.esa.MISSION1_LIGHTWEIGHT" title="Link to this definition">#</a></dt>
+<dd><p>the six channels ESA-ADB reports its headline
+benchmark on, all of subsystem_5 / physical_unit_4 / group 8. The benchmark’s
+full 58-channel set defeats every algorithm it published, so this subset is
+where a comparable result can be had.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mission1’s lightweight subset</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="telemetry_anomdet.ingest.esa.NON_EVENT_CATEGORIES">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.esa.</span></span><span class="sig-name descname"><span class="pre">NON_EVENT_CATEGORIES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('Communication</span> <span class="pre">Gap',)</span></span><a class="headerlink" href="#telemetry_anomdet.ingest.esa.NON_EVENT_CATEGORIES" title="Link to this definition">#</a></dt>
+<dd><p>Categories excluded from ESA-ADB’s headline scoring.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="telemetry_anomdet.ingest.esa.MISSION1_SPAN">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.esa.</span></span><span class="sig-name descname"><span class="pre">MISSION1_SPAN</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(Timestamp('2000-01-01</span> <span class="pre">00:00:00'),</span> <span class="pre">Timestamp('2014-01-01</span> <span class="pre">00:00:00'))</span></span><a class="headerlink" href="#telemetry_anomdet.ingest.esa.MISSION1_SPAN" title="Link to this definition">#</a></dt>
+<dd><p>Mission1’s span, end exclusive. Used to derive the benchmark splits without
+opening a 15-million-row archive first.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="telemetry_anomdet.ingest.esa.MISSION1_CADENCE_S">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.esa.</span></span><span class="sig-name descname"><span class="pre">MISSION1_CADENCE_S</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">30</span></span><a class="headerlink" href="#telemetry_anomdet.ingest.esa.MISSION1_CADENCE_S" title="Link to this definition">#</a></dt>
+<dd><p>Mission1’s dominant sampling frequency is 0.033 Hz. This is the grid the
+benchmark’s own definitions are stated against (a point anomaly is up to
+three samples <em>after resampling to the dominant frequency</em>), so it is the
+canonical cadence rather than merely a convenient one.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="telemetry_anomdet.ingest.esa.POINT_MAX_SAMPLES">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.esa.</span></span><span class="sig-name descname"><span class="pre">POINT_MAX_SAMPLES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#telemetry_anomdet.ingest.esa.POINT_MAX_SAMPLES" title="Link to this definition">#</a></dt>
+<dd><p>Longest event, in samples at the dominant cadence, still counted as a point
+anomaly rather than a subsequence.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.ingest.esa.esa_splits">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.esa.</span></span><span class="sig-name descname"><span class="pre">esa_splits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">span</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Timestamp</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Timestamp</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(Timestamp('2000-01-01</span> <span class="pre">00:00:00'),</span> <span class="pre">Timestamp('2014-01-01</span> <span class="pre">00:00:00'))</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_months</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Timestamp</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Timestamp</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/esa.html#esa_splits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.esa.esa_splits" title="Link to this definition">#</a></dt>
+<dd><p>The benchmark’s train / validation / test division.</p>
+<p>ESA-ADB halves each mission chronologically, trains on the first half, and
+reserves the last three months of that half for validation, so every
+validation and test sample is later than every training one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>span</strong> – <code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">end)</span></code> of the mission, end exclusive.</p></li>
+<li><p><strong>validation_months</strong> – Months at the end of the training half held out.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">{&quot;train&quot;:</span> <span class="pre">(start,</span> <span class="pre">end),</span> <span class="pre">&quot;validation&quot;:</span> <span class="pre">...,</span> <span class="pre">&quot;test&quot;:</span> <span class="pre">...}</span></code>, each</dt><dd><p>half-open <code class="docutils literal notranslate"><span class="pre">[start,</span> <span class="pre">end)</span></code>.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Anomalies appear in <strong>all three</strong> splits, training included. That is
+deliberate on the benchmark’s part, and it breaks an assumption
+inherited from SMAP, whose training split is anomaly-free: the
+per-channel error median and IQR that calibrate the deviation score are
+fitted on data that contains faults. Both statistics are robust, which
+is what makes the arrangement workable, but a detector calibrated here
+is not calibrated on clean data.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.ingest.esa.load_esa_channels">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.esa.</span></span><span class="sig-name descname"><span class="pre">load_esa_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/esa.html#load_esa_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.esa.load_esa_channels" title="Link to this definition">#</a></dt>
+<dd><p>Load <code class="docutils literal notranslate"><span class="pre">channels.csv</span></code>, the channel metadata table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>root</strong> – Mission directory, e.g. <code class="docutils literal notranslate"><span class="pre">.../ESA-Mission1</span></code>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>One row per channel, with a boolean <code class="docutils literal notranslate"><span class="pre">is_target</span></code> column</dt><dd><p>added alongside the file’s own <code class="docutils literal notranslate"><span class="pre">YES</span></code>/<code class="docutils literal notranslate"><span class="pre">NO</span></code> strings.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.ingest.esa.rescope_anomaly_types">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.esa.</span></span><span class="sig-name descname"><span class="pre">rescope_anomaly_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">cadence_s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_max_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/esa.html#rescope_anomaly_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.esa.rescope_anomaly_types" title="Link to this definition">#</a></dt>
+<dd><p>Recompute the type attributes that depend on which channels are in scope.</p>
+<p><code class="docutils literal notranslate"><span class="pre">anomaly_types.csv</span></code> describes each event across the <em>whole</em> mission, so an
+event listed as Multivariate may touch only one channel of a subset, and one
+listed as Subsequence may be a point anomaly within it. ESA-ADB says as much
+and ships <code class="docutils literal notranslate"><span class="pre">infer_anomaly_types.py</span></code> for the purpose; this is the same rule
+applied in-process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>labels</strong> – Segment rows, already filtered to the channels of interest.</p></li>
+<li><p><strong>cadence_s</strong> – Dominant sampling period in seconds.</p></li>
+<li><p><strong>point_max_samples</strong> – Longest event still counted as a point anomaly.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A copy with <code class="docutils literal notranslate"><span class="pre">Dimensionality</span></code> and <code class="docutils literal notranslate"><span class="pre">Length</span></code> recomputed</dt><dd><p>for the channels present, and the originals preserved as
+<code class="docutils literal notranslate"><span class="pre">Dimensionality_mission</span></code> and <code class="docutils literal notranslate"><span class="pre">Length_mission</span></code>.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p><code class="docutils literal notranslate"><span class="pre">Locality</span></code> is <strong>not</strong> recomputed and remains mission-scope. Deciding it
+requires the min/max of every nominal sample per channel, which means
+reading the full signal; inferring it from annotations alone is not
+possible. Treat that column as mission-wide wherever it is used.</p>
+<p>Length follows the benchmark’s rule that a fragmented event counts as a
+point anomaly only if <em>every</em> one of its regions does.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.ingest.esa.load_esa_labels">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.esa.</span></span><span class="sig-name descname"><span class="pre">load_esa_labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_categories</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">('Communication</span> <span class="pre">Gap',)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rescope_types</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cadence_s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/esa.html#load_esa_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.esa.load_esa_labels" title="Link to this definition">#</a></dt>
+<dd><p>Load the annotations, joined to their event types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root</strong> – Mission directory, e.g. <code class="docutils literal notranslate"><span class="pre">.../ESA-Mission1</span></code>.</p></li>
+<li><p><strong>channels</strong> – Keep only segments affecting these channels. None keeps all.</p></li>
+<li><p><strong>drop_categories</strong> – Categories to exclude. Defaults to communication gaps,
+matching ESA-ADB’s headline scoring, which reports every other
+category together. Pass None to keep everything, or
+<code class="docutils literal notranslate"><span class="pre">(&quot;Communication</span> <span class="pre">Gap&quot;,</span> <span class="pre">&quot;Rare</span> <span class="pre">Event&quot;)</span></code> to score true anomalies only.</p></li>
+<li><p><strong>rescope_types</strong> – Recompute <code class="docutils literal notranslate"><span class="pre">Dimensionality</span></code> and <code class="docutils literal notranslate"><span class="pre">Length</span></code> for the
+selected channels via <a class="reference internal" href="#telemetry_anomdet.ingest.esa.rescope_anomaly_types" title="telemetry_anomdet.ingest.esa.rescope_anomaly_types"><code class="xref py py-func docutils literal notranslate"><span class="pre">rescope_anomaly_types()</span></code></a>. Ignored when
+<code class="docutils literal notranslate"><span class="pre">channels</span></code> is None, where mission scope is already correct.</p></li>
+<li><p><strong>cadence_s</strong> – Dominant sampling period, used only by the rescoping.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>One row per <em>segment</em>, with columns <code class="docutils literal notranslate"><span class="pre">ID</span></code>, <code class="docutils literal notranslate"><span class="pre">Channel</span></code>,</dt><dd><p><code class="docutils literal notranslate"><span class="pre">StartTime</span></code>, <code class="docutils literal notranslate"><span class="pre">EndTime</span></code> (tz-naive datetimes) and the event’s
+<code class="docutils literal notranslate"><span class="pre">Class</span></code>, <code class="docutils literal notranslate"><span class="pre">Subclass</span></code>, <code class="docutils literal notranslate"><span class="pre">Category</span></code>, <code class="docutils literal notranslate"><span class="pre">Dimensionality</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Locality</span></code> and <code class="docutils literal notranslate"><span class="pre">Length</span></code>.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Group by <code class="docutils literal notranslate"><span class="pre">ID</span></code> to recover events. A count of rows is a count of
+segments, which is a different and larger number: one event spans every
+channel it affects, and may be split into several disjoint regions per
+channel so that a burst of related disturbances still counts once.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="telemetry_anomdet.ingest.esa.load_esa">
+<span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.esa.</span></span><span class="sig-name descname"><span class="pre">load_esa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">span</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Timestamp</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Timestamp</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(Timestamp('2000-01-01</span> <span class="pre">00:00:00'),</span> <span class="pre">Timestamp('2014-01-01</span> <span class="pre">00:00:00'))</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_months</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Timestamp</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Timestamp</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resample_rule</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset" title="telemetry_anomdet.ingest.dataset.TelemetryDataset"><span class="pre">TelemetryDataset</span></a></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/esa.html#load_esa"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.esa.load_esa" title="Link to this definition">#</a></dt>
+<dd><p>Load telemetry channels into the canonical long form.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root</strong> – Mission directory, e.g. <code class="docutils literal notranslate"><span class="pre">.../ESA-Mission1</span></code>.</p></li>
+<li><p><strong>channels</strong> – Channel names to load, e.g. <code class="docutils literal notranslate"><span class="pre">(&quot;channel_41&quot;,</span> <span class="pre">&quot;channel_42&quot;)</span></code>.
+Defaults to <a class="reference internal" href="#telemetry_anomdet.ingest.esa.MISSION1_LIGHTWEIGHT" title="telemetry_anomdet.ingest.esa.MISSION1_LIGHTWEIGHT"><code class="xref py py-data docutils literal notranslate"><span class="pre">MISSION1_LIGHTWEIGHT</span></code></a>.</p></li>
+<li><p><strong>split</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;train&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;validation&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;test&quot;</span></code>, resolved through
+<a class="reference internal" href="#telemetry_anomdet.ingest.esa.esa_splits" title="telemetry_anomdet.ingest.esa.esa_splits"><code class="xref py py-func docutils literal notranslate"><span class="pre">esa_splits()</span></code></a>. Use this rather than hand-written dates so
+results stay comparable with the published benchmark. Cannot be
+combined with <code class="docutils literal notranslate"><span class="pre">start</span></code> or <code class="docutils literal notranslate"><span class="pre">end</span></code>.</p></li>
+<li><p><strong>span</strong> – Mission span passed to <a class="reference internal" href="#telemetry_anomdet.ingest.esa.esa_splits" title="telemetry_anomdet.ingest.esa.esa_splits"><code class="xref py py-func docutils literal notranslate"><span class="pre">esa_splits()</span></code></a> when <code class="docutils literal notranslate"><span class="pre">split</span></code> is given.</p></li>
+<li><p><strong>validation_months</strong> – Months of the training half held out for validation.
+The benchmark’s default is 3; the paper also studies shorter
+training sets to find the earliest mission phase that supports a
+reliable detector.</p></li>
+<li><p><strong>start</strong> – Keep samples at or after this timestamp. None for no lower bound.</p></li>
+<li><p><strong>end</strong> – Keep samples strictly before this timestamp. None for no upper
+bound. Slicing happens per channel, before the frames are combined,
+so memory scales with the slice rather than the archive.</p></li>
+<li><p><strong>resample_rule</strong> – Optional pandas offset alias (lowercase, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;5min&quot;</span></code>)
+to downsample onto a regular grid, taking the mean of each bin.
+None keeps the native cadence.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Long-form <code class="docutils literal notranslate"><span class="pre">[timestamp,</span> <span class="pre">variable,</span> <span class="pre">value]</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset" title="telemetry_anomdet.ingest.dataset.TelemetryDataset">TelemetryDataset</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Mission1 runs 14 years at a nominal 30 s cadence, so one channel is
+about 15.4 million samples. Six of them at full resolution is roughly a
+gigabyte once windowed, and a whole split is far more than that: prefer
+a slice within the split while iterating.</p>
+<p>Downsampling is not free, and on this dataset it is barely affordable
+at all: annotated events are short enough that a coarse rule erases
+them rather than blurring them. See <a class="reference internal" href="../user_guide/anomaly_scoring.html"><span class="doc">Scoring and Thresholding</span></a>
+for the measured cost at each rule, and prefer a slice at the native
+cadence over a resampled span.</p>
+</dd></dl>
+
 <dl class="py function" id="module-telemetry_anomdet.ingest.csv_loader">
 <dt class="sig sig-object py" id="telemetry_anomdet.ingest.csv_loader.load_from_csv">
 <span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.ingest.csv_loader.</span></span><span class="sig-name descname"><span class="pre">load_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_cols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#telemetry_anomdet.ingest.dataset.TelemetryDataset" title="telemetry_anomdet.ingest.dataset.TelemetryDataset"><span class="pre">TelemetryDataset</span></a></span></span><a class="reference internal" href="../_modules/telemetry_anomdet/ingest/csv_loader.html#load_from_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.ingest.csv_loader.load_from_csv" title="Link to this definition">#</a></dt>
@@ -741,6 +1004,16 @@ TelemetryDataset</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.smap.anomaly_point_mask"><code class="docutils literal notranslate"><span class="pre">anomaly_point_mask()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.smap.load_smap_channel"><code class="docutils literal notranslate"><span class="pre">load_smap_channel()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.smap.load_smap"><code class="docutils literal notranslate"><span class="pre">load_smap()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.esa.MISSION1_LIGHTWEIGHT"><code class="docutils literal notranslate"><span class="pre">MISSION1_LIGHTWEIGHT</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.esa.NON_EVENT_CATEGORIES"><code class="docutils literal notranslate"><span class="pre">NON_EVENT_CATEGORIES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.esa.MISSION1_SPAN"><code class="docutils literal notranslate"><span class="pre">MISSION1_SPAN</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.esa.MISSION1_CADENCE_S"><code class="docutils literal notranslate"><span class="pre">MISSION1_CADENCE_S</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.esa.POINT_MAX_SAMPLES"><code class="docutils literal notranslate"><span class="pre">POINT_MAX_SAMPLES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.esa.esa_splits"><code class="docutils literal notranslate"><span class="pre">esa_splits()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.esa.load_esa_channels"><code class="docutils literal notranslate"><span class="pre">load_esa_channels()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.esa.rescope_anomaly_types"><code class="docutils literal notranslate"><span class="pre">rescope_anomaly_types()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.esa.load_esa_labels"><code class="docutils literal notranslate"><span class="pre">load_esa_labels()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.esa.load_esa"><code class="docutils literal notranslate"><span class="pre">load_esa()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.csv_loader.load_from_csv"><code class="docutils literal notranslate"><span class="pre">load_from_csv()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.csv_loader.is_long_form"><code class="docutils literal notranslate"><span class="pre">is_long_form()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telemetry_anomdet.ingest.csv_loader.coerce_long"><code class="docutils literal notranslate"><span class="pre">coerce_long()</span></code></a></li>
