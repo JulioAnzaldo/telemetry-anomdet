@@ -779,6 +779,18 @@ def generate_c(
     window = int(net["window"])
     scaled = extracted["scaler_mean"] is not None
 
+    if net.get("feat_kan") is not None:
+        # The emitted encoder hardcodes a dense feature transform (feat_w/feat_b
+        # and a matrix-vector product). Every non-linear feat_mode puts a spline
+        # layer over `window` inputs there instead, which needs its own emitter
+        # and a much larger coefficient block. Refuse rather than emit C that
+        # computes the wrong function.
+        raise NotImplementedError(
+            "C generation supports only feat_mode='linear'; this detector was "
+            "fitted with a KAN feature transform, not the dense one the emitted "
+            "encoder assumes."
+        )
+
     if n_nodes > 255:
         raise NotImplementedError(
             f"Neighbour indices are emitted as bytes; {n_nodes} nodes exceeds that."
