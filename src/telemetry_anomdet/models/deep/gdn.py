@@ -417,6 +417,20 @@ class GDN(BaseDetector):
             topk=self.topk,
         )
 
+    def _init_net_from_data(self, context: np.ndarray) -> None:
+        """
+        Initialise network state that depends on the data but is not trained.
+
+        Called once in ``fit`` after ``_build_net`` and before the optimiser is
+        created, so anything installed here is frozen for the whole run. Base
+        GDN has no such state; the AR-KAN variant fills its Yule-Walker filters.
+
+        Parameters
+        ----------
+        context : np.ndarray, shape (n_windows, n_nodes, window)
+            Scaled per-node input sequences, exactly as the encoder sees them.
+        """
+
     def fit(self, X: np.ndarray, y: np.ndarray | None = None) -> GDN:
         """
         Fit the GDN forecasting network on nominal telemetry windows.
@@ -459,6 +473,7 @@ class GDN(BaseDetector):
         loader = torch.utils.data.DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
 
         self.net = self._build_net().to(device)
+        self._init_net_from_data(context)
 
         optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
         loss_fn = torch.nn.MSELoss()
