@@ -1,3 +1,4 @@
+import functools
 import os
 import pathlib
 import shutil
@@ -190,28 +191,42 @@ def test_generation_is_reproducible():
 # ---------------------------------------------------------------------------
 
 
-def _source() -> str:
-    det, _ = _fitted()
+# Each feature transform emits a different ``kan_features``.
+FEAT_MODES = ("linear", "kan", "ar_kan", "ar_kan_residual")
+
+# The source only dependson the mode, so generate the rule once.
+_rule_source = functools.lru_cache(maxsize=None)
+
+
+@_rule_source
+def _source(mode: str = "linear") -> str:
+    det, _ = _fitted(feat_mode=mode)
     return generate_c(extract_kan_gdn(det))["kangdn.c"]
 
 
-def test_no_recursion_or_complex_flow():
+every_feat_mode = pytest.mark.parametrize("mode", FEAT_MODES)
+
+
+@every_feat_mode
+def test_no_recursion_or_complex_flow(mode):
     """Rule 1: no goto, setjmp, or longjmp."""
-    src = _source()
+    src = _source(mode)
     for banned in ("goto", "setjmp", "longjmp"):
         assert banned not in src
 
 
-def test_no_heap_allocation():
+@every_feat_mode
+def test_no_heap_allocation(mode):
     """Rule 3: nothing is allocated at runtime."""
-    src = _source()
+    src = _source(mode)
     for banned in ("malloc", "calloc", "realloc", "free("):
         assert banned not in src
 
 
-def test_functions_stay_short():
+@every_feat_mode
+def test_functions_stay_short(mode):
     """Rule 4: no function body runs past roughly one printed page."""
-    src = _source().splitlines()
+    src = _source(mode).splitlines()
     longest, current, name = 0, None, ""
     for line in src:
         if line.startswith(("static int ", "static float ", "static double ", "int kangdn_")):
@@ -229,34 +244,38 @@ def _function_bodies(src: str) -> list[str]:
     return [chunk for chunk in src.split("\n}\n") if "\n{\n" in chunk]
 
 
-def test_every_function_has_assertions():
+@every_feat_mode
+def test_every_function_has_assertions(mode):
     """Rule 5: at least two assertions per generated function."""
-    bodies = _function_bodies(_source())
+    bodies = _function_bodies(_source(mode))
     assert len(bodies) >= 10, f"expected the full scoring path, found {len(bodies)}"
     for body in bodies:
         signature = body[body.rfind("\n\n") :].strip().splitlines()[0]
         assert body.count("KANGDN_ASSERT") >= 2, f"too few assertions in: {signature}"
 
 
-def test_no_file_scope_mutable_state():
-    """Rule 6: every non-const file-scope object is inside a function."""
-    for line in _source().splitlines():
+@every_feat_mode
+def test_no_file_scope_mutable_state(mode):
+    """Rule 6: every non-const file level scope object is inside a function."""
+    for line in _source(mode).splitlines():
         if line.startswith("static ") and "(" not in line:
             assert line.startswith("static const "), f"mutable file-scope object: {line}"
 
 
-def test_every_call_site_checks_status():
+@every_feat_mode
+def test_every_call_site_checks_status(mode):
     """Rule 7: each internal call is followed by a status check."""
-    lines = _source().splitlines()
+    lines = _source(mode).splitlines()
     for i, line in enumerate(lines):
         if "status = " in line and "int status" not in line:
             following = " ".join(lines[i + 1 : i + 3])
             assert "if (status !=" in following, f"unchecked call: {line.strip()}"
 
 
-def test_preprocessor_used_sparingly():
-    """Rule 8: no function-like macros beyond the assertion hook."""
-    src = _source()
+@every_feat_mode
+def test_preprocessor_used_sparingly(mode):
+    """Rule 8: no macros behave like functions beyond the assertion hook."""
+    src = _source(mode)
     defines = [ln for ln in src.splitlines() if ln.startswith("#define")]
     for line in defines:
         assert "ASSERT" in line, f"unexpected macro definition: {line}"
@@ -264,9 +283,10 @@ def test_preprocessor_used_sparingly():
     assert "static const float act_knots" in src
 
 
-def test_no_function_pointers():
+@every_feat_mode
+def test_no_function_pointers(mode):
     """Rule 9: no function pointer declarations."""
-    assert "(*" not in _source()
+    assert "(*" not in _source(mode)
 
 
 def test_rejects_unknown_dtype():
@@ -330,6 +350,23 @@ def test_c_matches_numpy_in_float(tmp_path):
     np_scores = KANGDNNumpy(spec).decision_function(windows)
 
     np.testing.assert_allclose(c_scores, np_scores, rtol=1e-4, atol=1e-5)
+
+
+@needs_cc
+@pytest.mark.parametrize("mode", ["kan", "ar_kan", "ar_kan_residual"])
+@pytest.mark.parametrize("dtype, rtol, atol", [("double", 1e-10, 1e-12), ("float", 1e-4, 1e-5)])
+def test_c_matches_numpy_for_every_feature_transform(tmp_path, mode, dtype, rtol, atol):
+    """The KAN feature transforms need to be reproduced by the emitted encoder.
+    Single precision is checked too, since it is what a target will run.
+    """
+    det, X = _fitted(feat_mode=mode)
+    spec = extract_kan_gdn(det)
+    windows = X[:8]
+
+    c_scores = _compile_and_run(tmp_path, spec, windows, dtype)
+    np_scores = KANGDNNumpy(spec).decision_function(windows)
+
+    np.testing.assert_allclose(c_scores, np_scores, rtol=rtol, atol=atol)
 
 
 @needs_cc

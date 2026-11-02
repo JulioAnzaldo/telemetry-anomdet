@@ -394,11 +394,36 @@ class TestFeatModeDistillation:
         det = fast_kangdn().fit(make_series(np.random.default_rng(0), 60))
         assert extract_kan_gdn_net(det.net)["feat_weight"].shape == (8, 9)
 
-    @pytest.mark.parametrize("mode", NONLINEAR_MODES)
-    def test_codegen_refuses_rather_than_emitting_wrong_c(self, mode):
+    @pytest.mark.parametrize(
+        "mode, wants_linear, wants_ar",
+        [
+            ("kan", False, False),
+            ("ar_kan", False, True),
+            ("ar_kan_residual", True, True),
+        ],
+    )
+    def test_codegen_emits_the_branches_the_mode_composes(self, mode, wants_linear, wants_ar):
+        """Every non-linear mode reaches C, carrying the branches its feature transform uses and no tables for the ones it does not."""
         from telemetry_anomdet.models.deep.codegen import generate_c
         from telemetry_anomdet.models.deep.distill import extract_kan_gdn
 
         det = fast_kangdn(feat_mode=mode).fit(make_series(np.random.default_rng(0), 60))
-        with pytest.raises(NotImplementedError, match="feat_mode='linear'"):
-            generate_c(extract_kan_gdn(det))
+        source = generate_c(extract_kan_gdn(det))["kangdn.c"]
+
+        assert "featkan_forward" in source
+        assert ("ar_filter[" in source) is wants_ar
+        assert ("feat_w[" in source) is wants_linear
+
+    def test_the_residual_linear_branch_reads_the_unfiltered_window(self):
+        """``ARKANFeatures`` filters only the KAN branch's input. Filtering the
+        linear branch too would compute a different model and yet still compile."""
+        from telemetry_anomdet.models.deep.codegen import generate_c
+        from telemetry_anomdet.models.deep.distill import extract_kan_gdn
+
+        det = fast_kangdn(feat_mode="ar_kan_residual").fit(
+            make_series(np.random.default_rng(0), 60)
+        )
+        source = generate_c(extract_kan_gdn(det))["kangdn.c"]
+
+        assert "acc += feat_w[(d * WINDOW) + t] * x[t];" in source
+        assert "filtered[t] = ar_filter[(i * WINDOW) + t] * x[t];" in source

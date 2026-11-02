@@ -45,8 +45,8 @@ class KANGDN(GDN):
 
     Any KAN mode multiplies the feature transform's coefficients by roughly
     ``grid_size + spline_order``, which dominates the distilled flash footprint
-    at small ``embed_dim``. Distillation supports every mode; C generation
-    supports only ``linear``.
+    at small ``embed_dim``. Distillation and C generation both support every
+    mode.
 
     Parameters
     ----------

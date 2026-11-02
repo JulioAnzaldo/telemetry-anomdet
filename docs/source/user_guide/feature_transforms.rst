@@ -103,9 +103,12 @@ on ESA-ADB, and it is the only mode that is never worse than second.
 Use ``ar_kan`` when the channels are known to be genuinely related, which is the
 case it is best in and the case onboard deployment targets.
 
-Use ``linear`` when the model has to reach hardware today: it is the only mode
-:func:`~telemetry_anomdet.models.deep.codegen.generate_c` can emit. Distillation
-to NumPy supports every mode.
+Use ``linear`` when flash is the binding constraint. Every mode now reaches
+hardware: distillation and
+:func:`~telemetry_anomdet.models.deep.codegen.generate_c` both cover all four,
+and the compiled C is checked against the NumPy evaluator for each. What
+separates them on a target is footprint rather than support, so the cost table
+below is the thing to read.
 
 
 Cost
