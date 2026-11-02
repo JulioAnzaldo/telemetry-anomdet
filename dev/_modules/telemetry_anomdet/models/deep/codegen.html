@@ -717,6 +717,65 @@
 <span class="s2">}</span>
 <span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
 
+<span class="c1"># Node feature transform for ``feat_mode=&quot;linear&quot;``: the dense map the encoder</span>
+<span class="c1"># has always used, with the splines seeing only the compressed embedding.</span>
+<span class="n">_FEATURES_LINEAR</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">/* h_i = W x_i + b */</span>
+<span class="s2">static int kan_features(const $</span><span class="si">{real}</span><span class="s2"> *context, $</span><span class="si">{real}</span><span class="s2"> *node_h)</span>
+<span class="s2">{</span>
+<span class="s2">    int i;</span>
+<span class="s2">    int d;</span>
+<span class="s2">    int t;</span>
+
+<span class="s2">    if ((context == NULL) || (node_h == NULL)) {</span>
+<span class="s2">        return $</span><span class="si">{up}</span><span class="s2">_ERR_NULL;</span>
+<span class="s2">    }</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(EMBED &gt; 0);</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(WINDOW &gt; 0);</span>
+
+<span class="s2">    for (i = 0; i &lt; N_NODES; ++i) {</span>
+<span class="s2">        for (d = 0; d &lt; EMBED; ++d) {</span>
+<span class="s2">            $</span><span class="si">{real}</span><span class="s2"> acc = feat_b[d];</span>
+<span class="s2">            for (t = 0; t &lt; WINDOW; ++t) {</span>
+<span class="s2">                acc += feat_w[(d * WINDOW) + t] * context[(i * WINDOW) + t];</span>
+<span class="s2">            }</span>
+<span class="s2">            node_h[(i * EMBED) + d] = acc;</span>
+<span class="s2">        }</span>
+<span class="s2">    }</span>
+<span class="s2">    return $</span><span class="si">{up}</span><span class="s2">_OK;</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+<span class="c1">#: The three non-linear modes. They differ only in whether the AR filter scales</span>
+<span class="c1">#: the KAN branch&#39;s input and whether a linear branch is added over the</span>
+<span class="c1">#: *unfiltered* window, so one template covers ``kan``, ``ar_kan`` and</span>
+<span class="c1">#: ``ar_kan_residual`` with two optional blocks.</span>
+<span class="n">_FEATURES_KAN</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">/* $</span><span class="si">{formula}</span><span class="s2"> */</span>
+<span class="s2">static int kan_features(const $</span><span class="si">{real}</span><span class="s2"> *context, $</span><span class="si">{real}</span><span class="s2"> *node_h)</span>
+<span class="s2">{</span>
+<span class="s2">$</span><span class="si">{decls}</span>
+<span class="s2">    if ((context == NULL) || (node_h == NULL)) {</span>
+<span class="s2">        return $</span><span class="si">{up}</span><span class="s2">_ERR_NULL;</span>
+<span class="s2">    }</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(EMBED &gt; 0);</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(WINDOW &gt; 0);</span>
+<span class="s2">    /* The casts keep -Wenum-compare quiet: the layer&#39;s dimensions and the</span>
+<span class="s2">       encoder&#39;s live in two separate anonymous enumerations. */</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT((int)FEATKAN_IN == (int)WINDOW);</span>
+<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT((int)FEATKAN_OUT == (int)EMBED);</span>
+
+<span class="s2">    for (i = 0; i &lt; N_NODES; ++i) {</span>
+<span class="s2">        const $</span><span class="si">{real}</span><span class="s2"> *x = &amp;context[i * WINDOW];</span>
+<span class="s2">$</span><span class="si">{filter_block}</span><span class="s2">        status = featkan_forward($</span><span class="si">{kan_input}</span><span class="s2">, &amp;node_h[i * EMBED]);</span>
+<span class="s2">        if (status != $</span><span class="si">{up}</span><span class="s2">_OK) {</span>
+<span class="s2">            return status;</span>
+<span class="s2">        }</span>
+<span class="s2">$</span><span class="si">{residual_block}</span><span class="s2">    }</span>
+<span class="s2">    return $</span><span class="si">{up}</span><span class="s2">_OK;</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
 <span class="n">_SCORING</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">/* ---- scoring path ---- */</span>
 
@@ -746,30 +805,7 @@
 <span class="s2">    return $</span><span class="si">{up}</span><span class="s2">_OK;</span>
 <span class="s2">}</span>
 
-<span class="s2">/* h_i = W x_i + b */</span>
-<span class="s2">static int kan_features(const $</span><span class="si">{real}</span><span class="s2"> *context, $</span><span class="si">{real}</span><span class="s2"> *node_h)</span>
-<span class="s2">{</span>
-<span class="s2">    int i;</span>
-<span class="s2">    int d;</span>
-<span class="s2">    int t;</span>
-
-<span class="s2">    if ((context == NULL) || (node_h == NULL)) {</span>
-<span class="s2">        return $</span><span class="si">{up}</span><span class="s2">_ERR_NULL;</span>
-<span class="s2">    }</span>
-<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(EMBED &gt; 0);</span>
-<span class="s2">    $</span><span class="si">{up}</span><span class="s2">_ASSERT(WINDOW &gt; 0);</span>
-
-<span class="s2">    for (i = 0; i &lt; N_NODES; ++i) {</span>
-<span class="s2">        for (d = 0; d &lt; EMBED; ++d) {</span>
-<span class="s2">            $</span><span class="si">{real}</span><span class="s2"> acc = feat_b[d];</span>
-<span class="s2">            for (t = 0; t &lt; WINDOW; ++t) {</span>
-<span class="s2">                acc += feat_w[(d * WINDOW) + t] * context[(i * WINDOW) + t];</span>
-<span class="s2">            }</span>
-<span class="s2">            node_h[(i * EMBED) + d] = acc;</span>
-<span class="s2">        }</span>
-<span class="s2">    }</span>
-<span class="s2">    return $</span><span class="si">{up}</span><span class="s2">_OK;</span>
-<span class="s2">}</span>
+<span class="s2">$</span><span class="si">{features_fn}</span>
 
 <span class="s2">/* The attention score a^T [g_i | g_j] is separable, so each node needs only the</span>
 <span class="s2">   two projections of g_i = [v_i | h_i] rather than a pairwise concatenation. */</span>
@@ -1111,6 +1147,89 @@
     <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_emit_features</span><span class="p">(</span><span class="n">net</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">up</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">real</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Emit ``kan_features``, the node feature transform, for any ``feat_mode``.</span>
+
+<span class="sd">    The extracted form describes the transform additively rather than by name:</span>
+<span class="sd">    ``feat_weight`` / ``feat_bias`` are a linear branch over the raw window,</span>
+<span class="sd">    ``feat_kan`` a KAN branch, and ``ar_filter`` a per node diagonal Yule-Walker</span>
+<span class="sd">    filter on the KAN branch&#39;s input. ``linear`` populates only the first pair,</span>
+<span class="sd">    ``kan`` only the KAN, ``ar_kan`` the KAN and the filter, and</span>
+<span class="sd">    ``ar_kan_residual`` all three. Reproducing that composition here keeps the</span>
+<span class="sd">    emitted C a function of what was extracted rather than of a mode string.</span>
+
+<span class="sd">    The linear branch reads the *unfiltered* window, matching</span>
+<span class="sd">    ``ARKANFeatures.forward``; filtering it too would compute a different model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">has_linear</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feat_weight&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">kan</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feat_kan&quot;</span><span class="p">)</span>
+    <span class="n">has_ar</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ar_filter&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">kan</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_linear</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;The extracted feature transform has neither a linear nor a KAN branch.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">has_ar</span><span class="p">:</span>
+            <span class="c1"># No emitter path reaches this, but a filter with nothing to filter</span>
+            <span class="c1"># would be silently dropped, which is the failure mode worth naming.</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;An AR filter without a KAN branch is not a supported feature transform.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">_FEATURES_LINEAR</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="n">up</span><span class="o">=</span><span class="n">up</span><span class="p">,</span> <span class="n">real</span><span class="o">=</span><span class="n">real</span><span class="p">)</span>
+
+    <span class="c1"># `t` indexes the window, needed by the filter and the residual; `d` indexes</span>
+    <span class="c1"># the embedding, needed only by the residual. Declaring either when unused</span>
+    <span class="c1"># trips -Wunused-variable, so the declaration block is built to match.</span>
+    <span class="n">decls</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;    int i;&quot;</span><span class="p">,</span> <span class="s2">&quot;    int status;&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">has_ar</span><span class="p">:</span>
+        <span class="n">decls</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;    </span><span class="si">{</span><span class="n">real</span><span class="si">}</span><span class="s2"> filtered[WINDOW];&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">has_linear</span><span class="p">:</span>
+        <span class="n">decls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;    int d;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">has_ar</span> <span class="ow">or</span> <span class="n">has_linear</span><span class="p">:</span>
+        <span class="n">decls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;    int t;&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">has_ar</span><span class="p">:</span>
+        <span class="n">filter_block</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;        /* Stage 1: the frozen diagonal AR filter, solved per node.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;           It scales the window element-wise rather than mixing it. */</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;        for (t = 0; t &lt; WINDOW; ++t) {</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;            filtered[t] = ar_filter[(i * WINDOW) + t] * x[t];</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;        }</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">filter_block</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">has_linear</span><span class="p">:</span>
+        <span class="n">residual_block</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;        /* Residual: a parallel linear branch over the unfiltered</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;           window, so the KAN branch corrects a baseline. */</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;        for (d = 0; d &lt; EMBED; ++d) {</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;            </span><span class="si">{</span><span class="n">real</span><span class="si">}</span><span class="s2"> acc = feat_b[d];</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;            for (t = 0; t &lt; WINDOW; ++t) {</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;                acc += feat_w[(d * WINDOW) + t] * x[t];</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;            }</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;            node_h[(i * EMBED) + d] += acc;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;        }</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">residual_block</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="n">inner</span> <span class="o">=</span> <span class="s2">&quot;a_i * x_i&quot;</span> <span class="k">if</span> <span class="n">has_ar</span> <span class="k">else</span> <span class="s2">&quot;x_i&quot;</span>
+    <span class="n">formula</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;h_i = KAN(</span><span class="si">{</span><span class="n">inner</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot; + W x_i + b&quot;</span> <span class="k">if</span> <span class="n">has_linear</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_FEATURES_KAN</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span>
+        <span class="n">up</span><span class="o">=</span><span class="n">up</span><span class="p">,</span>
+        <span class="n">real</span><span class="o">=</span><span class="n">real</span><span class="p">,</span>
+        <span class="n">formula</span><span class="o">=</span><span class="n">formula</span><span class="p">,</span>
+        <span class="n">decls</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">decls</span><span class="p">),</span>
+        <span class="n">filter_block</span><span class="o">=</span><span class="n">filter_block</span><span class="p">,</span>
+        <span class="n">kan_input</span><span class="o">=</span><span class="s2">&quot;filtered&quot;</span> <span class="k">if</span> <span class="n">has_ar</span> <span class="k">else</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span>
+        <span class="n">residual_block</span><span class="o">=</span><span class="n">residual_block</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_emit_vectors</span><span class="p">(</span><span class="n">extracted</span><span class="p">,</span> <span class="n">test_windows</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Emit golden vectors: input windows beside the reference evaluator&#39;s scores.</span>
@@ -1224,18 +1343,6 @@
     <span class="n">window</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s2">&quot;window&quot;</span><span class="p">])</span>
     <span class="n">scaled</span> <span class="o">=</span> <span class="n">extracted</span><span class="p">[</span><span class="s2">&quot;scaler_mean&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
-    <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feat_kan&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1"># The emitted encoder hardcodes a dense feature transform (feat_w/feat_b</span>
-        <span class="c1"># and a matrix-vector product). Every non-linear feat_mode puts a spline</span>
-        <span class="c1"># layer over `window` inputs there instead, which needs its own emitter</span>
-        <span class="c1"># and a much larger coefficient block. Refuse rather than emit C that</span>
-        <span class="c1"># computes the wrong function.</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-            <span class="s2">&quot;C generation supports only feat_mode=&#39;linear&#39;; this detector was &quot;</span>
-            <span class="s2">&quot;fitted with a KAN feature transform, not the dense one the emitted &quot;</span>
-            <span class="s2">&quot;encoder assumes.&quot;</span>
-        <span class="p">)</span>
-
     <span class="k">if</span> <span class="n">n_nodes</span> <span class="o">&gt;</span> <span class="mi">255</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Neighbour indices are emitted as bytes; </span><span class="si">{</span><span class="n">n_nodes</span><span class="si">}</span><span class="s2"> nodes exceeds that.&quot;</span>
@@ -1278,10 +1385,19 @@
         <span class="p">),</span>
         <span class="n">_emit_layer</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s2">&quot;activation&quot;</span><span class="p">],</span> <span class="s2">&quot;act&quot;</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
         <span class="n">_emit_layer</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s2">&quot;out&quot;</span><span class="p">],</span> <span class="s2">&quot;head&quot;</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feat_kan&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_emit_layer</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s2">&quot;feat_kan&quot;</span><span class="p">],</span> <span class="s2">&quot;featkan&quot;</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
+    <span class="n">parts</span> <span class="o">+=</span> <span class="p">[</span>
         <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">/* ---- encoder parameters ---- */</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
         <span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;embedding&quot;</span><span class="p">,</span> <span class="n">net</span><span class="p">[</span><span class="s2">&quot;embedding&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
-        <span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;feat_w&quot;</span><span class="p">,</span> <span class="n">net</span><span class="p">[</span><span class="s2">&quot;feat_weight&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
-        <span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;feat_b&quot;</span><span class="p">,</span> <span class="n">net</span><span class="p">[</span><span class="s2">&quot;feat_bias&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feat_weight&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;feat_w&quot;</span><span class="p">,</span> <span class="n">net</span><span class="p">[</span><span class="s2">&quot;feat_weight&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;feat_b&quot;</span><span class="p">,</span> <span class="n">net</span><span class="p">[</span><span class="s2">&quot;feat_bias&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ar_filter&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;ar_filter&quot;</span><span class="p">,</span> <span class="n">net</span><span class="p">[</span><span class="s2">&quot;ar_filter&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
+    <span class="n">parts</span> <span class="o">+=</span> <span class="p">[</span>
         <span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;attn_src&quot;</span><span class="p">,</span> <span class="n">net</span><span class="p">[</span><span class="s2">&quot;attn_src&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
         <span class="n">_c_array</span><span class="p">(</span><span class="s2">&quot;attn_dst&quot;</span><span class="p">,</span> <span class="n">net</span><span class="p">[</span><span class="s2">&quot;attn_dst&quot;</span><span class="p">],</span> <span class="n">real</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">suffix</span><span class="p">),</span>
         <span class="s2">&quot;static const unsigned char neighbours[&quot;</span>
@@ -1315,6 +1431,7 @@
             <span class="n">fabsf</span><span class="o">=</span><span class="n">fabsf</span><span class="p">,</span>
             <span class="n">scale_ctx</span><span class="o">=</span><span class="n">scale_ctx</span><span class="p">,</span>
             <span class="n">scale_tgt</span><span class="o">=</span><span class="n">scale_tgt</span><span class="p">,</span>
+            <span class="n">features_fn</span><span class="o">=</span><span class="n">_emit_features</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">up</span><span class="p">,</span> <span class="n">real</span><span class="p">),</span>
         <span class="p">)</span>
     <span class="p">)</span>
 
