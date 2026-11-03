@@ -354,18 +354,19 @@ def detect_anomalies(
     errors: Sequence[float],
     threshold: float | None = None,
     min_decrease: float = 0.13,
-    prune: bool = True,
+    prune: bool = False,
     **threshold_kwargs,
 ) -> dict:
     """
-    Full label-free detection: choose a threshold, find sequences, prune them.
+    Full label-free detection: choose a threshold, find sequences, optionally prune them.
 
     Arguments:
         errors: Error signal, one value per timestep.
         threshold: Use this cutoff instead of selecting one. Useful for applying
             an operating point derived from training errors to new data.
-        min_decrease: Passed to :func:`prune_sequences`.
-        prune: Set False to keep every sequence above the threshold.
+        min_decrease: Passed to :func:`prune_sequences`. Ignored unless ``prune``.
+        prune: Set True to apply the published pruning, which keeps only the
+            sequences whose peaks stand clear of the rest.
         **threshold_kwargs: Passed to :func:`dynamic_threshold`.
     Returns:
         dict: ``mask`` (boolean, one entry per timestep), ``threshold``,

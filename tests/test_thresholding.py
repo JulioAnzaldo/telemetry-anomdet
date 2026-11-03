@@ -169,6 +169,16 @@ def test_detect_can_skip_pruning():
     assert pruned["n_pruned"] == 1
 
 
+def test_detect_keeps_every_sequence_by_default():
+    """Pruning is opt-in. It discards real events when they are many and short."""
+    e = np.ones(60) * 1.0
+    e[10:12] = 20.0
+    e[30:32] = 1.05
+    got = detect_anomalies(e, threshold=1.02)
+    assert len(got["sequences"]) == 2
+    assert got["n_pruned"] == 0
+
+
 def test_detect_on_a_clean_signal_flags_nothing():
     got = detect_anomalies(np.full(200, 2.0))
     assert not got["mask"].any()

@@ -3,7 +3,8 @@
 """
 Telemetry dataset loader.
 
-This module a lightweight class called TelemetryDataset that wraps telemetry data in a consistent form factor for downstream processing.
+This module provides TelemetryDataset, a lightweight class that wraps telemetry
+data in a consistent form for downstream processing.
 """
 
 from __future__ import annotations
