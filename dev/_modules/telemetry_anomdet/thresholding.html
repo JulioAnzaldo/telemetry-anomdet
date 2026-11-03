@@ -814,18 +814,19 @@
     <span class="n">errors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
     <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">min_decrease</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.13</span><span class="p">,</span>
-    <span class="n">prune</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">prune</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">threshold_kwargs</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Full label-free detection: choose a threshold, find sequences, prune them.</span>
+<span class="sd">    Full label-free detection: choose a threshold, find sequences, optionally prune them.</span>
 
 <span class="sd">    Arguments:</span>
 <span class="sd">        errors: Error signal, one value per timestep.</span>
 <span class="sd">        threshold: Use this cutoff instead of selecting one. Useful for applying</span>
 <span class="sd">            an operating point derived from training errors to new data.</span>
-<span class="sd">        min_decrease: Passed to :func:`prune_sequences`.</span>
-<span class="sd">        prune: Set False to keep every sequence above the threshold.</span>
+<span class="sd">        min_decrease: Passed to :func:`prune_sequences`. Ignored unless ``prune``.</span>
+<span class="sd">        prune: Set True to apply the published pruning, which keeps only the</span>
+<span class="sd">            sequences whose peaks stand clear of the rest.</span>
 <span class="sd">        **threshold_kwargs: Passed to :func:`dynamic_threshold`.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        dict: ``mask`` (boolean, one entry per timestep), ``threshold``,</span>
