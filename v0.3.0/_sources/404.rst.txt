@@ -1,0 +1,22 @@
+:orphan:
+
+Page not found
+==============
+
+That page does not exist. It may have been renamed or removed: this project is
+below version 1.0.0, so documentation pages move as the API settles.
+
+Try one of these instead.
+
+- :doc:`Getting started <getting_started>`: install and first run
+- :doc:`Pipeline overview <user_guide/pipeline_overview>`: ingest, detect, explain
+- :doc:`Scoring and thresholding <user_guide/anomaly_scoring>`: which metric to
+  judge a detector by, and how an operating point is chosen without labels
+- :doc:`Onboard deployment <applications/onboard_deployment>`: distilling a
+  detector to C for flight hardware
+- :doc:`Glossary <user_guide/glossary>`: terms and conventions
+
+The search box in the sidebar covers the whole site. Failing that, the
+`GitHub repository <https://github.com/JulioAnzaldo/telemetry-anomdet>`_ and its
+`issue tracker <https://github.com/JulioAnzaldo/telemetry-anomdet/issues>`_ are
+the places to ask.

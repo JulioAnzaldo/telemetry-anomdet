@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Generated source listings and the search page carry no content of their own.
+Disallow: /telemetry-anomdet/_modules/
+Disallow: /telemetry-anomdet/_sources/
+Disallow: /telemetry-anomdet/search.html
+
+Sitemap: https://julioanzaldo.github.io/telemetry-anomdet/sitemap.xml
