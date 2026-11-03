@@ -208,6 +208,11 @@ def _topk_adjacency(embeddings: np.ndarray, k: int) -> np.ndarray:
     return adj
 
 
+def _numpy(tensor) -> np.ndarray:
+    """Detach a torch tensor to a float64 NumPy array."""
+    return tensor.detach().cpu().numpy().astype(float)
+
+
 def extract_kan_gdn_net(net) -> dict:
     """
     Pull a fitted ``KANGDNNet``'s learned parameters into a torch-free dict.
@@ -225,9 +230,17 @@ def extract_kan_gdn_net(net) -> dict:
     -------
     dict
         ``n_nodes``, ``window``, ``embed_dim`` (ints); ``embedding``,
-        ``feat_weight``, ``feat_bias``, ``attn_src``, ``attn_dst``, ``adj``
-        (NumPy arrays); ``leaky_slope`` (float); and ``activation`` / ``out``,
-        the two extracted KAN layers.
+        ``attn_src``, ``attn_dst``, ``adj`` (NumPy arrays); ``leaky_slope``
+        (float); and ``activation`` / ``out``, the two extracted KAN layers.
+
+        The node feature transform is described by up to three keys, composed
+        additively so every ``feat_mode`` is covered without a mode string.
+        ``feat_weight`` / ``feat_bias`` describe a linear branch over the raw
+        window; ``feat_kan`` an extracted KAN branch; ``ar_filter`` the frozen
+        ``(n_nodes, window)`` Yule-Walker coefficients applied to the KAN
+        branch's input. Each is None when absent, so ``linear`` populates only
+        the first pair, ``kan`` only ``feat_kan``, ``ar_kan`` that plus
+        ``ar_filter``, and ``ar_kan_residual`` all three.
     """
     encoder = net.encoder
     embedding = encoder.embedding.weight.detach().cpu().numpy().astype(float)
@@ -237,13 +250,23 @@ def extract_kan_gdn_net(net) -> dict:
     adj = _topk_adjacency(embedding, int(encoder.topk))
     np.fill_diagonal(adj, True)  # self-loops, as in the torch forward
 
+    # The feature transform is injectable (nn.Linear or an ARKANFeatures);
+    # extract whichever is installed rather than assuming, so a KAN feat cannot
+    # be silently read as a linear one and distil to the wrong function.
+    feat = encoder.feat
+    kan_branch = getattr(feat, "kan", None)
+    linear_branch = feat if kan_branch is None else getattr(feat, "linear", None)
+    ar_filter = getattr(feat, "ar_filter", None)
+
     return {
         "n_nodes": int(encoder.n_nodes),
         "window": int(encoder.window),
         "embed_dim": int(encoder.embed_dim),
         "embedding": embedding,
-        "feat_weight": encoder.feat.weight.detach().cpu().numpy().astype(float),
-        "feat_bias": encoder.feat.bias.detach().cpu().numpy().astype(float),
+        "feat_weight": (None if linear_branch is None else _numpy(linear_branch.weight)),
+        "feat_bias": (None if linear_branch is None else _numpy(linear_branch.bias)),
+        "feat_kan": None if kan_branch is None else extract_kan_layer(kan_branch),
+        "ar_filter": None if ar_filter is None else _numpy(ar_filter),
         # score_ij = a_src . g_i + a_dst . g_j
         "attn_src": attn[:half],
         "attn_dst": attn[half:],
@@ -279,8 +302,20 @@ class KANGDNNetNumpy:
         self.window = extracted["window"]
         self.embed_dim = extracted["embed_dim"]
         self.embedding = np.asarray(extracted["embedding"], dtype=float)
-        self.feat_weight = np.asarray(extracted["feat_weight"], dtype=float)
-        self.feat_bias = np.asarray(extracted["feat_bias"], dtype=float)
+
+        # Feature-transform branches, any subset of which may be absent; see
+        # extract_kan_gdn_net. Older extractions predate the KAN and AR keys.
+        feat_kan = extracted.get("feat_kan")
+        self.feat_kan = None if feat_kan is None else KANLayerNumpy(feat_kan)
+        feat_weight = extracted.get("feat_weight")
+        self.feat_weight = None if feat_weight is None else np.asarray(feat_weight, dtype=float)
+        feat_bias = extracted.get("feat_bias")
+        self.feat_bias = None if feat_bias is None else np.asarray(feat_bias, dtype=float)
+        ar_filter = extracted.get("ar_filter")
+        self.ar_filter = None if ar_filter is None else np.asarray(ar_filter, dtype=float)
+        if self.feat_kan is None and self.feat_weight is None:
+            raise ValueError("Extracted net has no feature transform branch.")
+
         self.attn_src = np.asarray(extracted["attn_src"], dtype=float)
         self.attn_dst = np.asarray(extracted["attn_dst"], dtype=float)
         self.leaky_slope = float(extracted["leaky_slope"])
@@ -292,7 +327,16 @@ class KANGDNNetNumpy:
         x = np.asarray(x, dtype=float)
 
         v = self.embedding  # (n_nodes, embed_dim)
-        h = x @ self.feat_weight.T + self.feat_bias  # (batch, n_nodes, embed_dim)
+
+        # Feature transform, composed from whichever branches are present.
+        # Mirrors ARKANFeatures.forward: the AR filter applies to the KAN branch
+        # only, so a residual linear branch keeps the unfiltered window.
+        h = 0.0
+        if self.feat_kan is not None:
+            filtered = x if self.ar_filter is None else x * self.ar_filter
+            h = h + self.feat_kan(filtered)
+        if self.feat_weight is not None:
+            h = h + x @ self.feat_weight.T + self.feat_bias  # (batch, n_nodes, embed_dim)
 
         # Node descriptor g_i = [v_i | W x_i], broadcast across the batch.
         vb = np.broadcast_to(v, h.shape)

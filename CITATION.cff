@@ -6,14 +6,8 @@ authors:
   - given-names: Julio
     family-names: Anzaldo
     email: anzaldojuliojesus@gmail.com
-  - given-names: Shaizaan
-    family-names: Qureshi
-  - given-names: Mohamed
-    family-names: Aiad
-  - given-names: Evan
-    family-names: Booth
-version: 0.2.0
-date-released: 2026-08-13
+version: 0.3.0
+date-released: 2026-11-03
 license: Apache-2.0
 repository-code: https://github.com/JulioAnzaldo/telemetry-anomdet
 url: https://julioanzaldo.github.io/telemetry-anomdet/

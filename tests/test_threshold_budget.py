@@ -9,10 +9,15 @@ def test_returns_the_documented_keys():
     assert set(out) == {"threshold", "flagged", "n_above", "n_sequences"}
 
 
-def test_threshold_is_the_upper_quantile():
+def test_threshold_is_an_observed_value_not_an_interpolated_one():
+    """
+    The cutoff snaps up to a real sample. An interpolated cutoff falls between
+    two observations and lets more than the budget sit above it.
+    """
     errors = np.arange(1000.0)
     out = threshold_for_budget(errors, budget=0.05)
-    assert out["threshold"] == pytest.approx(np.quantile(errors, 0.95))
+    assert out["threshold"] == pytest.approx(np.quantile(errors, 0.95, method="higher"))
+    assert out["threshold"] in set(errors.tolist())
 
 
 def test_flagged_fraction_tracks_the_budget():
@@ -95,18 +100,25 @@ def test_flagged_stays_close_to_the_budget():
             assert out["flagged"] == pytest.approx(budget, abs=2.0 / n), f"n={n} budget={budget}"
 
 
-def test_small_inputs_can_exceed_the_budget():
+def test_small_inputs_respect_the_budget():
     """
-    Known deviation, deferred to 0.3.0 (see the TODO in thresholding.py).
-
-    numpy's default linear interpolation places the cutoff between two samples,
-    so more than the budget can sit above it even when the budget is resolvable:
-    50 points at budget=0.05 flags 3 (0.06) where 2 (0.04) would fit.
-
-    Pinned rather than asserted-away so the fix announces itself. When
-    method="higher" lands, this test fails and should become the bound it
-    replaces.
+    The case that used to break the bound. Linear interpolation put the cutoff
+    between two samples and flagged 3 of 50 (0.06) at budget 0.05, where 2
+    (0.04) fits. Snapping the quantile up to a real sample holds the bound.
     """
     out = threshold_for_budget(np.arange(50.0), budget=0.05)
-    assert out["n_above"] == 3
-    assert out["flagged"] > 0.05
+    assert out["n_above"] == 2
+    assert out["flagged"] <= 0.05
+
+
+def test_the_budget_is_a_bound_at_every_size():
+    """
+    Swept rather than spot-checked, because the failure only appeared at some
+    combinations of length and budget.
+    """
+    rng = np.random.default_rng(4)
+    for n in (7, 23, 50, 200, 1000):
+        errors = rng.normal(size=n)
+        for budget in (0.01, 0.02, 0.05, 0.1, 0.25, 0.5):
+            out = threshold_for_budget(errors, budget=budget)
+            assert out["flagged"] <= budget + 1e-12, f"n={n} budget={budget}"

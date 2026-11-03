@@ -26,6 +26,27 @@ try:
 except PackageNotFoundError:  # docs built without installing the project
     release = '0.0.0'
 
+# -- Versioned builds ---------------------------------------------------------
+#
+# One source tree produces every version of the site. TAD_DOCS_SLOT names the
+# subdirectory this build is deployed into:
+#
+#   unset   -> the site root, which is always the current release
+#   dev     -> /dev/, built from the dev branch
+#   v0.2.0  -> /v0.2.0/, an archived release built from its tag
+#
+# The root keeps its existing URLs, so llms.txt, robots.txt, the sitemap, the
+# README badge and CITATION.cff all stay correct without edits. Only the
+# archives live at new paths.
+# Unset means a local or PR build: no switcher, and no network fetch of the
+# version list. Set it to "root" for the release build that lands at the site
+# root, or to the subdirectory name for anything else.
+_SITE_ROOT = 'https://julioanzaldo.github.io/telemetry-anomdet/'
+_SLOT_RAW = os.environ.get('TAD_DOCS_SLOT', '').strip('/')
+_VERSIONED = bool(_SLOT_RAW)
+_SLOT = '' if _SLOT_RAW in ('', 'root') else _SLOT_RAW
+_SLOT_PATH = f'{_SLOT}/' if _SLOT else ''
+
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
@@ -69,7 +90,7 @@ html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
 html_css_files = ['custom.css']
 html_js_files = ['llm_copy.js']
-html_baseurl = "https://julioanzaldo.github.io/telemetry-anomdet/"
+html_baseurl = f"{_SITE_ROOT}{_SLOT_PATH}"
 
 # Copy extra files (e.g. llms.txt) verbatim to the built site root.
 html_extra_path = ['_extra']
@@ -105,6 +126,23 @@ html_theme_options = {
     'footer_start': ['copyright'],
     'footer_end': ['theme-version'],
 }
+
+if _VERSIONED:
+    # The switcher list is always read from the root copy, never from this
+    # build's own. An archived version then offers every release published
+    # after it, instead of freezing the list as it stood on its release day.
+    #
+    # Only on deploy builds: the theme fetches this URL while building, so
+    # wiring it up unconditionally would make every local build reach the
+    # network and warn when it cannot.
+    html_theme_options['switcher'] = {
+        'json_url': f'{_SITE_ROOT}switcher.json',
+        'version_match': 'dev' if _SLOT == 'dev' else release,
+    }
+    html_theme_options['navbar_start'] = ['navbar-logo', 'version-switcher']
+    # Tells a reader on an archived or dev page that they are not on the
+    # current release, which is the whole point of publishing older versions.
+    html_theme_options['show_version_warning_banner'] = True
 
 html_context = {
     'github_user': 'JulioAnzaldo',
@@ -142,4 +180,4 @@ ogp_custom_meta_tags = [
 
 # 404 page. GitHub Pages serves /404.html for any missing path, so the page's
 # own asset links must be absolute rather than relative to where it was built.
-notfound_urls_prefix = '/telemetry-anomdet/'
+notfound_urls_prefix = f'/telemetry-anomdet/{_SLOT_PATH}'

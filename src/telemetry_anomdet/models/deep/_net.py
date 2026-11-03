@@ -99,6 +99,13 @@ class GATEncoder(nn.Module):
         Nonlinearity applied to the aggregated neighbour features (KGL eq. 3).
         Defaults to ``nn.ReLU()``. A KAN-based variant injects a KAN layer here
         without changing the graph/attention machinery.
+    feat : nn.Module or None, default=None
+        Node feature transform mapping ``window -> embed_dim``. Defaults to
+        ``nn.Linear(window, embed_dim)``. Injectable for the same reason as
+        ``activation``: the AR-KAN variants put an ``ARKANFeatures`` here so each
+        node's own history passes through a nonlinearity before the graph ever
+        sees it. Anything accepting ``(batch, n_nodes, window)`` and returning
+        ``(batch, n_nodes, embed_dim)`` works; the encoder does not inspect it.
 
     Notes
     -----
@@ -113,6 +120,7 @@ class GATEncoder(nn.Module):
         embed_dim: int = 64,
         topk: int = 15,
         activation: nn.Module | None = None,
+        feat: nn.Module | None = None,
     ):
         super().__init__()
         self.n_nodes = n_nodes
@@ -122,7 +130,7 @@ class GATEncoder(nn.Module):
 
         self.embedding = nn.Embedding(n_nodes, embed_dim)
         # Node feature transform W: raw window values -> hidden features.
-        self.feat = nn.Linear(window, embed_dim)
+        self.feat = feat if feat is not None else nn.Linear(window, embed_dim)
         # Attention over the concatenation of the source and target node
         # descriptors g_i = [v_i | W x_i] (GAT-style, feature- and
         # embedding-conditioned, per Deng & Hooi eq. 6-8). Input width is

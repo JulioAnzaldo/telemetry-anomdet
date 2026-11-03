@@ -274,6 +274,65 @@ static int ${name}_forward(const ${real} *x, ${real} *y)
 }
 """)
 
+# Node feature transform for ``feat_mode="linear"``: the dense map the encoder
+# has always used, with the splines seeing only the compressed embedding.
+_FEATURES_LINEAR = Template("""\
+/* h_i = W x_i + b */
+static int kan_features(const ${real} *context, ${real} *node_h)
+{
+    int i;
+    int d;
+    int t;
+
+    if ((context == NULL) || (node_h == NULL)) {
+        return ${up}_ERR_NULL;
+    }
+    ${up}_ASSERT(EMBED > 0);
+    ${up}_ASSERT(WINDOW > 0);
+
+    for (i = 0; i < N_NODES; ++i) {
+        for (d = 0; d < EMBED; ++d) {
+            ${real} acc = feat_b[d];
+            for (t = 0; t < WINDOW; ++t) {
+                acc += feat_w[(d * WINDOW) + t] * context[(i * WINDOW) + t];
+            }
+            node_h[(i * EMBED) + d] = acc;
+        }
+    }
+    return ${up}_OK;
+}
+""")
+
+#: The three non-linear modes. They differ only in whether the AR filter scales
+#: the KAN branch's input and whether a linear branch is added over the
+#: *unfiltered* window, so one template covers ``kan``, ``ar_kan`` and
+#: ``ar_kan_residual`` with two optional blocks.
+_FEATURES_KAN = Template("""\
+/* ${formula} */
+static int kan_features(const ${real} *context, ${real} *node_h)
+{
+${decls}
+    if ((context == NULL) || (node_h == NULL)) {
+        return ${up}_ERR_NULL;
+    }
+    ${up}_ASSERT(EMBED > 0);
+    ${up}_ASSERT(WINDOW > 0);
+    /* The casts keep -Wenum-compare quiet: the layer's dimensions and the
+       encoder's live in two separate anonymous enumerations. */
+    ${up}_ASSERT((int)FEATKAN_IN == (int)WINDOW);
+    ${up}_ASSERT((int)FEATKAN_OUT == (int)EMBED);
+
+    for (i = 0; i < N_NODES; ++i) {
+        const ${real} *x = &context[i * WINDOW];
+${filter_block}        status = featkan_forward(${kan_input}, &node_h[i * EMBED]);
+        if (status != ${up}_OK) {
+            return status;
+        }
+${residual_block}    }
+    return ${up}_OK;
+}
+""")
+
 _SCORING = Template("""
 /* ---- scoring path ---- */
 
@@ -303,30 +362,7 @@ static int kan_prepare(const ${prefix}_real_t *window, ${real} *context, ${real}
     return ${up}_OK;
 }
 
-/* h_i = W x_i + b */
-static int kan_features(const ${real} *context, ${real} *node_h)
-{
-    int i;
-    int d;
-    int t;
-
-    if ((context == NULL) || (node_h == NULL)) {
-        return ${up}_ERR_NULL;
-    }
-    ${up}_ASSERT(EMBED > 0);
-    ${up}_ASSERT(WINDOW > 0);
-
-    for (i = 0; i < N_NODES; ++i) {
-        for (d = 0; d < EMBED; ++d) {
-            ${real} acc = feat_b[d];
-            for (t = 0; t < WINDOW; ++t) {
-                acc += feat_w[(d * WINDOW) + t] * context[(i * WINDOW) + t];
-            }
-            node_h[(i * EMBED) + d] = acc;
-        }
-    }
-    return ${up}_OK;
-}
+${features_fn}
 
 /* The attention score a^T [g_i | g_j] is separable, so each node needs only the
    two projections of g_i = [v_i | h_i] rather than a pairwise concatenation. */
@@ -668,6 +704,89 @@ def _emit_layer(layer: dict, name: str, prefix: str, real: str, digits: int, suf
     )
 
 
+def _emit_features(net: dict, up: str, real: str) -> str:
+    """
+    Emit ``kan_features``, the node feature transform, for any ``feat_mode``.
+
+    The extracted form describes the transform additively rather than by name:
+    ``feat_weight`` / ``feat_bias`` are a linear branch over the raw window,
+    ``feat_kan`` a KAN branch, and ``ar_filter`` a per node diagonal Yule-Walker
+    filter on the KAN branch's input. ``linear`` populates only the first pair,
+    ``kan`` only the KAN, ``ar_kan`` the KAN and the filter, and
+    ``ar_kan_residual`` all three. Reproducing that composition here keeps the
+    emitted C a function of what was extracted rather than of a mode string.
+
+    The linear branch reads the *unfiltered* window, matching
+    ``ARKANFeatures.forward``; filtering it too would compute a different model.
+    """
+    has_linear = net.get("feat_weight") is not None
+    kan = net.get("feat_kan")
+    has_ar = net.get("ar_filter") is not None
+
+    if kan is None:
+        if not has_linear:
+            raise ValueError(
+                "The extracted feature transform has neither a linear nor a KAN branch."
+            )
+        if has_ar:
+            # No emitter path reaches this, but a filter with nothing to filter
+            # would be silently dropped, which is the failure mode worth naming.
+            raise NotImplementedError(
+                "An AR filter without a KAN branch is not a supported feature transform."
+            )
+        return _FEATURES_LINEAR.substitute(up=up, real=real)
+
+    # `t` indexes the window, needed by the filter and the residual; `d` indexes
+    # the embedding, needed only by the residual. Declaring either when unused
+    # trips -Wunused-variable, so the declaration block is built to match.
+    decls = ["    int i;", "    int status;"]
+    if has_ar:
+        decls.insert(0, f"    {real} filtered[WINDOW];")
+    if has_linear:
+        decls.append("    int d;")
+    if has_ar or has_linear:
+        decls.append("    int t;")
+
+    if has_ar:
+        filter_block = (
+            "        /* Stage 1: the frozen diagonal AR filter, solved per node.\n"
+            "           It scales the window element-wise rather than mixing it. */\n"
+            "        for (t = 0; t < WINDOW; ++t) {\n"
+            "            filtered[t] = ar_filter[(i * WINDOW) + t] * x[t];\n"
+            "        }\n"
+        )
+    else:
+        filter_block = ""
+
+    if has_linear:
+        residual_block = (
+            "        /* Residual: a parallel linear branch over the unfiltered\n"
+            "           window, so the KAN branch corrects a baseline. */\n"
+            "        for (d = 0; d < EMBED; ++d) {\n"
+            f"            {real} acc = feat_b[d];\n"
+            "            for (t = 0; t < WINDOW; ++t) {\n"
+            "                acc += feat_w[(d * WINDOW) + t] * x[t];\n"
+            "            }\n"
+            "            node_h[(i * EMBED) + d] += acc;\n"
+            "        }\n"
+        )
+    else:
+        residual_block = ""
+
+    inner = "a_i * x_i" if has_ar else "x_i"
+    formula = f"h_i = KAN({inner})" + (" + W x_i + b" if has_linear else "")
+
+    return _FEATURES_KAN.substitute(
+        up=up,
+        real=real,
+        formula=formula,
+        decls="\n".join(decls),
+        filter_block=filter_block,
+        kan_input="filtered" if has_ar else "x",
+        residual_block=residual_block,
+    )
+
+
 def _emit_vectors(extracted, test_windows, prefix, dtype, digits, suffix) -> str:
     """
     Emit golden vectors: input windows beside the reference evaluator's scores.
@@ -821,10 +940,19 @@ def generate_c(
         ),
         _emit_layer(net["activation"], "act", prefix, real, digits, suffix),
         _emit_layer(net["out"], "head", prefix, real, digits, suffix),
+    ]
+    if net.get("feat_kan") is not None:
+        parts.append(_emit_layer(net["feat_kan"], "featkan", prefix, real, digits, suffix))
+    parts += [
         "\n/* ---- encoder parameters ---- */\n",
         _c_array("embedding", net["embedding"], real, digits, suffix),
-        _c_array("feat_w", net["feat_weight"], real, digits, suffix),
-        _c_array("feat_b", net["feat_bias"], real, digits, suffix),
+    ]
+    if net.get("feat_weight") is not None:
+        parts.append(_c_array("feat_w", net["feat_weight"], real, digits, suffix))
+        parts.append(_c_array("feat_b", net["feat_bias"], real, digits, suffix))
+    if net.get("ar_filter") is not None:
+        parts.append(_c_array("ar_filter", net["ar_filter"], real, digits, suffix))
+    parts += [
         _c_array("attn_src", net["attn_src"], real, digits, suffix),
         _c_array("attn_dst", net["attn_dst"], real, digits, suffix),
         "static const unsigned char neighbours["
@@ -858,6 +986,7 @@ def generate_c(
             fabsf=fabsf,
             scale_ctx=scale_ctx,
             scale_tgt=scale_tgt,
+            features_fn=_emit_features(net, up, real),
         )
     )
 

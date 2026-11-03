@@ -27,7 +27,10 @@ import math
 import torch
 from torch import nn
 
+from ._ar import FEAT_MODES
 from ._net import GATEncoder
+
+__all__ = ["ARKANFeatures", "FEAT_MODES", "KANGDNNet", "KANLayer"]
 
 
 class KANLayer(nn.Module):
@@ -143,6 +146,111 @@ class KANLayer(nn.Module):
         return y.reshape(*lead_shape, self.out_features)
 
 
+class ARKANFeatures(nn.Module):
+    """
+    Node feature transform with an optional AR memory filter and residual path.
+
+    Implements the non-linear entries of :data:`FEAT_MODES` from two independent
+    flags, ``ar`` and ``residual``. The frozen AR filter is held here rather than
+    in ``GATEncoder`` so the encoder stays agnostic about what its transform does.
+
+    Parameters
+    ----------
+    n_nodes : int
+        Number of sensors. The AR filter is solved per node.
+    window : int
+        Input context length.
+    embed_dim : int
+        Output width.
+    grid_size, spline_order : int
+        Spline configuration for the KAN branch.
+    ar : bool, default=True
+        Apply the frozen AR filter to the KAN branch's input.
+    residual : bool, default=False
+        Add a parallel ``nn.Linear(window, embed_dim)`` over the *unfiltered*
+        window.
+
+    Notes
+    -----
+    ``ar=True, residual=False`` is AR-KAN as published. The filter is diagonal,
+    so it scales the window element-wise rather than mixing it, and on strongly
+    autocorrelated signals Yule-Walker concentrates almost all of its weight on
+    the most recent lag. The KAN downstream then sees close to the previous
+    sample alone rather than the window.
+
+    ``residual=True`` keeps a parallel linear branch over the unfiltered window,
+    so the AR-KAN branch adds to a baseline instead of replacing it.
+
+    Which combination performs best depends on whether the input's channels are
+    genuinely related, and it reverses between datasets. See
+    :doc:`/user_guide/feature_transforms` for the measurements and what they
+    imply for choosing a mode.
+    """
+
+    def __init__(
+        self,
+        n_nodes: int,
+        window: int,
+        embed_dim: int,
+        grid_size: int = 5,
+        spline_order: int = 3,
+        ar: bool = True,
+        residual: bool = False,
+    ):
+        super().__init__()
+        self.n_nodes = n_nodes
+        self.window = window
+        self.embed_dim = embed_dim
+
+        self.kan = KANLayer(window, embed_dim, grid_size=grid_size, spline_order=spline_order)
+        self.linear = nn.Linear(window, embed_dim) if residual else None
+        # Frozen (a buffer, not a Parameter): ones until set_ar_filters runs, so
+        # an unfitted forward pass is not silently scaled by garbage.
+        if ar:
+            self.register_buffer("ar_filter", torch.ones(n_nodes, window))
+        else:
+            self.ar_filter = None
+
+    def set_ar_filters(self, filters) -> None:
+        """
+        Install the frozen AR memory coefficients (AR-KAN stage 1).
+
+        Parameters
+        ----------
+        filters : array-like, shape (n_nodes, window)
+            Per-node coefficients from :func:`._ar.ar_filters`, aligned so the
+            last entry multiplies the most recent timestep.
+
+        Raises
+        ------
+        RuntimeError
+            If this transform was built without an AR stage.
+        """
+        if self.ar_filter is None:
+            raise RuntimeError("This feature transform was built without an AR stage.")
+        tensor = torch.as_tensor(filters, dtype=self.ar_filter.dtype, device=self.ar_filter.device)
+        expected = (self.n_nodes, self.window)
+        if tuple(tensor.shape) != expected:
+            raise ValueError(f"AR filters must have shape {expected}, got {tuple(tensor.shape)}")
+        self.ar_filter.copy_(tensor)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Parameters
+        ----------
+        x : torch.Tensor, shape (batch, n_nodes, window)
+
+        Returns
+        -------
+        h : torch.Tensor, shape (batch, n_nodes, embed_dim)
+        """
+        filtered = x if self.ar_filter is None else x * self.ar_filter
+        h = self.kan(filtered)
+        if self.linear is not None:
+            h = h + self.linear(x)  # unfiltered: the residual keeps the window
+        return h
+
+
 class KANGDNNet(nn.Module):
     """
     KAN-GAT forecasting network: the shared ``GATEncoder`` with a KAN activation,
@@ -167,6 +275,18 @@ class KANGDNNet(nn.Module):
         Spline grid intervals for the KAN layers.
     spline_order : int, default=3
         B-spline order for the KAN layers.
+    feat_mode : str, default="linear"
+        Node feature transform, one of :data:`FEAT_MODES`. The default keeps the
+        single ``nn.Linear`` that both GDN and KANGDN have always used, so the
+        splines only ever see an already-compressed embedding. The other modes
+        put a nonlinearity on each node's own history, which is the only path
+        that does anything at all when ``n_nodes == 1`` (attention over a lone
+        self-loop is a no-op).
+
+        Any KAN mode costs roughly ``(grid_size + spline_order)`` times the
+        feature transform's coefficients, which dominate the distilled flash
+        footprint at small ``embed_dim``. The AR filter itself trains for free
+        and costs ``n_nodes * window`` frozen floats.
 
     Notes
     -----
@@ -182,13 +302,28 @@ class KANGDNNet(nn.Module):
         topk: int = 15,
         grid_size: int = 5,
         spline_order: int = 3,
+        feat_mode: str = "linear",
     ):
         super().__init__()
+        if feat_mode not in FEAT_MODES:
+            raise ValueError(f"feat_mode must be one of {FEAT_MODES}, got {feat_mode!r}")
         self.n_nodes = n_nodes
         self.window = window
         self.embed_dim = embed_dim
         self.topk = topk
+        self.feat_mode = feat_mode
 
+        feat = None
+        if feat_mode != "linear":
+            feat = ARKANFeatures(
+                n_nodes,
+                window,
+                embed_dim,
+                grid_size=grid_size,
+                spline_order=spline_order,
+                ar=feat_mode.startswith("ar_kan"),
+                residual=feat_mode.endswith("_residual"),
+            )
         self.encoder = GATEncoder(
             n_nodes,
             window,
@@ -197,6 +332,7 @@ class KANGDNNet(nn.Module):
             activation=KANLayer(
                 embed_dim, embed_dim, grid_size=grid_size, spline_order=spline_order
             ),
+            feat=feat,
         )
         self.out = KANLayer(embed_dim, 1, grid_size=grid_size, spline_order=spline_order)
 
