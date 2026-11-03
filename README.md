@@ -8,9 +8,9 @@
   <a href="https://github.com/JulioAnzaldo/telemetry-anomdet/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue"></a>
 </p>
 
-**telemetry-anomdet** is an open-source anomaly detection toolkit for spacecraft telemetry. It runs classical and graph-based deep detectors behind one interface, selects alarm thresholds without labels, and distills a trained detector down to Power of Ten conformant C that runs on flight hardware. Per-channel SHAP attribution and LLM-generated diagnostic reports are on the roadmap.
+**telemetry-anomdet** is an open-source anomaly detection toolkit for spacecraft telemetry. It runs classical and graph-based deep detectors behind one interface, selects alarm thresholds without labels, points each alarm at the channels that raised it, and distills a trained detector down to Power of Ten conformant C that runs on flight hardware. SHAP attribution and LLM-generated diagnostic reports are on the roadmap.
 
-Benchmarked on SMAP (NASA). MSL (NASA) and ESA-ADB (ESA) results land in v0.3.0.
+Benchmarked on SMAP and MSL (NASA) and ESA-ADB (ESA).
 
 ---
 
@@ -42,6 +42,8 @@ The base install is torch-free. The deep detectors (`GDN`, `KANGDN`) need the
 ```bash
 uv add "telemetry-anomdet[deep]"
 ```
+
+Plotting, including the learned sensor graph, needs the `viz` extra.
 
 ## Example Usage
 
@@ -142,13 +144,14 @@ Datasets are never committed; `data/` is gitignored.
 **Available now**
 
 - **One interface for every detector.** Classical and deep detectors share the same `fit` / `decision_function` / `predict` / `is_anomaly` API, so stacking or swapping models needs no per-model glue.
-- **Graph deviation detectors.** `GDN` and `KANGDN` forecast each channel from its learned top-k neighbours and score the deviation, catching readings that are individually plausible but wrong in relation to each other.
+- **Graph deviation detectors.** `GDN` and `KANGDN` forecast each channel from its learned top-k neighbours and score the deviation, catching readings that are individually plausible but wrong in relation to each other. `feat_mode` selects how `KANGDN` encodes each channel's history (`linear`, `kan`, `ar_kan`, `ar_kan_residual`).
+- **Which sensor, not just when.** `channel_deviations` and `dominant_channels` attribute each alarm to the channels driving it, and `plot_sensor_graph` draws the graph the detector learned.
 - **Alarms without labels.** `threshold_for_budget` and `dynamic_threshold` pick an operating point from the score distribution alone. Operations can state an alarm rate; they cannot state a recall they have no way to observe.
-- **Honest evaluation.** Event-level scoring alongside the conventional point-adjusted F1, plus a random baseline row in the benchmark, because point-adjusted F1 rates uniform random noise above every trained configuration on SMAP.
-- **Runs on flight hardware.** A fitted `KANGDN` distills to a torch-free NumPy evaluator, then to Power of Ten conformant C with golden vectors. Host and ESP32-S3 targets are in [`targets/`](targets/).
+- **Honest evaluation.** Event-level scoring alongside the conventional point-adjusted F1, plus a random baseline row in the benchmark. ESA-ADB is scored by its own protocol, with F0.5 as the headline metric.
+- **Runs on flight hardware.** A fitted `KANGDN` distills to a torch-free NumPy evaluator, then to Power of Ten conformant C with golden vectors, for every `feat_mode`. Host and ESP32-S3 targets are in [`targets/`](targets/).
 - **Stacking ensemble** with robust (median + IQR) score normalization, built for anomaly scores that are extreme by definition.
 - **Per-model score decomposition** via `score_components()`, the hook that enables per-channel attribution without retraining.
-- **Spacecraft-native ingestion.** SMAP and CSV load straight into a long-form `TelemetryDataset`, no schema wrangling.
+- **Spacecraft-native ingestion.** SMAP, MSL, ESA-ADB and CSV load straight into a long-form `TelemetryDataset`, no schema wrangling. The ESA-ADB loader reads the official archive directly, with no preprocessing step; its payloads are pickled, so load only that archive, never untrusted files.
 - **Runtime sensitivity control.** `is_anomaly()` accepts a percentile or threshold override, so operators re-tune without retraining.
 
 **On the roadmap**
@@ -157,16 +160,14 @@ Datasets are never committed; `data/` is gitignored.
 - `SHAPExplainer`: per-channel attribution over `score_components()` (Phase 3)
 - LLM diagnostic reports, SHAP chart supplied as an image (Phase 4)
 - Human-in-the-loop threshold feedback (Phase 5)
-- MSL results, using the existing SMAP loader (`spacecraft = "MSL"`) (v0.3.0)
-- ESA-ADB evaluation: the multivariate benchmark that exercises the graph (v0.3.0)
 
 ## AI Transparency
 
-AI assistants are used while writing and maintaining this project's documentation: drafting API reference pages, tightening prose, and catching claims that go stale.
+AI assistants are used while writing and maintaining this project's documentation.
 
 What that does not change:
 
-- **Numbers come from runs.** Benchmark figures are produced by [`examples/smap_benchmark.py`](examples/smap_benchmark.py), and the hardware results in the deployment docs are measured on an ESP32-S3 by the conformance harness in [`targets/`](targets/). Nothing quoted in these docs is estimated or inferred.
+- **Numbers come from runs.** Benchmark figures are produced by [`examples/smap_benchmark.py`](examples/smap_benchmark.py) and [`examples/esa_benchmark.py`](examples/esa_benchmark.py), and the hardware results in the deployment docs are measured on an ESP32-S3 by the conformance harness in [`targets/`](targets/). Nothing quoted in these docs is estimated or inferred.
 - **Behavior claims are backed by tests.** The suite gates CI, and the documented API is covered by it.
 
 Everything published here is reviewed before it lands.

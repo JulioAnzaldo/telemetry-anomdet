@@ -4,7 +4,7 @@
 
 Telemetry is long-form with columns `[timestamp, variable, value]` (the native NASA SMAP / MSL format, ingested without schema transforms). Detectors follow the PyOD / scikit-learn convention: `fit` / `decision_function` / `predict` / `is_anomaly`, with `decision_scores_`, `threshold_`, `labels_` as post-fit attributes. The pipeline runs ingestion, preprocessing, windowed feature extraction, detection, label-free thresholding, and event-level evaluation.
 
-Per-channel SHAP attribution and LLM-generated diagnostic reports are on the roadmap, not implemented. Benchmarked on SMAP; MSL and ESA-ADB results are planned for v0.3.0 and do not exist yet.
+The graph detectors attribute each alarm to the channels driving it (`channel_deviations`, `dominant_channels`). SHAP attribution and LLM-generated diagnostic reports are on the roadmap, not implemented. Benchmarked on SMAP and MSL (NASA) and ESA-ADB (ESA); ESA-ADB is scored by its own protocol, with F0.5 as the headline metric.
 
 Two things a reader should know before quoting results:
 

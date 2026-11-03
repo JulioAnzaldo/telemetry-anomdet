@@ -1,6 +1,6 @@
 [project]
 name = "telemetry-anomdet"
-version = "0.2.0"
+version = "0.3.0"
 description = "Spacecraft telemetry anomaly detection: classical and graph deep detectors, label-free thresholding, and distillation to C for flight hardware."
 readme = "README.md"
 license = "Apache-2.0"
