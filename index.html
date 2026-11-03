@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://julioanzaldo.github.io/telemetry-anomdet/index.html" />
 <meta property="og:site_name" content="telemetry-anomdet" />
-<meta property="og:description" content="telemetry-anomdet is an open-source anomaly detection toolkit for spacecraft telemetry. It ingests raw telemetry (SMAP, CSV), preprocesses it, and runs classical and graph-based deep detectors behi..." />
-<meta name="description" content="telemetry-anomdet is an open-source anomaly detection toolkit for spacecraft telemetry. It ingests raw telemetry (SMAP, CSV), preprocesses it, and runs classical and graph-based deep detectors behi..." />
+<meta property="og:description" content="telemetry-anomdet is an open-source anomaly detection toolkit for spacecraft telemetry. It ingests raw telemetry (SMAP, MSL, ESA-ADB, CSV), preprocesses it, and runs classical and graph-based deep ..." />
+<meta name="description" content="telemetry-anomdet is an open-source anomaly detection toolkit for spacecraft telemetry. It ingests raw telemetry (SMAP, MSL, ESA-ADB, CSV), preprocesses it, and runs classical and graph-based deep ..." />
 <meta name="twitter:card" content="summary" />
 
     <title>Telemetry Anomaly Detection Toolkit &#8212; telemetry_anomdet</title>
@@ -46,10 +46,17 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="_static/documentation_options.js?v=e259d695"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://julioanzaldo.github.io/telemetry-anomdet/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.3.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="_static/llm_copy.js?v=f4a7753a"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/index.html" />
@@ -129,6 +136,26 @@
     <p class="title logo__title">telemetry_anomdet</p>
   
 </a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
     
   </div>
   
@@ -402,19 +429,21 @@
   <section id="telemetry-anomaly-detection-toolkit">
 <h1>Telemetry Anomaly Detection Toolkit<a class="headerlink" href="#telemetry-anomaly-detection-toolkit" title="Link to this heading">#</a></h1>
 <p><strong>telemetry-anomdet</strong> is an open-source anomaly detection toolkit for spacecraft telemetry.
-It ingests raw telemetry (SMAP, CSV), preprocesses it, and runs classical and graph-based
-deep detectors behind a single interface, selecting alarm thresholds without labels. A
-trained detector distills to Power of Ten conformant C, so the same model that is
-evaluated on the ground can run on flight hardware.</p>
-<p>Per-channel SHAP attribution and LLM-generated diagnostic reports, aimed at producing
-actionable diagnostics within the ground station inter-pass window, are on the roadmap.</p>
-<p>Benchmarked on SMAP (NASA). MSL (NASA) and ESA-ADB (ESA) results land in v0.3.0:
-SMAP and MSL are univariate per record, while ESA-ADB is the genuinely multivariate
-benchmark that exercises the inter-sensor graph.</p>
+It ingests raw telemetry (SMAP, MSL, ESA-ADB, CSV), preprocesses it, and runs classical
+and graph-based deep detectors behind a single interface, selecting alarm thresholds
+without labels and pointing each alarm at the channels that raised it. A trained detector
+distills to Power of Ten conformant C, so the same model that is evaluated on the ground
+can run on flight hardware.</p>
+<p>SHAP attribution and LLM-generated diagnostic reports, aimed at producing actionable
+diagnostics within the ground station inter-pass window, are on the roadmap.</p>
+<p>Benchmarked on SMAP and MSL (NASA) and ESA-ADB (ESA). SMAP and MSL are univariate per
+record, while ESA-ADB is the genuinely multivariate benchmark that exercises the
+inter-sensor graph.</p>
 <p>Current features:</p>
 <p>Ingestion and preprocessing</p>
 <ul class="simple">
-<li><p>SMAP and CSV ingestion into long-form <code class="docutils literal notranslate"><span class="pre">TelemetryDataset</span></code> (<code class="docutils literal notranslate"><span class="pre">load_smap</span></code>, <code class="docutils literal notranslate"><span class="pre">load_smap_channel</span></code>, <code class="docutils literal notranslate"><span class="pre">load_smap_labels</span></code>, <code class="docutils literal notranslate"><span class="pre">load_from_csv</span></code>)</p></li>
+<li><p>SMAP, MSL and CSV ingestion into long-form <code class="docutils literal notranslate"><span class="pre">TelemetryDataset</span></code> (<code class="docutils literal notranslate"><span class="pre">load_smap</span></code>, <code class="docutils literal notranslate"><span class="pre">load_smap_channel</span></code>, <code class="docutils literal notranslate"><span class="pre">load_smap_labels</span></code>, <code class="docutils literal notranslate"><span class="pre">load_from_csv</span></code>)</p></li>
+<li><p>ESA-ADB ingestion straight from the official archive, with the benchmark’s own splits (<code class="docutils literal notranslate"><span class="pre">load_esa</span></code>, <code class="docutils literal notranslate"><span class="pre">load_esa_labels</span></code>, <code class="docutils literal notranslate"><span class="pre">esa_splits</span></code>). Its payloads are pickled, so load only that archive, never untrusted files</p></li>
 <li><p>Preprocessing pipeline: clean, dedupe, resample, interpolate gaps, normalize</p></li>
 <li><p>Windowed feature extraction: statistical features and raw 3D tensors for sequence models</p></li>
 </ul>
@@ -423,8 +452,9 @@ benchmark that exercises the inter-sensor graph.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">BaseDetector</span></code> interface: unified <code class="docutils literal notranslate"><span class="pre">fit</span></code> / <code class="docutils literal notranslate"><span class="pre">decision_function</span></code> / <code class="docutils literal notranslate"><span class="pre">predict</span></code> / <code class="docutils literal notranslate"><span class="pre">is_anomaly</span></code> API shared by all detectors</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">PCAAnomaly</span></code> and <code class="docutils literal notranslate"><span class="pre">KMeansAnomaly</span></code> classical detectors (3D input, flatten internally)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">GDN</span></code>: graph deviation network forecasting each channel from its learned top-k neighbours</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">KANGDN</span></code>: GDN with Kolmogorov-Arnold layers, the form the flight artifact is distilled from</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">KANGDN</span></code>: GDN with Kolmogorov-Arnold layers, the form the flight artifact is distilled from, with <code class="docutils literal notranslate"><span class="pre">feat_mode</span></code> selecting the node feature transform</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">score_channels</span></code>: restrict which channels may raise an alarm while all of them still feed the model</p></li>
+<li><p>Per-channel attribution (<code class="docutils literal notranslate"><span class="pre">channel_deviations</span></code>, <code class="docutils literal notranslate"><span class="pre">dominant_channels</span></code>) and the learned sensor graph (<code class="docutils literal notranslate"><span class="pre">learned_graph</span></code>, <code class="docutils literal notranslate"><span class="pre">plot_sensor_graph</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">AnomalyEnsemble</span></code>: stacking combinator with configurable normalization and combine strategy</p></li>
 <li><p>Per-model score decomposition via <code class="docutils literal notranslate"><span class="pre">score_components()</span></code> (SHAP hook)</p></li>
 </ul>
@@ -432,12 +462,13 @@ benchmark that exercises the inter-sensor graph.</p>
 <ul class="simple">
 <li><p>Label-free operating point selection (<code class="docutils literal notranslate"><span class="pre">threshold_for_budget</span></code>, <code class="docutils literal notranslate"><span class="pre">dynamic_threshold</span></code>) with sequence post-processing</p></li>
 <li><p>Point-adjusted and event-level evaluation (<code class="docutils literal notranslate"><span class="pre">point_adjusted_f1</span></code>, <code class="docutils literal notranslate"><span class="pre">evaluate_sequences</span></code>, <code class="docutils literal notranslate"><span class="pre">pr_auc</span></code>, <code class="docutils literal notranslate"><span class="pre">false_alarm_rate_at_recall</span></code>)</p></li>
-<li><p>A reproducible SMAP benchmark reporting both, with a random baseline row (<code class="docutils literal notranslate"><span class="pre">examples/smap_benchmark.py</span></code>)</p></li>
+<li><p>A reproducible SMAP and MSL benchmark reporting both, with a random baseline row (<code class="docutils literal notranslate"><span class="pre">examples/smap_benchmark.py</span></code>)</p></li>
+<li><p>An ESA-ADB benchmark following that dataset’s protocol, with F0.5 as the headline metric (<code class="docutils literal notranslate"><span class="pre">examples/esa_benchmark.py</span></code>)</p></li>
 </ul>
 <p>Onboard deployment</p>
 <ul class="simple">
 <li><p>Distillation of a fitted <code class="docutils literal notranslate"><span class="pre">KANGDN</span></code> to a torch-free NumPy evaluator</p></li>
-<li><p>Power of Ten conformant C generation with golden vectors, plus host and ESP32-S3 targets</p></li>
+<li><p>Power of Ten conformant C generation with golden vectors for every <code class="docutils literal notranslate"><span class="pre">feat_mode</span></code>, plus host and ESP32-S3 targets</p></li>
 </ul>
 <p>Coming next:</p>
 <ul class="simple">
@@ -448,8 +479,6 @@ benchmark that exercises the inter-sensor graph.</p>
 <p>Coming in by the end of 2026:</p>
 <ul class="simple">
 <li><p>LLM reasoning layer (Llama 3.1 8B on Jetson Orin via llama.cpp)</p></li>
-<li><p>MSL results, using the existing SMAP loader (<code class="docutils literal notranslate"><span class="pre">spacecraft</span> <span class="pre">=</span> <span class="pre">&quot;MSL&quot;</span></code>) (v0.3.0)</p></li>
-<li><p>ESA-ADB evaluation on genuinely multivariate telemetry (v0.3.0)</p></li>
 </ul>
 <section id="contents">
 <h2>Contents<a class="headerlink" href="#contents" title="Link to this heading">#</a></h2>

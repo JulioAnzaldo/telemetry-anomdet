@@ -46,10 +46,17 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../_static/documentation_options.js?v=e259d695"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/real_time_example';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://julioanzaldo.github.io/telemetry-anomdet/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.3.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="../_static/llm_copy.js?v=f4a7753a"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/tutorials/real_time_example.html" />
@@ -130,6 +137,26 @@
     <p class="title logo__title">telemetry_anomdet</p>
   
 </a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
     
   </div>
   
@@ -520,11 +547,11 @@ producing per-channel attribution weights for every anomalous window.</p>
 <h2>Coming in Phase 3+<a class="headerlink" href="#coming-in-phase-3" title="Link to this heading">#</a></h2>
 <p>Once <code class="docutils literal notranslate"><span class="pre">SHAPExplainer</span></code> and the LLM reasoning layer are implemented, the workflow
 extends to:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Phase 3 - per-channel attribution (not yet implemented)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Phase 3: SHAP attribution (not yet implemented)</span>
 <span class="c1"># shap_values = explainer.explain(ensemble, X_anomalous)</span>
 <span class="c1"># {&quot;sensor_01&quot;: 0.42, &quot;sensor_02&quot;: 0.18, ...}</span>
 
-<span class="c1"># Phase 4 - LLM diagnostic report (not yet implemented)</span>
+<span class="c1"># Phase 4: LLM diagnostic report (not yet implemented)</span>
 <span class="c1"># report = llm_engine.explain(shap_values, context, channel_names)</span>
 <span class="c1"># DiagnosticReport(</span>
 <span class="c1">#     anomaly_type=&quot;power subsystem fault&quot;,</span>

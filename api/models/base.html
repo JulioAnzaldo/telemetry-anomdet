@@ -46,10 +46,17 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../../_static/documentation_options.js?v=e259d695"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/models/base';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://julioanzaldo.github.io/telemetry-anomdet/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.3.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="../../_static/llm_copy.js?v=f4a7753a"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/api/models/base.html" />
@@ -130,6 +137,26 @@
     <p class="title logo__title">telemetry_anomdet</p>
   
 </a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
     
   </div>
   
@@ -398,6 +425,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../thresholding.html">Thresholding Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation.html">Evaluation Module</a></li>
 </ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+</ul>
 </div>
 </nav></div>
     </div>
@@ -507,20 +537,20 @@ KANGDN, TranAD) consume X directly. The caller never manages this distinction.</
 </section>
 <dl class="py class">
 <dt class="sig sig-object py" id="telemetry_anomdet.models.base.BaseDetector">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.base.</span></span><span class="sig-name descname"><span class="pre">BaseDetector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">95.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseDetector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseDetector" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">telemetry_anomdet.models.base.</span></span><span class="sig-name descname"><span class="pre">BaseDetector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">95.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseDetector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseDetector" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
 <p>Abstract base class for all anomaly detectors in telemetry-anomdet.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>percentile</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default = 95.0</em>) – Percentile of training anomaly scores used to set <code class="docutils literal notranslate"><span class="pre">threshold_</span></code>.
+<li><p><strong>percentile</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default = 95.0</em>) – Percentile of training anomaly scores used to set <code class="docutils literal notranslate"><span class="pre">threshold_</span></code>.
 For example, 95.0 means the top 5% most anomalous training windows
 are labelled as anomalies by default. Must be in (0, 100).</p></li>
 <li><p><strong>fit</strong><strong>)</strong> (<em>Attributes</em><em> (</em><em>set after</em>)</p></li>
 <li><p><strong>--------------------------</strong></p></li>
 <li><p><strong>decision_scores</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>,</em><em>)</em>) – Anomaly scores on the training data. Higher values indicate greater
 anomaly likelihood. Set by <code class="docutils literal notranslate"><span class="pre">_set_post_fit()</span></code> at the end of <code class="docutils literal notranslate"><span class="pre">fit()</span></code>.</p></li>
-<li><p><strong>threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Score cutoff derived from <code class="docutils literal notranslate"><span class="pre">decision_scores_</span></code> at <code class="docutils literal notranslate"><span class="pre">self.percentile</span></code>.
+<li><p><strong>threshold</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Score cutoff derived from <code class="docutils literal notranslate"><span class="pre">decision_scores_</span></code> at <code class="docutils literal notranslate"><span class="pre">self.percentile</span></code>.
 Used as the default decision boundary in <code class="docutils literal notranslate"><span class="pre">predict()</span></code> and
 <code class="docutils literal notranslate"><span class="pre">is_anomaly()</span></code>.</p></li>
 <li><p><strong>labels</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>,</em><em>)</em>) – Binary anomaly labels on the training data. 0 = normal, 1 = anomaly.
@@ -534,7 +564,7 @@ All other methods are provided and should not need to be overridden
 unless the detector has non-standard scoring behavior.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="telemetry_anomdet.models.base.BaseDetector.fit">
-<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#telemetry_anomdet.models.base.BaseDetector" title="telemetry_anomdet.models.base.BaseDetector"><span class="pre">BaseDetector</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseDetector.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseDetector.fit" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#telemetry_anomdet.models.base.BaseDetector" title="telemetry_anomdet.models.base.BaseDetector"><span class="pre">BaseDetector</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseDetector.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseDetector.fit" title="Link to this definition">#</a></dt>
 <dd><p>Train the detector on nominal telemetry windows.</p>
 <p>Subclasses must call <code class="docutils literal notranslate"><span class="pre">self._set_post_fit(scores)</span></code> at the end of
 this method, where <code class="docutils literal notranslate"><span class="pre">scores</span></code> are the training anomaly scores. This
@@ -597,7 +627,7 @@ adjustment, use <code class="docutils literal notranslate"><span class="pre">is_
 
 <dl class="py method">
 <dt class="sig sig-object py" id="telemetry_anomdet.models.base.BaseDetector.is_anomaly">
-<span class="sig-name descname"><span class="pre">is_anomaly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseDetector.is_anomaly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseDetector.is_anomaly" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">is_anomaly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseDetector.is_anomaly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseDetector.is_anomaly" title="Link to this definition">#</a></dt>
 <dd><p>Boolean anomaly mask with optional runtime threshold override.</p>
 <p>This is the human-in-the-loop hook. Operators can adjust sensitivity
 at inference time without retraining by passing a custom <code class="docutils literal notranslate"><span class="pre">threshold</span></code>
@@ -608,8 +638,8 @@ or <code class="docutils literal notranslate"><span class="pre">percentile</span
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>X</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_windows</em><em>, </em><em>window_size</em><em>, </em><em>n_features</em><em>)</em>) – Windowed telemetry tensor from <code class="docutils literal notranslate"><span class="pre">windowify()</span></code>.</p></li>
-<li><p><strong>threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Fixed score cutoff. Windows with scores above this are anomalies.</p></li>
-<li><p><strong>percentile</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Compute the cutoff as this percentile of the current batch’s
+<li><p><strong>threshold</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>optional</em>) – Fixed score cutoff. Windows with scores above this are anomalies.</p></li>
+<li><p><strong>percentile</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>optional</em>) – Compute the cutoff as this percentile of the current batch’s
 scores. Useful when the operator wants to flag only the top N%
 of a given pass’s windows rather than using training statistics.
 Must be in (0, 100).</p></li>
@@ -619,7 +649,7 @@ Must be in (0, 100).</p></li>
 <dd class="field-even"><p><strong>mask</strong> – True where the window is anomalous.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray of <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)">bool</a>, shape (n_windows,)</p>
+<dd class="field-odd"><p>np.ndarray of <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)">bool</a>, shape (n_windows,)</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -655,22 +685,22 @@ new code.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="telemetry_anomdet.models.base.BaseDetector.save">
-<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseDetector.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseDetector.save" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><span class="pre">Path</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseDetector.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseDetector.save" title="Link to this definition">#</a></dt>
 <dd><p>Serialize the fitted detector to disk using pickle.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><em>Path</em>) – Destination file path. Conventionally ends in <code class="docutils literal notranslate"><span class="pre">.pkl</span></code>.</p>
+<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> or </em><em>Path</em>) – Destination file path. Conventionally ends in <code class="docutils literal notranslate"><span class="pre">.pkl</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="telemetry_anomdet.models.base.BaseDetector.load">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#telemetry_anomdet.models.base.BaseDetector" title="telemetry_anomdet.models.base.BaseDetector"><span class="pre">BaseDetector</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseDetector.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseDetector.load" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><span class="pre">Path</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#telemetry_anomdet.models.base.BaseDetector" title="telemetry_anomdet.models.base.BaseDetector"><span class="pre">BaseDetector</span></a></span></span><a class="reference internal" href="../../_modules/telemetry_anomdet/models/base.html#BaseDetector.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#telemetry_anomdet.models.base.BaseDetector.load" title="Link to this definition">#</a></dt>
 <dd><p>Deserialize a detector from disk.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><em>Path</em>) – Path to a pickled detector file created by <code class="docutils literal notranslate"><span class="pre">save()</span></code>.</p>
+<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> or </em><em>Path</em>) – Path to a pickled detector file created by <code class="docutils literal notranslate"><span class="pre">save()</span></code>.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>detector</strong> – The deserialized, fitted detector instance.</p>

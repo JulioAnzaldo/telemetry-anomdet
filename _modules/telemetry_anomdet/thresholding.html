@@ -38,10 +38,17 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../../_static/documentation_options.js?v=e259d695"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/telemetry_anomdet/thresholding';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://julioanzaldo.github.io/telemetry-anomdet/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.3.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="../../_static/llm_copy.js?v=f4a7753a"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/_modules/telemetry_anomdet/thresholding.html" />
@@ -120,6 +127,26 @@
     <p class="title logo__title">telemetry_anomdet</p>
   
 </a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
     
   </div>
   
@@ -495,7 +522,7 @@
 <a class="viewcode-back" href="../../api/thresholding.html#telemetry_anomdet.thresholding.threshold_for_budget">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">threshold_for_budget</span><span class="p">(</span><span class="n">errors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">budget</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Threshold that flags approximately ``budget`` of the signal.</span>
+<span class="sd">    Highest threshold that flags no more than ``budget`` of the signal.</span>
 
 <span class="sd">    The alarm budget is the operationally meaningful control. Operations can say</span>
 <span class="sd">    how often a trigger may fire; they cannot say what recall they want, because</span>
@@ -506,13 +533,13 @@
 <span class="sd">    the false alarm rate closely, so choosing a budget sets the false alarm rate</span>
 <span class="sd">    directly and without labels.</span>
 
-<span class="sd">    The fraction achieved is approximate rather than bounded, and can exceed the</span>
-<span class="sd">    budget slightly. Read ``flagged`` in the result for the fraction actually</span>
-<span class="sd">    reached rather than assuming the budget was met exactly.</span>
+<span class="sd">    The budget is an upper bound, not a target. Fewer points are flagged when</span>
+<span class="sd">    the data cannot resolve the fraction asked for, and ``flagged`` in the</span>
+<span class="sd">    result reports what was actually reached.</span>
 
 <span class="sd">    Arguments:</span>
 <span class="sd">        errors: Error signal, one value per timestep.</span>
-<span class="sd">        budget: Target fraction of points to flag, in (0, 1).</span>
+<span class="sd">        budget: Maximum fraction of points to flag, in (0, 1).</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        dict: ``threshold``, the ``flagged`` fraction actually achieved, and the</span>
 <span class="sd">        ``n_above`` and ``n_sequences`` it produces.</span>
@@ -523,15 +550,13 @@
     <span class="k">if</span> <span class="n">errors</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;errors must not be empty&quot;</span><span class="p">)</span>
 
-    <span class="c1"># TODO(0.3.0): switch to method=&quot;higher&quot; and restore the &quot;no more than the</span>
-    <span class="c1"># budget&quot; guarantee. numpy&#39;s default linear interpolation puts the cutoff</span>
-    <span class="c1"># between two samples, so slightly more than the budget can sit above it:</span>
-    <span class="c1"># 50 points at budget=0.05 flags 3 (0.06) where 2 (0.04) would fit.</span>
-    <span class="c1"># method=&quot;higher&quot; snaps to a real sample and holds the bound. Deferred</span>
-    <span class="c1"># because it shifts the flagged set by one point and the benchmark reads</span>
-    <span class="c1"># this, so it lands with the 0.3.0 rerun (SMAP, MSL, ESA-ADB) rather than</span>
-    <span class="c1"># moving the published numbers twice.</span>
-    <span class="n">threshold</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">budget</span><span class="p">))</span>
+    <span class="c1"># method=&quot;higher&quot; rather than numpy&#39;s default linear interpolation. Linear</span>
+    <span class="c1"># puts the cutoff between two samples, so more than the budget can sit above</span>
+    <span class="c1"># it even when the budget is resolvable: 50 points at budget=0.05 flags 3</span>
+    <span class="c1"># (0.06) where 2 (0.04) would fit. Snapping up to a real sample is what</span>
+    <span class="c1"># makes the budget a bound rather than an approximation, at a cost of one</span>
+    <span class="c1"># flagged point on large inputs.</span>
+    <span class="n">threshold</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">budget</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;higher&quot;</span><span class="p">))</span>
     <span class="n">above</span> <span class="o">=</span> <span class="n">errors</span> <span class="o">&gt;</span> <span class="n">threshold</span>
     <span class="k">return</span> <span class="p">{</span>
         <span class="s2">&quot;threshold&quot;</span><span class="p">:</span> <span class="n">threshold</span><span class="p">,</span>
@@ -789,18 +814,19 @@
     <span class="n">errors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
     <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">min_decrease</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.13</span><span class="p">,</span>
-    <span class="n">prune</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">prune</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">threshold_kwargs</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Full label-free detection: choose a threshold, find sequences, prune them.</span>
+<span class="sd">    Full label-free detection: choose a threshold, find sequences, optionally prune them.</span>
 
 <span class="sd">    Arguments:</span>
 <span class="sd">        errors: Error signal, one value per timestep.</span>
 <span class="sd">        threshold: Use this cutoff instead of selecting one. Useful for applying</span>
 <span class="sd">            an operating point derived from training errors to new data.</span>
-<span class="sd">        min_decrease: Passed to :func:`prune_sequences`.</span>
-<span class="sd">        prune: Set False to keep every sequence above the threshold.</span>
+<span class="sd">        min_decrease: Passed to :func:`prune_sequences`. Ignored unless ``prune``.</span>
+<span class="sd">        prune: Set True to apply the published pruning, which keeps only the</span>
+<span class="sd">            sequences whose peaks stand clear of the rest.</span>
 <span class="sd">        **threshold_kwargs: Passed to :func:`dynamic_threshold`.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        dict: ``mask`` (boolean, one entry per timestep), ``threshold``,</span>

@@ -8,6 +8,9 @@ preprocessing and detection do not care where the data came from.
 .. automodule:: telemetry_anomdet.ingest.smap
    :members:
 
+.. automodule:: telemetry_anomdet.ingest.esa
+   :members:
+
 .. automodule:: telemetry_anomdet.ingest.csv_loader
    :members:
 

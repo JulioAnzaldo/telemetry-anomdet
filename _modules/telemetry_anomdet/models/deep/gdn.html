@@ -38,10 +38,17 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../../../../_static/documentation_options.js?v=e259d695"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/telemetry_anomdet/models/deep/gdn';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://julioanzaldo.github.io/telemetry-anomdet/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.3.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="../../../../_static/llm_copy.js?v=f4a7753a"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/_modules/telemetry_anomdet/models/deep/gdn.html" />
@@ -120,6 +127,26 @@
     <p class="title logo__title">telemetry_anomdet</p>
   
 </a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
     
   </div>
   
@@ -439,6 +466,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -576,6 +604,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">window_</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_err_median_</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_err_iqr_</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_degenerate_</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
 
     <span class="c1"># ---- helpers ----</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">torch</span><span class="p">):</span>
@@ -694,6 +723,98 @@
         <span class="k">return</span> <span class="n">out</span></div>
 
 
+    <span class="c1"># Which channels are degenerate and what replaces their spread are separate</span>
+    <span class="c1"># questions, so they are separate constants. One value for both rewrites</span>
+    <span class="c1"># channels whose spread is small but entirely real.</span>
+    <span class="c1">#</span>
+    <span class="c1"># Degenerate means no spread at all. A channel that never moved while</span>
+    <span class="c1"># training has an error IQR of exactly zero, and dividing by it returns a</span>
+    <span class="c1"># number set by the guard epsilon rather than by the data, which then wins</span>
+    <span class="c1"># the per-window maximum and decides every score. This threshold is large</span>
+    <span class="c1"># enough only to absorb floating point noise around zero.</span>
+    <span class="n">_ZERO_SPREAD_RATIO</span> <span class="o">=</span> <span class="mf">1e-9</span>
+
+    <span class="c1"># What a degenerate channel&#39;s spread becomes, as a fraction of its own</span>
+    <span class="c1"># median error. Applied only to the channels caught above, so it is free to</span>
+    <span class="c1"># be large enough to bound the result.</span>
+    <span class="n">_SPREAD_FLOOR_RATIO</span> <span class="o">=</span> <span class="mf">0.02</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_spread_floor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iqr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Floor the per-channel error spread and record which channels were hit.</span>
+
+<span class="sd">        Scaling by each channel&#39;s own median error keeps this comparable across</span>
+<span class="sd">        datasets and channels carrying different units. Channels whose median</span>
+<span class="sd">        error is also zero fall back to the typical channel, since they offer no</span>
+<span class="sd">        scale of their own.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_err_median_</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">positive</span> <span class="o">=</span> <span class="n">scale</span><span class="p">[</span><span class="n">scale</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">scale</span><span class="p">[</span><span class="n">scale</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">positive</span><span class="p">)</span> <span class="k">if</span> <span class="n">positive</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="mf">1.0</span>
+
+        <span class="c1"># Catch only channels with no measurable spread, then replace the spread</span>
+        <span class="c1"># of those alone. Channels with any real spread are returned untouched.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_degenerate_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">iqr</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ZERO_SPREAD_RATIO</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">floored</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">iqr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">floored</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_degenerate_</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SPREAD_FLOOR_RATIO</span> <span class="o">*</span> <span class="n">scale</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_degenerate_</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">floored</span>
+
+<div class="viewcode-block" id="GDN.degenerate_channels_">
+<a class="viewcode-back" href="../../../../api/models/deep.html#telemetry_anomdet.models.deep.gdn.GDN.degenerate_channels_">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">degenerate_channels_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Channels whose forecast error had no measurable spread in training.</span>
+
+<span class="sd">        Their spread was floored at fit time, because dividing by it would</span>
+<span class="sd">        otherwise yield a number set by the guard epsilon rather than by the</span>
+<span class="sd">        data. They can still raise alarms and still score highly when they move;</span>
+<span class="sd">        the floor only stops them from dwarfing every other channel.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Indices into the feature axis, ascending.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_require_fit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_degenerate_</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_warn_degenerate_spread</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Report channels whose spread was floored and that may raise an alarm.</span>
+
+<span class="sd">        A record of what was done rather than advice: the floor is already</span>
+<span class="sd">        applied. Only the scoring channels are named, since a floored channel</span>
+<span class="sd">        excluded by ``score_channels`` cannot affect a score either way.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">degenerate</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">degenerate_channels_</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="n">scoring</span> <span class="o">=</span> <span class="n">degenerate</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span>
+            <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_nodes_</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_channels</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_channels</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">scoring</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">listed</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">scoring</span><span class="p">))</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Channels [</span><span class="si">{</span><span class="n">listed</span><span class="si">}</span><span class="s2">] had no measurable spread in the training forecast &quot;</span>
+            <span class="s2">&quot;error, so their spread was floored to keep their deviations bounded. &quot;</span>
+            <span class="s2">&quot;This is usually a status or mode channel that stayed constant while &quot;</span>
+            <span class="s2">&quot;training. They can still raise alarms, and will score highly the first &quot;</span>
+            <span class="s2">&quot;time they move; exclude them with score_channels to keep them as &quot;</span>
+            <span class="s2">&quot;context only.&quot;</span><span class="p">,</span>
+            <span class="ne">RuntimeWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_normalise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">errors</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Per-node errors divided by their training spread, shape unchanged.</span>
+
+<span class="sd">        Normalising by each node&#39;s own training median and IQR is what makes</span>
+<span class="sd">        deviations comparable across channels carrying different units and</span>
+<span class="sd">        dynamic ranges.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">errors</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_err_median_</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_err_iqr_</span> <span class="o">+</span> <span class="mf">1e-9</span><span class="p">)</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_deviation_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">errors</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Collapse per-node errors to a single graph deviation score per window.</span>
@@ -707,10 +828,29 @@
 <span class="sd">        deviations are allowed to raise an alarm. See the constructor for why</span>
 <span class="sd">        that distinction matters.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">normed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">errors</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_err_median_</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_err_iqr_</span> <span class="o">+</span> <span class="mf">1e-9</span><span class="p">)</span>
+        <span class="n">normed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalise</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_channels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">normed</span> <span class="o">=</span> <span class="n">normed</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_channels</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">normed</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_errors_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate ``X`` against the fitted geometry and return per-node errors.</span>
+
+<span class="sd">        Shared by every public scoring path so validation and preprocessing</span>
+<span class="sd">        cannot drift between them.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_require_fit</span><span class="p">()</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_X</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_nodes_</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;X has </span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2"> features but GDN was fitted on </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_nodes_</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;X has window_size </span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> but GDN was fitted on &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;window_size </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">window_</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forecast_errors</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_build_net</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -727,6 +867,20 @@
             <span class="n">embed_dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">embed_dim</span><span class="p">,</span>
             <span class="n">topk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">topk</span><span class="p">,</span>
         <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_net_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialise network state that depends on the data but is not trained.</span>
+
+<span class="sd">        Called once in ``fit`` after ``_build_net`` and before the optimiser is</span>
+<span class="sd">        created, so anything installed here is frozen for the whole run. Base</span>
+<span class="sd">        GDN has no such state; the AR-KAN variant fills its Yule-Walker filters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        context : np.ndarray, shape (n_windows, n_nodes, window)</span>
+<span class="sd">            Scaled per-node input sequences, exactly as the encoder sees them.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="GDN.fit">
 <a class="viewcode-back" href="../../../../api/models/deep.html#telemetry_anomdet.models.deep.gdn.GDN.fit">[docs]</a>
@@ -772,6 +926,7 @@
         <span class="n">loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_net</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_net_from_data</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
 
         <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lr</span><span class="p">)</span>
         <span class="n">loss_fn</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">()</span>
@@ -798,10 +953,13 @@
         <span class="n">errors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forecast_errors</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>  <span class="c1"># (n_windows, n_nodes)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_err_median_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">q75</span><span class="p">,</span> <span class="n">q25</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="p">[</span><span class="mi">75</span><span class="p">,</span> <span class="mi">25</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_err_iqr_</span> <span class="o">=</span> <span class="n">q75</span> <span class="o">-</span> <span class="n">q25</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_err_iqr_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_spread_floor</span><span class="p">(</span><span class="n">q75</span> <span class="o">-</span> <span class="n">q25</span><span class="p">)</span>
 
         <span class="n">scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deviation_score</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_post_fit</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+        <span class="c1"># After _set_post_fit: the detector must read as fitted before the</span>
+        <span class="c1"># public degenerate_channels_() accessor will answer.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_warn_degenerate_spread</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
 
@@ -820,18 +978,129 @@
 <span class="sd">        scores : np.ndarray, shape (n_windows,)</span>
 <span class="sd">            Graph deviation scores. Higher = more anomalous.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deviation_score</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_errors_for</span><span class="p">(</span><span class="n">X</span><span class="p">))</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scoring_channels_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Indices of the channels allowed to raise an alarm, in original order.</span>
+
+<span class="sd">        Every channel is listed when ``score_channels`` is None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_require_fit</span><span class="p">()</span>
-        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_X</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_nodes_</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;X has </span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2"> features but GDN was fitted on </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_nodes_</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;X has window_size </span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> but GDN was fitted on &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;window_size </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">window_</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">.&quot;</span>
-            <span class="p">)</span>
-        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-        <span class="n">errors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forecast_errors</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deviation_score</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_nodes_</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">score_channels</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GDN.learned_graph">
+<a class="viewcode-back" href="../../../../api/models/deep.html#telemetry_anomdet.models.deep.gdn.GDN.learned_graph">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">learned_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The relational graph the detector learned over channels.</span>
+
+<span class="sd">        Node embeddings are frozen after training and the graph is their top-k</span>
+<span class="sd">        cosine similarity, so this is a property of the fitted model rather than</span>
+<span class="sd">        of any particular input.</span>
+
+<span class="sd">        Reading it is the only way to tell whether the graph found real</span>
+<span class="sd">        structure. On data where each record holds one true sensor beside</span>
+<span class="sd">        command flags, the neighbours are arbitrary and the graph contributes</span>
+<span class="sd">        nothing, which metrics reveal only indirectly.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            ``adjacency`` (bool, ``(n_nodes, n_nodes)``) where ``[i, j]`` is</span>
+<span class="sd">            True when j is a neighbour of i; ``similarity`` (float, same shape)</span>
+<span class="sd">            of pairwise cosine similarities with the diagonal set to ``-inf``;</span>
+<span class="sd">            and ``embeddings`` (``(n_nodes, embed_dim)``).</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The adjacency here carries no self-loops, which suits inspection and</span>
+<span class="sd">        drawing. The distilled artifact&#39;s ``adj`` is the same matrix with the</span>
+<span class="sd">        diagonal set, because attention there runs over ``topk + 1`` terms per</span>
+<span class="sd">        node, the neighbours plus the node itself.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_require_fit</span><span class="p">()</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.distill</span><span class="w"> </span><span class="kn">import</span> <span class="n">_topk_adjacency</span>
+
+        <span class="n">embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">embedding</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="n">norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">embeddings</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">normed</span> <span class="o">=</span> <span class="n">embeddings</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">norms</span><span class="p">,</span> <span class="mf">1e-12</span><span class="p">)</span>
+        <span class="n">similarity</span> <span class="o">=</span> <span class="n">normed</span> <span class="o">@</span> <span class="n">normed</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">similarity</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;adjacency&quot;</span><span class="p">:</span> <span class="n">_topk_adjacency</span><span class="p">(</span><span class="n">embeddings</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">topk</span><span class="p">),</span>
+            <span class="s2">&quot;similarity&quot;</span><span class="p">:</span> <span class="n">similarity</span><span class="p">,</span>
+            <span class="s2">&quot;embeddings&quot;</span><span class="p">:</span> <span class="n">embeddings</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="GDN.channel_deviations">
+<a class="viewcode-back" href="../../../../api/models/deep.html#telemetry_anomdet.models.deep.gdn.GDN.channel_deviations">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">channel_deviations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Per-channel normalised deviation for each window.</span>
+
+<span class="sd">        This is the attribution behind :meth:`decision_function`, which reports</span>
+<span class="sd">        only the maximum over the scoring channels. The full matrix answers</span>
+<span class="sd">        *which* channels deviated and by how much, so an alarm can be explained</span>
+<span class="sd">        rather than merely raised.</span>
+
+<span class="sd">        The values are exact, not estimated. A perturbation method such as SHAP</span>
+<span class="sd">        approximates a black box; here the per-channel deviation is what the</span>
+<span class="sd">        detector already computes on its way to a score.</span>
+
+<span class="sd">        Every channel is returned, including those excluded from</span>
+<span class="sd">        ``score_channels``. A channel that may not raise an alarm can still be</span>
+<span class="sd">        informative when diagnosing one, and callers that need only the scoring</span>
+<span class="sd">        subset can index with :attr:`scoring_channels_`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : np.ndarray, shape (n_windows, window_size, n_features)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        deviations : np.ndarray, shape (n_windows, n_features)</span>
+<span class="sd">            Normalised absolute deviation per window and channel. Higher = the</span>
+<span class="sd">            channel departed further from its forecast, in units of its own</span>
+<span class="sd">            training spread.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        dominant_channels : the channel driving each window&#39;s score.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalise</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_errors_for</span><span class="p">(</span><span class="n">X</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="GDN.dominant_channels">
+<a class="viewcode-back" href="../../../../api/models/deep.html#telemetry_anomdet.models.deep.gdn.GDN.dominant_channels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dominant_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Index of the channel driving each window&#39;s score.</span>
+
+<span class="sd">        Restricted to the scoring channels and returned in original channel</span>
+<span class="sd">        indexing, so the result always names the channel whose deviation equals</span>
+<span class="sd">        that window&#39;s :meth:`decision_function` score. Taking ``argmax`` over</span>
+<span class="sd">        :meth:`channel_deviations` instead can name a context-only channel that</span>
+<span class="sd">        never contributed to the score.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : np.ndarray, shape (n_windows, window_size, n_features)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        channels : np.ndarray, shape (n_windows,)</span>
+<span class="sd">            Channel index per window, into the original feature axis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">normed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalise</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_errors_for</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+        <span class="n">scoring</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scoring_channels_</span>
+        <span class="n">local</span> <span class="o">=</span> <span class="n">normed</span><span class="p">[:,</span> <span class="n">scoring</span><span class="p">]</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">scoring</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)[</span><span class="n">local</span><span class="p">]</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>

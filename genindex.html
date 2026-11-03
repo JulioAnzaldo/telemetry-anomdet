@@ -38,10 +38,17 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="_static/documentation_options.js?v=e259d695"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'genindex';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://julioanzaldo.github.io/telemetry-anomdet/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.3.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="_static/llm_copy.js?v=f4a7753a"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/genindex.html" />
@@ -120,6 +127,26 @@
     <p class="title logo__title">telemetry_anomdet</p>
   
 </a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
     
   </div>
   
@@ -423,6 +450,8 @@
 </li>
       <li><a href="api/models/ensemble.html#telemetry_anomdet.models.ensemble.AnomalyEnsemble">AnomalyEnsemble (class in telemetry_anomdet.models.ensemble)</a>
 </li>
+      <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.kan_gdn.KANGDN.ar_filters_">ar_filters_ (telemetry_anomdet.models.deep.kan_gdn.KANGDN attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -446,6 +475,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="user_guide/glossary.html#term-CCSDS"><strong>CCSDS</strong></a>
+</li>
+      <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.gdn.GDN.channel_deviations">channel_deviations() (telemetry_anomdet.models.deep.gdn.GDN method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -481,9 +512,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.dedupe">dedupe() (in module telemetry_anomdet.preprocessing.preprocessing)</a>
 </li>
+      <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.gdn.GDN.degenerate_channels_">degenerate_channels_() (telemetry_anomdet.models.deep.gdn.GDN method)</a>
+</li>
       <li><a href="api/thresholding.html#telemetry_anomdet.thresholding.detect_anomalies">detect_anomalies() (in module telemetry_anomdet.thresholding)</a>
 </li>
       <li><a href="user_guide/glossary.html#term-DiagnosticReport"><strong>DiagnosticReport</strong></a>
+</li>
+      <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.gdn.GDN.dominant_channels">dominant_channels() (telemetry_anomdet.models.deep.gdn.GDN method)</a>
 </li>
       <li><a href="api/thresholding.html#telemetry_anomdet.thresholding.dynamic_threshold">dynamic_threshold() (in module telemetry_anomdet.thresholding)</a>
 </li>
@@ -495,12 +530,14 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.distill.KANLayerNumpy.edge_function">edge_function() (telemetry_anomdet.models.deep.distill.KANLayerNumpy method)</a>
 </li>
-      <li><a href="api/evaluation.html#telemetry_anomdet.evaluation.evaluate_sequences">evaluate_sequences() (in module telemetry_anomdet.evaluation)</a>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.esa_splits">esa_splits() (in module telemetry_anomdet.ingest.esa)</a>
 </li>
-      <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.gdn.GDN.ewma">ewma() (telemetry_anomdet.models.deep.gdn.GDN static method)</a>
+      <li><a href="api/evaluation.html#telemetry_anomdet.evaluation.evaluate_sequences">evaluate_sequences() (in module telemetry_anomdet.evaluation)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.gdn.GDN.ewma">ewma() (telemetry_anomdet.models.deep.gdn.GDN static method)</a>
+</li>
       <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.distill.extract_kan_gdn">extract_kan_gdn() (in module telemetry_anomdet.models.deep.distill)</a>
 </li>
       <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.distill.extract_kan_gdn_net">extract_kan_gdn_net() (in module telemetry_anomdet.models.deep.distill)</a>
@@ -613,14 +650,22 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.gdn.GDN.learned_graph">learned_graph() (telemetry_anomdet.models.deep.gdn.GDN method)</a>
+</li>
       <li><a href="api/models/base.html#telemetry_anomdet.models.base.BaseDetector.load">load() (telemetry_anomdet.models.base.BaseDetector class method)</a>
 </li>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.load_esa">load_esa() (in module telemetry_anomdet.ingest.esa)</a>
+</li>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.load_esa_channels">load_esa_channels() (in module telemetry_anomdet.ingest.esa)</a>
+</li>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.load_esa_labels">load_esa_labels() (in module telemetry_anomdet.ingest.esa)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/ingest.html#telemetry_anomdet.ingest.ccsds_loader.load_from_ccsds">load_from_ccsds() (in module telemetry_anomdet.ingest.ccsds_loader)</a>
 </li>
       <li><a href="api/ingest.html#telemetry_anomdet.ingest.csv_loader.load_from_csv">load_from_csv() (in module telemetry_anomdet.ingest.csv_loader)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/ingest.html#telemetry_anomdet.ingest.smap.load_smap">load_smap() (in module telemetry_anomdet.ingest.smap)</a>
 </li>
       <li><a href="api/ingest.html#telemetry_anomdet.ingest.smap.load_smap_channel">load_smap_channel() (in module telemetry_anomdet.ingest.smap)</a>
@@ -637,6 +682,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.make_feature_table">make_feature_table() (in module telemetry_anomdet.feature_extraction.features)</a>
 </li>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.MISSION1_CADENCE_S">MISSION1_CADENCE_S (in module telemetry_anomdet.ingest.esa)</a>
+</li>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.MISSION1_LIGHTWEIGHT">MISSION1_LIGHTWEIGHT (in module telemetry_anomdet.ingest.esa)</a>
+</li>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.MISSION1_SPAN">MISSION1_SPAN (in module telemetry_anomdet.ingest.esa)</a>
+</li>
       <li>
     module
 
@@ -648,6 +699,8 @@
         <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.ccsds_loader">telemetry_anomdet.ingest.ccsds_loader</a>
 </li>
         <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.csv_loader">telemetry_anomdet.ingest.csv_loader</a>
+</li>
+        <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.esa">telemetry_anomdet.ingest.esa</a>
 </li>
         <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.smap">telemetry_anomdet.ingest.smap</a>
 </li>
@@ -671,6 +724,8 @@
 </li>
         <li><a href="api/thresholding.html#module-telemetry_anomdet.thresholding">telemetry_anomdet.thresholding</a>
 </li>
+        <li><a href="api/visualization.html#module-telemetry_anomdet.visualization">telemetry_anomdet.visualization</a>
+</li>
       </ul></li>
   </ul></td>
 </tr></table>
@@ -678,6 +733,12 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.kan_gdn.KANGDN.net">net (telemetry_anomdet.models.deep.kan_gdn.KANGDN attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.NON_EVENT_CATEGORIES">NON_EVENT_CATEGORIES (in module telemetry_anomdet.ingest.esa)</a>
+</li>
       <li><a href="api/preprocessing.html#telemetry_anomdet.preprocessing.preprocessing.normalize_fit">normalize_fit() (in module telemetry_anomdet.preprocessing.preprocessing)</a>
 </li>
   </ul></td>
@@ -694,12 +755,16 @@
 </li>
       <li><a href="api/feature_extraction.html#telemetry_anomdet.feature_extraction.features.pivot_wide">pivot_wide() (in module telemetry_anomdet.feature_extraction.features)</a>
 </li>
+      <li><a href="api/visualization.html#telemetry_anomdet.visualization.plot_sensor_graph">plot_sensor_graph() (in module telemetry_anomdet.visualization)</a>
+</li>
       <li><a href="api/evaluation.html#telemetry_anomdet.evaluation.point_adjust">point_adjust() (in module telemetry_anomdet.evaluation)</a>
 </li>
       <li><a href="api/evaluation.html#telemetry_anomdet.evaluation.point_adjusted_f1">point_adjusted_f1() (in module telemetry_anomdet.evaluation)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.POINT_MAX_SAMPLES">POINT_MAX_SAMPLES (in module telemetry_anomdet.ingest.esa)</a>
+</li>
       <li><a href="api/evaluation.html#telemetry_anomdet.evaluation.pr_auc">pr_auc() (in module telemetry_anomdet.evaluation)</a>
 </li>
       <li><a href="api/models/base.html#telemetry_anomdet.models.base.BaseDetector.predict">predict() (telemetry_anomdet.models.base.BaseDetector method)</a>
@@ -724,6 +789,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ingest.html#telemetry_anomdet.ingest.esa.rescope_anomaly_types">rescope_anomaly_types() (in module telemetry_anomdet.ingest.esa)</a>
+</li>
       <li><a href="user_guide/glossary.html#term-Robust-normalization"><strong>Robust normalization</strong></a>
 </li>
   </ul></td>
@@ -738,9 +805,11 @@
 </li>
       <li><a href="api/models/ensemble.html#telemetry_anomdet.models.ensemble.AnomalyEnsemble.score_components">score_components() (telemetry_anomdet.models.ensemble.AnomalyEnsemble method)</a>
 </li>
+      <li><a href="api/models/base.html#telemetry_anomdet.models.base.BaseDetector.score_samples">score_samples() (telemetry_anomdet.models.base.BaseDetector method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/models/base.html#telemetry_anomdet.models.base.BaseDetector.score_samples">score_samples() (telemetry_anomdet.models.base.BaseDetector method)</a>
+      <li><a href="api/models/deep.html#telemetry_anomdet.models.deep.gdn.GDN.scoring_channels_">scoring_channels_ (telemetry_anomdet.models.deep.gdn.GDN property)</a>
 </li>
       <li><a href="api/evaluation.html#telemetry_anomdet.evaluation.sequence_prf">sequence_prf() (in module telemetry_anomdet.evaluation)</a>
 </li>
@@ -780,6 +849,13 @@
 
       <ul>
         <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.csv_loader">module</a>
+</li>
+      </ul></li>
+      <li>
+    telemetry_anomdet.ingest.esa
+
+      <ul>
+        <li><a href="api/ingest.html#module-telemetry_anomdet.ingest.esa">module</a>
 </li>
       </ul></li>
       <li>
@@ -859,6 +935,13 @@
 
       <ul>
         <li><a href="api/thresholding.html#module-telemetry_anomdet.thresholding">module</a>
+</li>
+      </ul></li>
+      <li>
+    telemetry_anomdet.visualization
+
+      <ul>
+        <li><a href="api/visualization.html#module-telemetry_anomdet.visualization">module</a>
 </li>
       </ul></li>
       <li><a href="api/ingest.html#telemetry_anomdet.ingest.dataset.TelemetryDataset">TelemetryDataset (class in telemetry_anomdet.ingest.dataset)</a>

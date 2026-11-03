@@ -46,16 +46,23 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../_static/documentation_options.js?v=e259d695"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/anomaly_scoring';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://julioanzaldo.github.io/telemetry-anomdet/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.3.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="../_static/llm_copy.js?v=f4a7753a"></script>
     <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/user_guide/anomaly_scoring.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Real-Time Integration" href="real_time_integration.html" />
+    <link rel="next" title="Choosing a Feature Transform" href="feature_transforms.html" />
     <link rel="prev" title="Pipeline Overview" href="pipeline_overview.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -130,6 +137,26 @@
     <p class="title logo__title">telemetry_anomdet</p>
   
 </a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
     
   </div>
   
@@ -386,6 +413,7 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="pipeline_overview.html">Pipeline Overview</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Scoring and Thresholding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feature_transforms.html">Choosing a Feature Transform</a></li>
 <li class="toctree-l1"><a class="reference internal" href="real_time_integration.html">Real-Time Integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary</a></li>
 </ul>
@@ -555,9 +583,10 @@ graph’s contribution on this dataset, not as a recommended configuration.</p>
 <p>Two label-free selectors are provided in
 <a class="reference internal" href="../api/thresholding.html#module-telemetry_anomdet.thresholding" title="telemetry_anomdet.thresholding"><code class="xref py py-mod docutils literal notranslate"><span class="pre">telemetry_anomdet.thresholding</span></code></a>.</p>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">threshold_for_budget</span></code></dt><dd><p>Caps the fraction of points flagged. Exactly controllable, which suits a
-deployed trigger: operations can state an alarm rate, but cannot state a
-recall they have no way to observe.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">threshold_for_budget</span></code></dt><dd><p>Caps the fraction of points flagged, as an upper bound rather than a
+target: fewer are flagged when the signal cannot resolve the fraction
+asked for. That suits a deployed trigger, because operations can state an
+alarm rate but cannot state a recall they have no way to observe.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">dynamic_threshold</span></code></dt><dd><p>Chooses a candidate maximising the reduction it produces in the mean and
 standard deviation of the error signal, against the number of points and
@@ -583,6 +612,121 @@ threshold is chosen.</p>
 points are scattered singletons that never form a run of two, so
 <code class="docutils literal notranslate"><span class="pre">filter_sequences</span></code> with its default minimum length discards all of them.</p>
 </section>
+<section id="channels-with-no-error-spread">
+<h2>Channels with no error spread<a class="headerlink" href="#channels-with-no-error-spread" title="Link to this heading">#</a></h2>
+<p>A deviation score divides each channel’s forecast error by that channel’s own
+training median and IQR, which is what makes the channels comparable. A channel
+that never moved during training breaks it: its error IQR is exactly zero, so
+the division returns a number set by the guard epsilon rather than by the data.
+On SMAP three of 25 channels are in this state, all of them command flags that
+sit constant for long stretches, and their deviations reached 1.7e10. Since a
+window’s score is the maximum across channels, those three decided every score
+in the run, which is the mechanism behind the 0.126 event-level F1 measured when
+every channel was allowed to raise an alarm.</p>
+<p><code class="docutils literal notranslate"><span class="pre">GDN</span></code> therefore replaces the spread of such channels with a fraction of their
+own median error, bringing the maximum deviation to 1.29e4, within 1.5 times the
+most extreme healthy channel, and leaving 19 of 25 channels driving scores
+instead of a handful. <code class="docutils literal notranslate"><span class="pre">degenerate_channels_</span></code> reports which channels were
+affected, <code class="docutils literal notranslate"><span class="pre">fit</span></code> warns and names them when they can actually raise an alarm,
+and both graph figures mark them.</p>
+<p>Detecting these channels and repairing them are separate decisions, and
+conflating them is a mistake worth recording. An earlier version used a single
+ratio of 0.02 for both, on the reasoning that no real channel shows spread that
+small relative to its own median error. That holds across the 25-channel input
+and fails on the single-channel one, where the telemetry channel has an IQR of
+3.6e-4 against a median error of 1.8e-2: a ratio of exactly 0.02, so the repair
+reached a channel whose spread was real and changed its scores. Detection now
+triggers only at a spread of zero to within floating point noise, while the
+replacement value stays at 0.02, which it is free to do because it reaches
+nothing else.</p>
+</section>
+<section id="the-shape-of-the-esa-adb-subset">
+<h2>The shape of the ESA-ADB subset<a class="headerlink" href="#the-shape-of-the-esa-adb-subset" title="Link to this heading">#</a></h2>
+<p>Three measurements on the Mission1 lightweight subset (channels 41 to 46) decide
+how the rest of this section has to be read. They are properties of the data, not
+of any detector, and they are what the SMAP defaults get wrong.</p>
+<dl class="simple">
+<dt>The channels are genuinely related</dt><dd><p>Over the year 2000 the off-diagonal cross-channel correlations have a median
+<code class="docutils literal notranslate"><span class="pre">|r|</span></code> of 0.86, and <code class="docutils literal notranslate"><span class="pre">channel_44</span></code> runs anti-correlated at -0.55 against the
+other five. This is the first input in the project where a learned sensor
+graph has something to relate: a SMAP record is one real sensor plus
+near-constant command flags, so the graph detectors were previously only ever
+measured on a lone self-loop or a relation over one-hots.</p>
+</dd>
+<dt>The events are shorter than a plausible window</dt><dd><p>The median annotated segment lasts about 390 s, which is 13 samples at the
+native 30 s cadence, and 62 percent of segments run shorter than 30 samples.
+A window of 30 is already wider than the thing it is meant to catch, so the
+stride matters more here than any hyperparameter carried over from SMAP.</p>
+</dd>
+<dt>Downsampling erases them</dt><dd><p>Resampling is the obvious way to make 14 years of 30 s telemetry tractable,
+and on this dataset it is barely affordable. The median event spans roughly
+13 samples at the native cadence, 3 at a 2 minute rule, 1 at 5 minutes, and
+0.4 at 15 minutes, which is to say it no longer exists. Prefer a slice of the
+split at native cadence over the whole split resampled.</p>
+</dd>
+</dl>
+<p>One annotation detail matters when reading any of these figures: <code class="docutils literal notranslate"><span class="pre">Anomaly</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Rare</span> <span class="pre">Event</span></code> are scored together by the benchmark but mean different things. An
+Anomaly is a fault; a Rare Event is expected behaviour that merely resembles one,
+such as a commanded manoeuvre, a reset, or a calibration.
+<a class="reference internal" href="../api/ingest.html#telemetry_anomdet.ingest.esa.load_esa_labels" title="telemetry_anomdet.ingest.esa.load_esa_labels"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_esa_labels()</span></code></a> keeps the <code class="docutils literal notranslate"><span class="pre">Category</span></code>
+column so either convention can be applied deliberately rather than by accident.</p>
+</section>
+<section id="scoring-esa-adb">
+<h2>Scoring ESA-ADB<a class="headerlink" href="#scoring-esa-adb" title="Link to this heading">#</a></h2>
+<p>The ESA Anomaly Benchmark fixes a protocol of its own, and three of its choices
+differ from the SMAP conventions above in ways that change the code, not just
+the numbers. <code class="docutils literal notranslate"><span class="pre">examples/esa_benchmark.py</span></code> follows it rather than reusing the
+SMAP settings.</p>
+<dl class="simple">
+<dt>An event is an identifier, not a contiguous run</dt><dd><p>One annotated event spans every channel it affects and may be split into
+several disjoint regions on each, deliberately, so that a burst of related
+disturbances counts once rather than five times. Detection is therefore
+scored by grouping segments on their event ID: an event counts as detected
+when any prediction overlaps any of its segments. Treating each region as
+its own event inflates false positives and deflates recall at the same time.</p>
+</dd>
+<dt>F0.5 leads, not F1</dt><dd><p>False alarms are the main obstacle to operational adoption, so the benchmark
+weights precision. F1 is reported beside it, and the two can disagree about
+which operating point is best.</p>
+</dd>
+<dt>Threshold-agnostic metrics are excluded</dt><dd><p>Metrics must be computable from binary detections, so PR-AUC and similar
+scores are outside the comparable set and are not reported.</p>
+</dd>
+</dl>
+<p>The benchmark also treats channel identification as a primary aspect, ranked
+above detection timing: an algorithm that cannot say which channels an alarm
+concerns is of limited use to an operator. <code class="docutils literal notranslate"><span class="pre">channel_deviations</span></code> answers that
+exactly rather than by perturbation, which is unusual enough that the published
+unsupervised baselines leave those cells blank.</p>
+</section>
+<section id="compare-detectors-at-a-matched-alarm-budget">
+<h2>Compare detectors at a matched alarm budget<a class="headerlink" href="#compare-detectors-at-a-matched-alarm-budget" title="Link to this heading">#</a></h2>
+<p>On ESA-ADB every detector measured reached precision 1.000 with zero false
+alarms under <code class="docutils literal notranslate"><span class="pre">dynamic_threshold</span></code>. That sounds like a good result and is
+actually a broken comparison: with precision saturated, the F0.5 ranking was
+decided entirely by how many alarms each model’s threshold happened to admit.
+One configuration raised 39 alarms and detected 15 events; another raised 4 and
+detected 3. That ranks threshold conservatism, not detection quality.</p>
+<p>Holding the alarm budget fixed with <code class="docutils literal notranslate"><span class="pre">threshold_for_budget</span></code> puts every model at
+a comparable alarm rate, which is the only condition under which a recall
+difference means something about the detector. It is also the operationally
+honest control, for the reason given above: an alarm rate can be stated in
+advance, a recall cannot.</p>
+<p>Pruning deserves the same scrutiny, and on this dataset it was the binding
+constraint rather than the threshold. Raising the budget admitted hundreds of
+candidate sequences and pruning then discarded all but the largest, so budgets
+spanning an order of magnitude produced an identical single detection. Switching
+it off moved one configuration’s F0.5 from 0.294 to 0.690 on the same scores.</p>
+<p>That is consistent with the SMAP finding above, and the reason is the same in
+both cases and worth stating plainly: telemanom’s <code class="docutils literal notranslate"><span class="pre">min_decrease</span></code> rule assumes a
+channel has a few long anomalies. ESA-ADB’s Mission1 subset has 65 events across
+seven years with a median annotated segment of 13 samples, and 62 percent of
+segments shorter than 30. The rule discards exactly what such a dataset is made
+of. The same reasoning applies to the window stride: a step of 10 samples steps
+over a 13-sample event, and no hyperparameter recovers a detection the windowing
+never had a chance to see.</p>
+</section>
 </section>
 
 
@@ -605,11 +749,11 @@ points are scattered singletons that never form a run of two, so
       </div>
     </a>
     <a class="right-next"
-       href="real_time_integration.html"
+       href="feature_transforms.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Real-Time Integration</p>
+        <p class="prev-next-title">Choosing a Feature Transform</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -637,6 +781,10 @@ points are scattered singletons that never form a run of two, so
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choosing-what-may-raise-an-alarm">Choosing what may raise an alarm</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-note-on-the-univariate-result">A note on the univariate result</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#selecting-an-operating-point">Selecting an operating point</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#channels-with-no-error-spread">Channels with no error spread</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-shape-of-the-esa-adb-subset">The shape of the ESA-ADB subset</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scoring-esa-adb">Scoring ESA-ADB</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compare-detectors-at-a-matched-alarm-budget">Compare detectors at a matched alarm budget</a></li>
 </ul>
   </nav></div>
 
