@@ -86,11 +86,11 @@ extends to:
 
 .. code-block:: python
 
-    # Phase 3 - per-channel attribution (not yet implemented)
+    # Phase 3: SHAP attribution (not yet implemented)
     # shap_values = explainer.explain(ensemble, X_anomalous)
     # {"sensor_01": 0.42, "sensor_02": 0.18, ...}
 
-    # Phase 4 - LLM diagnostic report (not yet implemented)
+    # Phase 4: LLM diagnostic report (not yet implemented)
     # report = llm_engine.explain(shap_values, context, channel_names)
     # DiagnosticReport(
     #     anomaly_type="power subsystem fault",

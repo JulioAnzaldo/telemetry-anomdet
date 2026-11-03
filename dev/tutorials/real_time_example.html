@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../_static/documentation_options.js?v=e259d695"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/real_time_example';</script>
@@ -547,11 +547,11 @@ producing per-channel attribution weights for every anomalous window.</p>
 <h2>Coming in Phase 3+<a class="headerlink" href="#coming-in-phase-3" title="Link to this heading">#</a></h2>
 <p>Once <code class="docutils literal notranslate"><span class="pre">SHAPExplainer</span></code> and the LLM reasoning layer are implemented, the workflow
 extends to:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Phase 3 - per-channel attribution (not yet implemented)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Phase 3: SHAP attribution (not yet implemented)</span>
 <span class="c1"># shap_values = explainer.explain(ensemble, X_anomalous)</span>
 <span class="c1"># {&quot;sensor_01&quot;: 0.42, &quot;sensor_02&quot;: 0.18, ...}</span>
 
-<span class="c1"># Phase 4 - LLM diagnostic report (not yet implemented)</span>
+<span class="c1"># Phase 4: LLM diagnostic report (not yet implemented)</span>
 <span class="c1"># report = llm_engine.explain(shap_values, context, channel_names)</span>
 <span class="c1"># DiagnosticReport(</span>
 <span class="c1">#     anomaly_type=&quot;power subsystem fault&quot;,</span>
