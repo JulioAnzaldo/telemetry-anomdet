@@ -1,0 +1,893 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>telemetry_anomdet.thresholding &#8212; telemetry_anomdet</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=c33b25c4" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/telemetry_anomdet/thresholding';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../_static/llm_copy.js?v=f4a7753a"></script>
+    <link rel="canonical" href="https://julioanzaldo.github.io/telemetry-anomdet/_modules/telemetry_anomdet/thresholding.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">telemetry_anomdet</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../applications/index.html">
+    Applications
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/JulioAnzaldo/telemetry-anomdet" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/telemetry-anomdet/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../applications/index.html">
+    Applications
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/JulioAnzaldo/telemetry-anomdet" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/telemetry-anomdet/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">telemetry_anomdet.thresholding</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for telemetry_anomdet.thresholding</h1><div class="highlight"><pre>
+<span></span><span class="c1"># src/telemetry_anomdet/thresholding.py</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Label-free thresholding of an anomaly error signal.</span>
+
+<span class="sd">Every threshold this toolkit produced previously came from one of two places: a</span>
+<span class="sd">percentile of the training scores, or a sweep chosen against the test labels.</span>
+<span class="sd">The first ignores the shape of the error distribution; the second is an oracle</span>
+<span class="sd">and cannot be deployed. This module implements the nonparametric dynamic</span>
+<span class="sd">thresholding and pruning of Hundman et al. (2018), which select an operating</span>
+<span class="sd">point from the error signal alone.</span>
+
+<span class="sd">The method has two stages.</span>
+
+<span class="sd">**Threshold selection.** Candidate thresholds are drawn from</span>
+<span class="sd">``eps = mu + z * sigma`` over a range of ``z``. The chosen candidate maximises</span>
+
+<span class="sd">.. math::</span>
+
+<span class="sd">    \\frac{\\Delta\\mu/\\mu + \\Delta\\sigma/\\sigma}{|e_a| + |E_{seq}|^2}</span>
+
+<span class="sd">where ``e_a`` are the errors above the candidate, ``E_seq`` the contiguous runs</span>
+<span class="sd">they form, and ``delta_mu``, ``delta_sigma`` the reductions in the mean and</span>
+<span class="sd">standard deviation of the error signal once those errors are removed.</span>
+
+<span class="sd">The numerator asks how much calmer the signal becomes when the flagged points</span>
+<span class="sd">are taken out: a large reduction means they really were outliers rather than</span>
+<span class="sd">part of the bulk. The denominator prices that reduction. ``|e_a|`` penalises</span>
+<span class="sd">flagging many points, and ``|E_seq|**2`` penalises fragmentation quadratically,</span>
+<span class="sd">so a few coherent events are strongly preferred over the same number of points</span>
+<span class="sd">scattered across the series. The ratio is therefore a signal-to-cost trade</span>
+<span class="sd">resolved without reference to any label.</span>
+
+<span class="sd">**Pruning.** Candidate sequences are ranked by their peak error and a sequence</span>
+<span class="sd">is kept only while consecutive peaks fall off gradually. A large relative drop</span>
+<span class="sd">marks the boundary between genuine anomalies and the nominal tail, and</span>
+<span class="sd">everything below the last such drop is reclassified as nominal. The nominal</span>
+<span class="sd">maximum is appended to the ranking so that a single candidate still has</span>
+<span class="sd">something to be compared against.</span>
+
+<span class="sd">All functions here operate on a plain error array, so the caller decides which</span>
+<span class="sd">errors to pass: training errors for a fixed operating point to deploy, or a</span>
+<span class="sd">trailing window for an adaptive one.</span>
+
+<span class="sd">Choosing between the two selectors: :func:`threshold_for_budget` is exactly</span>
+<span class="sd">controllable and suits a deployed trigger, where operations can state an alarm</span>
+<span class="sd">rate but cannot state a recall they have no way to observe.</span>
+<span class="sd">:func:`dynamic_threshold` needs no budget chosen in advance.</span>
+
+<span class="sd">Two defaults depart from the published method, both because the error signals</span>
+<span class="sd">differ: the candidate range starts lower (see :func:`dynamic_threshold`), and</span>
+<span class="sd">pruning is off. One interaction is worth knowing before deploying a budget: at</span>
+<span class="sd">small budgets the flagged points are scattered singletons that never form a run</span>
+<span class="sd">of two, so :func:`filter_sequences` with its default minimum length discards all</span>
+<span class="sd">of them.</span>
+
+<span class="sd">Measured results on SMAP, and how this module compares with the published</span>
+<span class="sd">implementation, are recorded in the anomaly scoring page of the documentation</span>
+<span class="sd">rather than here, so that they can be revised as the detectors change.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;anomalous_sequences&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;dynamic_threshold&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;threshold_for_budget&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;filter_sequences&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;prune_sequences&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;detect_anomalies&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="threshold_for_budget">
+<a class="viewcode-back" href="../../api/thresholding.html#telemetry_anomdet.thresholding.threshold_for_budget">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">threshold_for_budget</span><span class="p">(</span><span class="n">errors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">budget</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Threshold that flags approximately ``budget`` of the signal.</span>
+
+<span class="sd">    The alarm budget is the operationally meaningful control. Operations can say</span>
+<span class="sd">    how often a trigger may fire; they cannot say what recall they want, because</span>
+<span class="sd">    recall is unobservable without labels. The budget needs no search: it is a</span>
+<span class="sd">    quantile of the errors.</span>
+
+<span class="sd">    When anomalies are a small part of the signal, the flagged fraction tracks</span>
+<span class="sd">    the false alarm rate closely, so choosing a budget sets the false alarm rate</span>
+<span class="sd">    directly and without labels.</span>
+
+<span class="sd">    The fraction achieved is approximate rather than bounded, and can exceed the</span>
+<span class="sd">    budget slightly. Read ``flagged`` in the result for the fraction actually</span>
+<span class="sd">    reached rather than assuming the budget was met exactly.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        errors: Error signal, one value per timestep.</span>
+<span class="sd">        budget: Target fraction of points to flag, in (0, 1).</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: ``threshold``, the ``flagged`` fraction actually achieved, and the</span>
+<span class="sd">        ``n_above`` and ``n_sequences`` it produces.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;</span> <span class="n">budget</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;budget must lie in (0, 1), got </span><span class="si">{</span><span class="n">budget</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">errors</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;errors must not be empty&quot;</span><span class="p">)</span>
+
+    <span class="c1"># TODO(0.3.0): switch to method=&quot;higher&quot; and restore the &quot;no more than the</span>
+    <span class="c1"># budget&quot; guarantee. numpy&#39;s default linear interpolation puts the cutoff</span>
+    <span class="c1"># between two samples, so slightly more than the budget can sit above it:</span>
+    <span class="c1"># 50 points at budget=0.05 flags 3 (0.06) where 2 (0.04) would fit.</span>
+    <span class="c1"># method=&quot;higher&quot; snaps to a real sample and holds the bound. Deferred</span>
+    <span class="c1"># because it shifts the flagged set by one point and the benchmark reads</span>
+    <span class="c1"># this, so it lands with the 0.3.0 rerun (SMAP, MSL, ESA-ADB) rather than</span>
+    <span class="c1"># moving the published numbers twice.</span>
+    <span class="n">threshold</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">budget</span><span class="p">))</span>
+    <span class="n">above</span> <span class="o">=</span> <span class="n">errors</span> <span class="o">&gt;</span> <span class="n">threshold</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;threshold&quot;</span><span class="p">:</span> <span class="n">threshold</span><span class="p">,</span>
+        <span class="s2">&quot;flagged&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">above</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span>
+        <span class="s2">&quot;n_above&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">above</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span>
+        <span class="s2">&quot;n_sequences&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">anomalous_sequences</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">threshold</span><span class="p">)),</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="anomalous_sequences">
+<a class="viewcode-back" href="../../api/thresholding.html#telemetry_anomdet.thresholding.anomalous_sequences">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">anomalous_sequences</span><span class="p">(</span><span class="n">errors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Contiguous runs of errors strictly above a threshold.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        errors: Error signal, one value per timestep.</span>
+<span class="sd">        threshold: Cutoff; a value must exceed it to be included.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list: ``(start, end)`` index pairs, inclusive of both ends.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">threshold</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">flags</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="c1"># Run boundaries are where the flag changes, padded so runs touching either</span>
+    <span class="c1"># end of the series are closed properly.</span>
+    <span class="n">padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="kc">False</span><span class="p">],</span> <span class="n">flags</span><span class="p">,</span> <span class="p">[</span><span class="kc">False</span><span class="p">]))</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">padded</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">!=</span> <span class="n">padded</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="nb">int</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">edges</span><span class="p">[::</span><span class="mi">2</span><span class="p">],</span> <span class="n">edges</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">],</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_candidate_thresholds</span><span class="p">(</span>
+    <span class="n">errors</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">strategy</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">n_candidates</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">z_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">q_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Threshold candidates to evaluate, by strategy. See :func:`dynamic_threshold`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;quantile&quot;</span><span class="p">:</span>
+        <span class="n">qs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">q_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">q_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_candidates</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">qs</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;sigma&quot;</span><span class="p">:</span>
+        <span class="n">zs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">z_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">z_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_candidates</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">+</span> <span class="n">zs</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">std</span><span class="p">())</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;strategy must be &#39;quantile&#39; or &#39;sigma&#39;, got </span><span class="si">{</span><span class="n">strategy</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="dynamic_threshold">
+<a class="viewcode-back" href="../../api/thresholding.html#telemetry_anomdet.thresholding.dynamic_threshold">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dynamic_threshold</span><span class="p">(</span>
+    <span class="n">errors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">strategy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;sigma&quot;</span><span class="p">,</span>
+    <span class="n">n_candidates</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">120</span><span class="p">,</span>
+    <span class="n">z_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">),</span>
+    <span class="n">q_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.80</span><span class="p">,</span> <span class="mf">0.9999</span><span class="p">),</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Choose a threshold from the error signal alone, with no labels.</span>
+
+<span class="sd">    Each candidate is scored by the objective described in the module docstring:</span>
+<span class="sd">    the reduction it produces in the mean and standard deviation of the error</span>
+<span class="sd">    signal, divided by the number of points and the square of the number of</span>
+<span class="sd">    sequences it flags.</span>
+
+<span class="sd">    Two candidate sets are available.</span>
+
+<span class="sd">    ``&quot;sigma&quot;`` (default)</span>
+<span class="sd">        ``mu + z * sigma`` for ``z`` spanning ``z_range``, as published.</span>
+
+<span class="sd">    ``&quot;quantile&quot;``</span>
+<span class="sd">        Evenly spaced upper quantiles of the errors, spanning ``q_range``.</span>
+
+<span class="sd">    Which set is better depends on the signal, and the measured difference is</span>
+<span class="sd">    small, so the published choice is the default.</span>
+
+<span class="sd">    The lower end of ``z_range`` matters more, and the default of 1.0 departs</span>
+<span class="sd">    from the published 2.5 deliberately. Deviation scores here are already</span>
+<span class="sd">    normalised by each node&#39;s training median and IQR, so their distribution is</span>
+<span class="sd">    much tighter than the smoothed prediction errors the original method was</span>
+<span class="sd">    tuned on, and a floor of 2.5 sits past the region where useful thresholds</span>
+<span class="sd">    lie. The choice was validated on held-out channels; see the anomaly scoring</span>
+<span class="sd">    page of the documentation.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        errors: Error signal, one value per timestep.</span>
+<span class="sd">        strategy: ``&quot;quantile&quot;`` or ``&quot;sigma&quot;``.</span>
+<span class="sd">        n_candidates: How many candidates to evaluate.</span>
+<span class="sd">        z_range: Range of ``z`` for the sigma strategy.</span>
+<span class="sd">        q_range: Range of quantiles for the quantile strategy.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: ``threshold``, the objective ``score``, the ``n_above`` and</span>
+<span class="sd">        ``n_sequences`` it flags, and the ``strategy`` used. When no candidate</span>
+<span class="sd">        flags anything, ``threshold`` is the maximum error so that nothing</span>
+<span class="sd">        exceeds it and ``score`` is 0.0.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">errors</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;errors must not be empty&quot;</span><span class="p">)</span>
+
+    <span class="n">mu</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">std</span><span class="p">())</span>
+    <span class="n">none_found</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;threshold&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span>
+        <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="s2">&quot;n_above&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;n_sequences&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;strategy&quot;</span><span class="p">:</span> <span class="n">strategy</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="c1"># A flat signal has no outliers to find, and the objective would divide by</span>
+    <span class="c1"># zero on both terms.</span>
+    <span class="k">if</span> <span class="n">sigma</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="n">mu</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">_candidate_thresholds</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">strategy</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">z_range</span><span class="p">,</span> <span class="n">q_range</span><span class="p">)</span>  <span class="c1"># validate strategy</span>
+        <span class="k">return</span> <span class="n">none_found</span>
+
+    <span class="n">best</span> <span class="o">=</span> <span class="n">none_found</span>
+    <span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">_candidate_thresholds</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">strategy</span><span class="p">,</span> <span class="n">n_candidates</span><span class="p">,</span> <span class="n">z_range</span><span class="p">,</span> <span class="n">q_range</span><span class="p">):</span>
+        <span class="n">above</span> <span class="o">=</span> <span class="n">errors</span> <span class="o">&gt;</span> <span class="n">candidate</span>
+        <span class="n">n_above</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">above</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">n_above</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">n_above</span> <span class="o">==</span> <span class="n">errors</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">below</span> <span class="o">=</span> <span class="n">errors</span><span class="p">[</span><span class="o">~</span><span class="n">above</span><span class="p">]</span>
+        <span class="n">delta_mu</span> <span class="o">=</span> <span class="n">mu</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">below</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+        <span class="n">delta_sigma</span> <span class="o">=</span> <span class="n">sigma</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">below</span><span class="o">.</span><span class="n">std</span><span class="p">())</span>
+        <span class="n">n_sequences</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">anomalous_sequences</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">candidate</span><span class="p">))</span>
+
+        <span class="n">score</span> <span class="o">=</span> <span class="p">(</span><span class="n">delta_mu</span> <span class="o">/</span> <span class="n">mu</span> <span class="o">+</span> <span class="n">delta_sigma</span> <span class="o">/</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">n_above</span> <span class="o">+</span> <span class="n">n_sequences</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="n">best</span><span class="p">[</span><span class="s2">&quot;score&quot;</span><span class="p">]:</span>
+            <span class="n">best</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;threshold&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">candidate</span><span class="p">),</span>
+                <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">score</span><span class="p">),</span>
+                <span class="s2">&quot;n_above&quot;</span><span class="p">:</span> <span class="n">n_above</span><span class="p">,</span>
+                <span class="s2">&quot;n_sequences&quot;</span><span class="p">:</span> <span class="n">n_sequences</span><span class="p">,</span>
+                <span class="s2">&quot;strategy&quot;</span><span class="p">:</span> <span class="n">strategy</span><span class="p">,</span>
+            <span class="p">}</span>
+    <span class="k">return</span> <span class="n">best</span></div>
+
+
+
+<div class="viewcode-block" id="filter_sequences">
+<a class="viewcode-back" href="../../api/thresholding.html#telemetry_anomdet.thresholding.filter_sequences">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">filter_sequences</span><span class="p">(</span>
+    <span class="n">sequences</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+    <span class="n">min_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">ignore_before</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Drop predictions that the detection protocol treats as unusable.</span>
+
+<span class="sd">    Two filters, both taken from telemanom, applied to sequences before they are</span>
+<span class="sd">    scored or acted on.</span>
+
+<span class="sd">    ``min_length`` discards runs shorter than the given length. A single</span>
+<span class="sd">    isolated sample above the threshold is a spike in the error signal rather</span>
+<span class="sd">    than an event, and telemanom never promotes one to a sequence.</span>
+
+<span class="sd">    ``ignore_before`` discards sequences ending before the given index. A</span>
+<span class="sd">    forecaster has no history at the start of a stream, so its errors there</span>
+<span class="sd">    reflect the cold start rather than the data. telemanom skips the opening</span>
+<span class="sd">    ``2 * l_s`` samples, halving that for shorter streams and skipping nothing</span>
+<span class="sd">    for very short ones.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        sequences: Predicted ``(start, end)`` ranges, inclusive.</span>
+<span class="sd">        min_length: Shortest run to keep, in samples.</span>
+<span class="sd">        ignore_before: Index before which sequences are discarded.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list: The retained subset, in the original order.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">sequences</span> <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">min_length</span> <span class="ow">and</span> <span class="n">b</span> <span class="o">&gt;=</span> <span class="n">ignore_before</span><span class="p">]</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">startup_skip</span><span class="p">(</span><span class="n">n_samples</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    How many opening samples to ignore, following telemanom&#39;s rule.</span>
+
+<span class="sd">    Errors at the start of a stream reflect the model&#39;s lack of history. The</span>
+<span class="sd">    published rule skips twice the context length, halves that when the stream</span>
+<span class="sd">    is under 2500 samples, and skips nothing under 1800, so that short streams</span>
+<span class="sd">    are not discarded entirely.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        n_samples: Length of the scored stream.</span>
+<span class="sd">        context: Model context length in samples.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        int: Index before which predictions should be ignored.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">n_samples</span> <span class="o">&lt;</span> <span class="mi">1800</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">context</span> <span class="k">if</span> <span class="n">n_samples</span> <span class="o">&lt;</span> <span class="mi">2500</span> <span class="k">else</span> <span class="n">context</span> <span class="o">*</span> <span class="mi">2</span>
+
+
+<div class="viewcode-block" id="prune_sequences">
+<a class="viewcode-back" href="../../api/thresholding.html#telemetry_anomdet.thresholding.prune_sequences">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">prune_sequences</span><span class="p">(</span>
+    <span class="n">errors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">sequences</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+    <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">min_decrease</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.13</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Drop candidate sequences that are not clearly separated from the nominal tail.</span>
+
+<span class="sd">    Sequences are ranked by peak error, the nominal maximum is appended, and the</span>
+<span class="sd">    relative drop between consecutive peaks is examined. Everything below the</span>
+<span class="sd">    last drop exceeding ``min_decrease`` is reclassified as nominal: a gradual</span>
+<span class="sd">    decline means the remaining candidates are part of the same population,</span>
+<span class="sd">    whereas a sharp fall marks a real boundary.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        errors: Error signal the sequences were found in.</span>
+<span class="sd">        sequences: Candidate ``(start, end)`` pairs from :func:`anomalous_sequences`.</span>
+<span class="sd">        threshold: The threshold used to find them, needed to identify the</span>
+<span class="sd">            nominal population.</span>
+<span class="sd">        min_decrease: Relative drop that counts as a boundary, as a fraction.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list: The retained subset of ``sequences``, in their original order.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">sequences</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="n">peaks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">errors</span><span class="p">[</span><span class="n">start</span> <span class="p">:</span> <span class="n">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">sequences</span><span class="p">])</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="o">-</span><span class="n">peaks</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;stable&quot;</span><span class="p">)</span>
+
+    <span class="n">below</span> <span class="o">=</span> <span class="n">errors</span><span class="p">[</span><span class="n">errors</span> <span class="o">&lt;=</span> <span class="n">threshold</span><span class="p">]</span>
+    <span class="n">nominal_max</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">below</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="k">if</span> <span class="n">below</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="n">ranked</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">peaks</span><span class="p">[</span><span class="n">order</span><span class="p">],</span> <span class="p">[</span><span class="n">nominal_max</span><span class="p">]))</span>
+
+    <span class="c1"># Walk the ranking and remember the last position where the peak falls away</span>
+    <span class="c1"># sharply. Everything above that position is kept.</span>
+    <span class="n">keep_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ranked</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ranked</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">drop</span> <span class="o">=</span> <span class="p">(</span><span class="n">ranked</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranked</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="n">ranked</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">drop</span> <span class="o">&gt;</span> <span class="n">min_decrease</span><span class="p">:</span>
+            <span class="n">keep_count</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="n">kept</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">order</span><span class="p">[:</span><span class="n">keep_count</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">sequences</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">kept</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="detect_anomalies">
+<a class="viewcode-back" href="../../api/thresholding.html#telemetry_anomdet.thresholding.detect_anomalies">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">detect_anomalies</span><span class="p">(</span>
+    <span class="n">errors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_decrease</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.13</span><span class="p">,</span>
+    <span class="n">prune</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">threshold_kwargs</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Full label-free detection: choose a threshold, find sequences, prune them.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        errors: Error signal, one value per timestep.</span>
+<span class="sd">        threshold: Use this cutoff instead of selecting one. Useful for applying</span>
+<span class="sd">            an operating point derived from training errors to new data.</span>
+<span class="sd">        min_decrease: Passed to :func:`prune_sequences`.</span>
+<span class="sd">        prune: Set False to keep every sequence above the threshold.</span>
+<span class="sd">        **threshold_kwargs: Passed to :func:`dynamic_threshold`.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: ``mask`` (boolean, one entry per timestep), ``threshold``,</span>
+<span class="sd">        ``sequences`` retained, and ``n_pruned`` sequences discarded.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">threshold</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">chosen</span> <span class="o">=</span> <span class="n">dynamic_threshold</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="o">**</span><span class="n">threshold_kwargs</span><span class="p">)</span>
+        <span class="n">threshold</span> <span class="o">=</span> <span class="n">chosen</span><span class="p">[</span><span class="s2">&quot;threshold&quot;</span><span class="p">]</span>
+
+    <span class="n">found</span> <span class="o">=</span> <span class="n">anomalous_sequences</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">threshold</span><span class="p">)</span>
+    <span class="n">kept</span> <span class="o">=</span> <span class="n">prune_sequences</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">found</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">min_decrease</span><span class="p">)</span> <span class="k">if</span> <span class="n">prune</span> <span class="k">else</span> <span class="n">found</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">kept</span><span class="p">:</span>
+        <span class="n">mask</span><span class="p">[</span><span class="n">start</span> <span class="p">:</span> <span class="n">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;mask&quot;</span><span class="p">:</span> <span class="n">mask</span><span class="p">,</span>
+        <span class="s2">&quot;threshold&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">threshold</span><span class="p">),</span>
+        <span class="s2">&quot;sequences&quot;</span><span class="p">:</span> <span class="n">kept</span><span class="p">,</span>
+        <span class="s2">&quot;n_pruned&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">found</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">kept</span><span class="p">),</span>
+    <span class="p">}</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Julio Anzaldo.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
